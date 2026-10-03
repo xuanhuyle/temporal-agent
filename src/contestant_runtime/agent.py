@@ -2,15 +2,18 @@
 
 Lifecycle (milestone-2 design section 8)::
 
-    setup(ctx)          memory.open(state_dir, restart=ctx.restart_count > 0)
+    setup(ctx)          memory.use_model_settings(ctx.model); memory.open(state_dir, restart=ctx.restart_count > 0)
     on_start(tools)     memory.ingest_seed -> optional <<start>> loop -> memory.after_start -> checkpoint
     on_event(e, tools)  memory.record_event (first) -> observe_world -> build_context -> loop
                         -> after_event -> checkpoint
     teardown()          checkpoint
 
 Subclasses provide :meth:`make_memory` and, usually, :meth:`resolve_config`.
-Everything else (prompts, environment tools, loop limits, action conversion)
-is shared, so contestants differ only in their memory system.
+Everything else (prompts, environment tools, the runtime's ``read_lines``,
+loop limits, action conversion) is shared, so contestants differ only in
+their memory system. The standing working guidance in the system prompt is a
+recorded configuration choice (``runtime_guidance``: ``maintainer`` or
+``minimal``); ``describe()`` records the variant, its full text and its hash.
 """
 
 from __future__ import annotations
@@ -21,11 +24,13 @@ from typing import Any
 from harness.agent import Agent, AgentContext, AgentEvent, AgentResponse, NoteAction, Usage
 from harness.llm import ModelRequest
 
-from contestant_runtime.loop import LoopConfig, LoopResult, env_catalogue, run_event
+from contestant_runtime.loop import RUNTIME_TOOLS, LoopConfig, LoopResult, env_catalogue, run_event
 from contestant_runtime.memory import ContextPack, EventOutcome, MemorySystem
 from contestant_runtime.protocol import (
+    GUIDANCE_VARIANTS,
     PROTOCOL_VERSION,
     guidance_sha256,
+    runtime_rules,
     render_event_message,
     render_start_message,
     render_system_prompt,
@@ -36,14 +41,15 @@ __all__ = ["LLMAgent", "RUNTIME_DEFAULTS", "loop_config_from"]
 # Runtime (loop) configuration keys and their defaults. Subclasses merge
 # these with their memory-system keys in ``resolve_config``.
 RUNTIME_DEFAULTS: dict[str, Any] = {
-    "max_turns": 12,
-    "observation_chars": 8000,
+    "max_turns": 20,
+    "observation_chars": 24000,
     "transcript_chars": 120_000,
     "max_protocol_retries": 2,
     "max_actions": 32,
     "memory_chars": 6000,
     "max_output_tokens": None,
     "start_turn": True,
+    "runtime_guidance": "maintainer",  # maintainer | minimal (protocol.WORK_GUIDANCE)
 }
 _LOOP_KEYS = ("max_turns", "observation_chars", "transcript_chars", "max_protocol_retries", "max_actions",
               "memory_chars", "max_output_tokens")
@@ -110,6 +116,9 @@ class LLMAgent(Agent):
         cfg.update(raw)
         if not isinstance(cfg["start_turn"], bool):
             raise ValueError("start_turn must be a boolean")
+        if cfg["runtime_guidance"] not in GUIDANCE_VARIANTS:
+            raise ValueError(f"runtime_guidance must be one of {', '.join(GUIDANCE_VARIANTS)}, "
+                             f"got {cfg['runtime_guidance']!r}")
         loop_config_from(cfg)  # validates the loop keys
         return cfg
 
@@ -120,7 +129,9 @@ class LLMAgent(Agent):
     def describe(self) -> dict[str, Any]:
         config = dict(self.config)
         config["protocol"] = PROTOCOL_VERSION
-        config["runtime_guidance_sha256"] = guidance_sha256()
+        config["runtime_tools"] = list(RUNTIME_TOOLS)
+        config["runtime_guidance_text"] = runtime_rules(self.config["runtime_guidance"])
+        config["runtime_guidance_sha256"] = guidance_sha256(self.config["runtime_guidance"])
         config["memory_system"] = self.make_memory(self.config).describe()
         return {"kind": self.kind, "role": self.role, "config": config}
 
@@ -133,12 +144,13 @@ class LLMAgent(Agent):
     def setup(self, context: AgentContext) -> None:
         super().setup(context)
         self.memory = self.make_memory(self.config)
+        self.memory.use_model_settings(context.model)
         self.memory.open(context.state_dir, restart=context.restart_count > 0)
 
     def _system_prompt(self) -> str:
         assert self.context is not None
         catalogue = env_catalogue() + [t.catalogue_entry() for t in self._mem().local_tools()]
-        return render_system_prompt(self.context.instructions, catalogue)
+        return render_system_prompt(self.context.instructions, catalogue, self.config["runtime_guidance"])
 
     def _loop(self, tools: Any, first_message: str, pack: ContextPack) -> LoopResult:
         memory = self._mem()
@@ -150,6 +162,7 @@ class LLMAgent(Agent):
             config=self.loop_config,
             retrieval_chars=pack.retrieval_chars,
             reserve_model_calls=memory.reserved_model_calls(),
+            before_workspace_change=memory.before_workspace_change,
         )
 
     @staticmethod

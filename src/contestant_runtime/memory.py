@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
-from harness.agent import Action, AgentEvent
+from harness.agent import Action, AgentEvent, ModelSettings
 from harness.errors import ToolError
 from harness.tool_specs import REQUIRED, ArgSpec, check_arg
 
@@ -116,13 +116,13 @@ class EventOutcome:
 class MemorySystem(ABC):
     """A contestant's memory. Lifecycle (driven by ``contestant_runtime.agent.LLMAgent``)::
 
-        open(state_dir, restart=...)
+        use_model_settings(settings); open(state_dir, restart=...)
         ingest_seed(tools); start_context(tools); after_start(outcome, tools); checkpoint()   # step 0
         for each event:
             record_event(event)            # first, before anything else (persist the raw event)
             observe_world(event, tools)
             build_context(event, tools)
-            ... model loop with local_tools() ...
+            ... model loop with local_tools(); before_workspace_change(op, path) before each write/delete ...
             after_event(event, outcome, tools)
             checkpoint()
         checkpoint()                        # teardown
@@ -179,3 +179,21 @@ class MemorySystem(ABC):
     def reserved_model_calls(self) -> int:
         """Model calls ``after_event`` may need; the loop leaves them unused."""
         return 0
+
+    # Optional hooks ------------------------------------------------------------
+    def use_model_settings(self, settings: ModelSettings) -> None:
+        """The run's model and embedding settings (``AgentContext.model``), given before ``open``.
+
+        Lets a memory system describe its tools accurately (for example which
+        embedding provider backs a vector channel). Default: ignored.
+        """
+        return None
+
+    def before_workspace_change(self, op: str, path: str) -> None:
+        """Called by the loop just before it executes ``write_file`` or ``delete_file`` (``op``) on ``path``.
+
+        Runs before the change, so a memory system can log the intent durably
+        and, if the step is cut short (timeout, crash) before ``after_event``,
+        re-index the path after the restart. Default: nothing.
+        """
+        return None

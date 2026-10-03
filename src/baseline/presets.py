@@ -20,6 +20,7 @@ from __future__ import annotations
 from typing import Any
 
 from contestant_runtime.agent import RUNTIME_DEFAULTS
+from contestant_runtime.protocol import GUIDANCE_VARIANTS
 
 __all__ = ["MEMORY_DEFAULTS", "DEFAULTS", "PRESETS", "DEFAULT_PRESET", "resolve_config"]
 
@@ -58,7 +59,8 @@ PRESETS: dict[str, dict[str, Any]] = {
 }
 DEFAULT_PRESET = "k32"
 
-_CHOICES = {"mode": ("rag", "full", "none"), "retrieval": ("hybrid", "lexical", "dense"), "summary": ("rolling", "none")}
+_CHOICES = {"mode": ("rag", "full", "none"), "retrieval": ("hybrid", "lexical", "dense"), "summary": ("rolling", "none"),
+            "runtime_guidance": GUIDANCE_VARIANTS}
 _BOOLS = ("query_expansion", "start_turn")
 _NON_NEGATIVE = ("recent_events", "chunk_overlap", "max_protocol_retries", "ingest_reserve_tool_calls",
                  "event_reserve_tool_calls", "lazy_index_per_event", "max_expansion_queries")

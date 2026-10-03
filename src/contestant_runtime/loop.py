@@ -17,15 +17,25 @@ Budget handling (milestone-2 design section 8):
 - a workspace, history or command call is not attempted when its budget is
   exhausted; the model gets a ``status=budget`` observation instead;
 - the request size is estimated with the harness's documented rule
-  (``ceil(utf8_bytes / 4)`` plus 4 per message) times a safety factor, and the
-  transcript is compacted, or the step ended, before a call could exceed the
-  input-token budget;
+  (``ceil(utf8_bytes / 4)`` plus 4 per message) times a safety factor. When
+  the remaining input-token budget could not pay for this request and one more
+  of the same size, the transcript is compacted hard; if that is still not
+  enough, the request asks for a final answer only. The step ends without a
+  final answer only when even that request does not fit;
 - ``BudgetExceeded`` is never caught: if it is raised anyway the harness
   records the step as ``budget_exceeded``.
 
 Tool failures (``ToolError``, ``AccessDenied``) become observations. The
 transcript is bounded: above ``transcript_chars`` the oldest exchanges are
 abbreviated (never the first message, never the most recent exchanges).
+
+Besides the harness's environment tools the runtime offers one tool of its
+own, identically to every contestant: ``read_lines(path, start, end,
+seq=None)`` returns numbered lines of a workspace file (or of a past state
+with ``seq``) through one ``read_file`` / ``read_at`` call, so it costs one
+harness tool call. When a ``read_file`` / ``read_at`` observation is cut at
+``observation_chars``, the cut is made at line boundaries and the observation
+names the omitted lines and the ``read_lines`` call that reads them.
 """
 
 from __future__ import annotations
@@ -33,7 +43,7 @@ from __future__ import annotations
 import json
 import math
 from dataclasses import dataclass, field
-from typing import Any, Sequence
+from typing import Any, Callable, Sequence
 
 from harness.agent import (
     HISTORICAL_STATE_KEYS,
@@ -45,7 +55,7 @@ from harness.agent import (
 )
 from harness.errors import AccessDenied, ToolError
 from harness.llm import ModelMessage, ModelRequest, ModelResponse
-from harness.tool_specs import COUNTED_FAMILIES, TOOL_SPECS, bind_args, check_arg
+from harness.tool_specs import COUNTED_FAMILIES, TOOL_SPECS, ArgSpec, bind_args, check_arg
 
 from contestant_runtime.memory import LocalTool
 from contestant_runtime.protocol import (
@@ -60,6 +70,8 @@ from contestant_runtime.protocol import (
 
 __all__ = [
     "ENV_TOOLS",
+    "RUNTIME_TOOLS",
+    "OFFERED_TOOLS",
     "LoopConfig",
     "LoopResult",
     "env_catalogue",
@@ -72,6 +84,20 @@ __all__ = [
 # The environment tools offered to the model: every counted tool of the
 # harness table (workspace, history, command), never the model family.
 ENV_TOOLS: tuple[str, ...] = tuple(n for n, s in TOOL_SPECS.items() if s.family in COUNTED_FAMILIES)
+
+# Tools the runtime itself provides on top of the environment tools, the same
+# for every contestant. Each is implemented with environment tool calls and
+# costs what those calls cost.
+READ_LINES_ARGS: tuple[ArgSpec, ...] = (ArgSpec("path", "str"), ArgSpec("start", "int"), ArgSpec("end", "int"),
+                                        ArgSpec("seq", "opt_int", None))
+READ_LINES_DOC = (
+    "Numbered lines start..end (1-based, inclusive) of a file in your current workspace, or of the file as it "
+    "was after event seq when seq is given. Use it to read the part of a file that an observation left out; "
+    "it costs one tool call, like read_file."
+)
+RUNTIME_TOOLS: tuple[str, ...] = ("read_lines",)
+OFFERED_TOOLS: tuple[str, ...] = ENV_TOOLS + RUNTIME_TOOLS
+FILE_READ_TOOLS = ("read_file", "read_at")
 
 FINAL_ONLY_TEXT = (
     "<<final-only>> No more tool calls are possible in this event. Reply now with your final "
@@ -88,7 +114,10 @@ MAX_EVIDENCE_CHARS = 128
 
 
 def env_catalogue() -> list[CatalogueEntry]:
-    return [CatalogueEntry(n, TOOL_SPECS[n].args, TOOL_SPECS[n].doc) for n in ENV_TOOLS]
+    """Catalogue of the tools every contestant gets: the environment tools, then the runtime's own tools."""
+    out = [CatalogueEntry(n, TOOL_SPECS[n].args, TOOL_SPECS[n].doc) for n in ENV_TOOLS]
+    out.append(CatalogueEntry("read_lines", READ_LINES_ARGS, READ_LINES_DOC))
+    return out
 
 
 @dataclass(frozen=True)
@@ -97,7 +126,8 @@ class LoopConfig:
 
     - ``max_turns``: model calls in the loop for one step (one more is allowed
       once if the model ignores a final-only request);
-    - ``observation_chars``: size cap of one observation (head and tail kept);
+    - ``observation_chars``: size cap of one observation (head and tail kept;
+      a cut file read names the omitted lines and how to read them);
     - ``transcript_chars``: above this, the oldest exchanges are abbreviated;
     - ``max_protocol_retries``: consecutive unparseable replies tolerated;
     - ``max_actions``: actions kept from a final answer;
@@ -108,8 +138,8 @@ class LoopConfig:
     - ``min_output_tokens``: below this many remaining output tokens no call is made.
     """
 
-    max_turns: int = 12
-    observation_chars: int = 8000
+    max_turns: int = 20
+    observation_chars: int = 24000
     transcript_chars: int = 120_000
     max_protocol_retries: int = 2
     max_actions: int = 32
@@ -307,10 +337,121 @@ def format_tool_result(name: str, result: Any) -> str:
         return repr(result)
 
 
+def _read_lines_call(path: str, start: int, end: int, seq: int | None) -> str:
+    args = f"path={json.dumps(path, ensure_ascii=False)}, start={start}, end={end}"
+    return f"read_lines({args}" + (f", seq={seq})" if seq is not None else ")")
+
+
+# Characters kept free in a cut file observation for the omission marker.
+_MARKER_RESERVE = 400
+
+
+def file_view(text: str, max_chars: int, path: str, seq: int | None = None) -> str:
+    """A file's text cut to about ``max_chars`` at line boundaries (head and tail kept).
+
+    The marker in the middle names the omitted lines and the ``read_lines``
+    call that reads them. A text without usable line breaks is cut by
+    characters, with a note on how to read it in parts. A text that fits is
+    returned unchanged.
+    """
+    if len(text) <= max_chars:
+        return text
+    lines = text.splitlines(keepends=True)
+    n = len(lines)
+    budget = max(0, max_chars - _MARKER_RESERVE)
+    head_budget = (budget * 7) // 10
+    tail_budget = budget - head_budget
+    head = used = 0
+    while head < n and used + len(lines[head]) <= head_budget:
+        used += len(lines[head])
+        head += 1
+    tail = used = 0
+    while tail < n - head and used + len(lines[n - 1 - tail]) <= tail_budget:
+        used += len(lines[n - 1 - tail])
+        tail += 1
+    first, last = head + 1, n - tail
+    if head == 0 or first > last:
+        cut = truncate_text(text, budget)
+        return (f"{cut}\n[this file has {n} line(s) and {len(text)} characters, more than one observation can "
+                f"show; read it in parts with {_read_lines_call(path, 1, min(n, 50), seq)} and so on]")
+    omitted = sum(len(x) for x in lines[head:n - tail])
+    head_text = "".join(lines[:head])
+    if not head_text.endswith("\n"):
+        head_text += "\n"
+    marker = (f"[... lines {first}-{last} of {n} omitted ({omitted} characters); read them with "
+              f"{_read_lines_call(path, first, last, seq)} ...]\n")
+    return head_text + marker + "".join(lines[n - tail:])
+
+
+def _numbered_lines(text: str, path: str, start: int, end: int, seq: int | None, max_chars: int) -> str:
+    """The ``read_lines`` observation text: a header and lines ``start..end`` as ``N| text``, within ``max_chars``."""
+    lines = text.splitlines()
+    n = len(lines)
+    where = f"{path} as it was after seq {seq}" if seq is not None else path
+    if n == 0:
+        return f"{where}: empty file"
+    if start > n:
+        raise ToolError(f"read_lines: start {start} is past the end of {where} ({n} line(s))")
+    end = min(end, n)
+    width = len(str(end))
+    out: list[str] = []
+    size = 0
+    last = start - 1
+    budget = max(1, max_chars - 300)
+    for i in range(start, end + 1):
+        row = f"{i:>{width}}| {lines[i - 1]}"
+        if out and size + len(row) + 1 > budget:
+            break
+        out.append(row)
+        size += len(row) + 1
+        last = i
+    header = f"{where}: lines {start}-{last} of {n}"
+    text_out = header + "\n" + "\n".join(out)
+    if last < end:
+        text_out += (f"\n[output limit reached; continue with {_read_lines_call(path, last + 1, end, seq)}]")
+    return text_out
+
+
+_READ_LINES_BINDER = LocalTool("read_lines", READ_LINES_ARGS, READ_LINES_DOC, lambda tools, args: "")
+_BUDGET_TEXT = ("The tool-call budget of this event is exhausted: no more workspace, history or command calls "
+                "are possible. Give your final answer.")
+
+
+def _execute_read_lines(tools: Any, call: ToolCall, max_chars: int) -> tuple[str, str]:
+    try:
+        bound = _READ_LINES_BINDER.bind(call.args)
+    except ToolError as exc:
+        return "error", str(exc)
+    path, start, end, seq = bound["path"], bound["start"], bound["end"], bound["seq"]
+    if start < 1 or end < start:
+        return "error", "read_lines: start must be >= 1 and end must be >= start"
+    if remaining(tools)["tool_calls"] < 1:
+        return "budget", _BUDGET_TEXT
+    try:
+        text = tools.read_file(path) if seq is None else tools.read_at(seq, path)
+        if not isinstance(text, str):
+            raise ToolError(f"read_lines: unexpected result for {path!r}")
+        return "ok", _numbered_lines(text, path, start, end, seq, max_chars)
+    except AccessDenied as exc:
+        return "denied", str(exc)
+    except ToolError as exc:
+        return "error", str(exc)
+
+
 def _execute(
-    tools: Any, call: ToolCall, local: dict[str, LocalTool], writes: dict[str, str | None]
+    tools: Any,
+    call: ToolCall,
+    local: dict[str, LocalTool],
+    writes: dict[str, str | None],
+    *,
+    max_chars: int,
+    before_change: Callable[[str, str], None] | None = None,
 ) -> tuple[str, str, bool, int | None]:
-    """Run one tool call. Returns (status, text, is_memory_tool, max_chars override)."""
+    """Run one tool call. Returns (status, text, is_memory_tool, max_chars override).
+
+    ``max_chars`` is the observation cap; ``before_change(op, path)`` is called
+    just before a ``write_file`` / ``delete_file`` is executed.
+    """
     if call.name in local:
         lt = local[call.name]
         try:
@@ -320,8 +461,11 @@ def _execute(
             return "denied", str(exc), True, None
         except ToolError as exc:
             return "error", str(exc), True, None
+    if call.name == "read_lines":
+        status, text = _execute_read_lines(tools, call, max_chars)
+        return status, text, False, None
     if call.name not in ENV_TOOLS:
-        offered = ", ".join(list(ENV_TOOLS) + sorted(local))
+        offered = ", ".join(list(OFFERED_TOOLS) + sorted(local))
         return "error", f"unknown tool {call.name!r}; available tools: {offered}", False, None
     try:
         bound = bind_args(call.name, (), dict(call.args))
@@ -333,11 +477,12 @@ def _execute(
             return "error", problem, False, None
     rem = remaining(tools)
     if rem["tool_calls"] < 1:
-        return "budget", "The tool-call budget of this event is exhausted: no more workspace, history or " \
-                         "command calls are possible. Give your final answer.", False, None
+        return "budget", _BUDGET_TEXT, False, None
     if call.name == "run_command" and rem["commands"] < 1:
         return "budget", "The command budget of this event is exhausted: run_command is no longer possible.", \
             False, None
+    if call.name in ("write_file", "delete_file") and before_change is not None:
+        before_change(call.name, _normalize_path(bound["path"]))
     try:
         result = getattr(tools, call.name)(**bound)
     except AccessDenied as exc:
@@ -352,7 +497,11 @@ def _execute(
         writes.pop(_normalize_path(bound["path"]), None)
         writes[_normalize_path(bound["path"])] = None
         return "ok", f"deleted {bound['path']}", False, None
-    return "ok", format_tool_result(call.name, result), False, None
+    text = format_tool_result(call.name, result)
+    if call.name in FILE_READ_TOOLS and len(text) > max_chars:
+        text = file_view(text, max_chars, bound["path"], bound.get("seq"))
+        return "ok", text, False, max(max_chars, len(text))  # already cut: no second, blind cut
+    return "ok", text, False, None
 
 
 # -------------------------------------------------------------------- actions
@@ -442,27 +591,46 @@ def run_event(
     config: LoopConfig | None = None,
     retrieval_chars: int = 0,
     reserve_model_calls: int = 0,
+    before_workspace_change: Callable[[str, str], None] | None = None,
 ) -> LoopResult:
     """Run the model loop for one step and return its final answer (or why there is none).
 
     ``retrieval_chars`` is the number of memory characters in ``first_message``;
     observations of memory tools are added to it per request.
     ``reserve_model_calls`` model calls are left unused for the memory system.
+    ``before_workspace_change(op, path)`` is called just before each
+    ``write_file`` / ``delete_file`` is executed (``MemorySystem.before_workspace_change``).
     """
     cfg = config or LoopConfig()
     local = {t.name: t for t in local_tools}
+    clash = sorted(set(local) & set(OFFERED_TOOLS))
+    if clash:
+        raise ValueError(f"memory tools may not shadow the shared tools: {', '.join(clash)}")
     entries = [_Entry("user", first_message, first_message)]
     base_retrieval = max(0, min(retrieval_chars, len(first_message)))
     result = LoopResult()
     consecutive_errors = 0
     model_errors = 0
     final_only_announced = False
+    input_low = False
     grace_used = False
 
     def stop(reason: str, note: str) -> LoopResult:
         result.stop_reason = reason
         result.notes.append(note)
         return result
+
+    def announce_final_only() -> None:
+        nonlocal final_only_announced
+        if final_only_announced:
+            return
+        last = entries[-1]
+        last.content = f"{last.content}\n\n{FINAL_ONLY_TEXT}"
+        last.compact = f"{last.compact}\n\n{FINAL_ONLY_TEXT}"
+        final_only_announced = True
+
+    def need_tokens(request: ModelRequest) -> float:
+        return estimate_request_tokens(request) * cfg.token_safety
 
     while True:
         rem = remaining(tools)
@@ -471,20 +639,28 @@ def run_event(
             return stop("model_budget", "no model calls left for this event; ended without a final answer")
         if rem["model_output_tokens"] < cfg.min_output_tokens:
             return stop("model_budget", "model output-token budget nearly exhausted; ended without a final answer")
-        final_only = calls_left <= 1 or result.turns >= cfg.max_turns - 1
-        if final_only and not final_only_announced:
-            last = entries[-1]
-            last.content = f"{last.content}\n\n{FINAL_ONLY_TEXT}"
-            last.compact = f"{last.compact}\n\n{FINAL_ONLY_TEXT}"
-            final_only_announced = True
+        final_only = input_low or calls_left <= 1 or result.turns >= cfg.max_turns - 1
+        if final_only:
+            announce_final_only()
 
         _compact(entries, cfg.transcript_chars, cfg.keep_recent_exchanges)
         request = _build_request(system, entries, base_retrieval, cfg)
         budget_in = rem["model_input_tokens"]
-        if estimate_request_tokens(request) * cfg.token_safety > budget_in:
+        need = need_tokens(request)
+        # A tool call is worth making only if the budget can also pay for the request after it
+        # (at least as large as this one, unless compacted). Otherwise compact hard and, if that
+        # is not enough, ask for the final answer now.
+        if need > budget_in or (not final_only and 2 * need > budget_in):
             _compact(entries, 0, 1 if len(entries) > 2 else 0)
             request = _build_request(system, entries, base_retrieval, cfg)
-            if estimate_request_tokens(request) * cfg.token_safety > budget_in:
+            need = need_tokens(request)
+            if not final_only and 2 * need > budget_in:
+                input_low = final_only = True
+                announce_final_only()
+                result.notes.append("model input-token budget running low; final answer requested")
+                request = _build_request(system, entries, base_retrieval, cfg)
+                need = need_tokens(request)
+            if need > budget_in:
                 return stop("input_budget", "model input-token budget too small for the next request; "
                                             "ended without a final answer")
 
@@ -539,7 +715,9 @@ def run_event(
             continue
 
         consecutive_errors = 0
-        status, out, is_memory, max_chars = _execute(tools, parsed, local, result.workspace_writes)
+        status, out, is_memory, max_chars = _execute(tools, parsed, local, result.workspace_writes,
+                                                     max_chars=cfg.observation_chars,
+                                                     before_change=before_workspace_change)
         result.tool_log.append({"tool": parsed.name, "status": status})
         obs = render_observation(parsed.name, status, out, max_chars or cfg.observation_chars)
         entries.append(_Entry("user", obs, _compact_observation(obs), retrieval=is_memory and status == "ok"))

@@ -31,11 +31,25 @@ from harness.errors import AccessDenied, BudgetExceeded, ToolError
 from harness.llm import EmbeddingResponse, ModelRequest, ModelResponse
 from harness.tool_specs import TOOL_SPECS, ArgSpec
 
-from contestant_runtime.agent import LLMAgent
-from contestant_runtime.loop import ENV_TOOLS, LoopConfig, convert_actions, format_tool_result, run_event
+from contestant_runtime.agent import RUNTIME_DEFAULTS, LLMAgent
+from contestant_runtime.loop import (
+    ENV_TOOLS,
+    OFFERED_TOOLS,
+    LoopConfig,
+    convert_actions,
+    env_catalogue,
+    file_view,
+    format_tool_result,
+    run_event,
+)
 from contestant_runtime.memory import ContextPack, EventOutcome, LocalTool, MemorySystem
 from contestant_runtime.protocol import (
+    GUIDANCE_VARIANTS,
     PROTOCOL_VERSION,
+    RESPONSE_RULES,
+    WORK_GUIDANCE,
+    guidance_sha256,
+    runtime_rules,
     CatalogueEntry,
     Final,
     MemorySection,
@@ -748,7 +762,8 @@ def test_llm_agent_lifecycle_order_and_response(tmp_path):
     assert req.messages[0].content.startswith("<<event seq=1 id=evt-0001>>")
     assert "<<memory note>>\nremember X" in req.messages[0].content
     assert req.system.startswith("You maintain a repository.")
-    assert req.system.rstrip().splitlines()[-1] == f"<<tools: {', '.join(list(ENV_TOOLS) + ['memory_get_event'])}>>"
+    assert req.system.rstrip().splitlines()[-1] == (
+        f"<<tools: {', '.join(list(ENV_TOOLS) + ['read_lines', 'memory_get_event'])}>>")
     assert tools.requests[0].messages[0].content.startswith("<<start>>")
 
 
@@ -773,3 +788,247 @@ def test_llm_agent_start_turn_can_be_disabled(tmp_path):
     tools = FakeTools()
     agent.on_start(tools)
     assert tools.requests == [] and agent.log[-1] == "checkpoint"
+
+
+# ===================================================== review fixes (M2 review)
+def numbered_file(n: int, width: int = 40) -> str:
+    return "".join(f"line {i:05d} " + "x" * width + "\n" for i in range(1, n + 1))
+
+
+# --------------------------------------------------- 1. observation cap, read_lines
+def test_default_observation_cap_shows_a_whole_seed_sized_file():
+    assert LoopConfig().observation_chars == RUNTIME_DEFAULTS["observation_chars"] == 24000
+    text = numbered_file(220)  # ~11.4k characters, like the largest seed files
+    assert 11_000 < len(text) < 12_000
+    tools = FakeTools({"docs/big.md": text}, model=scripted({"tool": "read_file", "args": {"path": "docs/big.md"}},
+                                                            final()))
+    run(tools)
+    assert tools.requests[1].messages[-1].content == "<<observation tool=read_file status=ok>>\n" + text
+
+
+def test_a_cut_file_read_names_the_omitted_lines_and_how_to_read_them():
+    text = numbered_file(500)
+    tools = FakeTools({"src/big.py": text}, model=scripted({"tool": "read_file", "args": {"path": "src/big.py"}},
+                                                           final()))
+    run(tools, config=LoopConfig(observation_chars=4000))
+    obs = tools.requests[1].messages[-1].content
+    assert obs.startswith("<<observation tool=read_file status=ok>>\nline 00001 ")
+    m = re.search(r'\[\.\.\. lines (\d+)-(\d+) of 500 omitted \((\d+) characters\); read them with '
+                  r'read_lines\(path="src/big.py", start=(\d+), end=(\d+)\) \.\.\.\]', obs)
+    assert m, obs
+    first, last = int(m.group(1)), int(m.group(2))
+    assert (first, last) == (int(m.group(4)), int(m.group(5)))
+    assert f"line {first - 1:05d} " in obs and f"line {first:05d} " not in obs
+    assert f"line {last:05d} " not in obs and f"line {last + 1:05d} " in obs
+    assert obs.rstrip().endswith("line 00500 " + "x" * 40)
+    assert "characters truncated" not in obs  # no second, blind cut
+    assert len(obs) <= 4000 + 100
+
+
+def test_a_cut_read_at_names_the_seq_and_a_lineless_text_is_cut_by_characters():
+    view = file_view(numbered_file(400), 3000, "a.md", 2)
+    assert re.search(r'read_lines\(path="a.md", start=\d+, end=\d+, seq=2\)', view)
+    blob = "y" * 10_000
+    cut = file_view(blob, 2000, "min.js")
+    assert "characters truncated" in cut and 'read_lines(path="min.js", start=1, end=1)' in cut
+    assert file_view("short\n", 100, "s") == "short\n"
+
+
+def test_read_lines_returns_numbered_lines_and_costs_one_tool_call():
+    text = numbered_file(30)
+    tools = FakeTools({"a.py": text}, states={0: {"a.py": "old 1\nold 2\nold 3\n"}}, model=scripted(
+        {"tool": "read_lines", "args": {"path": "a.py", "start": 9, "end": 11}},
+        {"tool": "read_lines", "args": {"path": "a.py", "start": 2, "end": 99, "seq": 0}},
+        final(),
+    ))
+    res = run(tools)
+    assert res.final and [e["status"] for e in res.tool_log] == ["ok", "ok"]
+    obs = tools.requests[1].messages[-1].content
+    assert obs == ("<<observation tool=read_lines status=ok>>\na.py: lines 9-11 of 30\n"
+                   f" 9| line 00009 {'x' * 40}\n10| line 00010 {'x' * 40}\n11| line 00011 {'x' * 40}")
+    obs = tools.requests[2].messages[-1].content
+    assert obs == ("<<observation tool=read_lines status=ok>>\na.py as it was after seq 0: lines 2-3 of 3\n"
+                   "2| old 2\n3| old 3")
+    assert tools.tool_names() == ["read_file", "read_at"]
+    assert tools.counts["tool_calls"] == 2
+
+
+def test_read_lines_errors_budget_and_output_limit():
+    tools = FakeTools({"a.py": numbered_file(5), "big.py": numbered_file(400)},
+                      budget=StepBudget(max_tool_calls_per_event=4), model=scripted(
+        {"tool": "read_lines", "args": {"path": "a.py", "start": 0, "end": 3}},
+        {"tool": "read_lines", "args": {"path": "a.py", "start": 4, "end": 2}},
+        {"tool": "read_lines", "args": {"path": "a.py", "start": "1", "end": 2}},
+        {"tool": "read_lines", "args": {"path": "a.py", "start": 9, "end": 12}},
+        {"tool": "read_lines", "args": {"path": "missing.py", "start": 1, "end": 2}},
+        {"tool": "read_lines", "args": {"path": "../x", "start": 1, "end": 2}},
+        {"tool": "read_lines", "args": {"path": "big.py", "start": 1, "end": 400}},
+        {"tool": "read_lines", "args": {"path": "a.py", "start": 1, "end": 2}},
+        final(),
+    ))
+    res = run(tools, config=LoopConfig(observation_chars=2000))
+    assert [e["status"] for e in res.tool_log] == ["error", "error", "error", "error", "error", "denied", "ok",
+                                                   "budget"]
+    obs = [r.messages[-1].content for r in tools.requests[1:]]
+    assert "start must be >= 1" in obs[0] and "start must be >= 1" in obs[1]
+    assert "argument start must be an integer" in obs[2]
+    assert "start 9 is past the end of a.py (5 line(s))" in obs[3]
+    assert "no such file" in obs[4]
+    m = re.search(r'\[output limit reached; continue with read_lines\(path="big.py", start=(\d+), end=400\)\]', obs[6])
+    assert m and len(obs[6]) <= 2000 and f"{int(m.group(1)) - 1}| line" in obs[6]
+    assert "status=budget" in obs[7]
+    # invalid arguments never reach the tool surface
+    assert tools.tool_names() == ["read_file", "read_file", "read_file", "read_file"]
+
+
+def test_read_lines_is_offered_identically_to_every_contestant_and_cannot_be_shadowed():
+    names = [e.name for e in env_catalogue()]
+    assert names == list(ENV_TOOLS) + ["read_lines"] and tuple(names) == OFFERED_TOOLS
+    entry = env_catalogue()[-1]
+    assert entry.signature() == "read_lines(path, start, end, seq=null)"
+    text = render_system_prompt("I", env_catalogue())
+    assert "- read_lines(path, start, end, seq=null): Numbered lines start..end" in text
+    shadow = LocalTool("read_lines", (ArgSpec("path", "str"),), "mine", lambda tools, args: "x")
+    with pytest.raises(ValueError, match="shadow"):
+        run(FakeTools(), local_tools=[shadow])
+    unknown = FakeTools(model=scripted({"tool": "nope", "args": {}}, final()))
+    run(unknown)
+    assert "read_lines" in unknown.requests[1].messages[-1].content
+
+
+# ------------------------------------------------------------------ 2. max_turns
+def test_default_turn_limit_uses_most_of_the_model_call_budget():
+    assert LoopConfig().max_turns == RUNTIME_DEFAULTS["max_turns"] == 20
+    tools = FakeTools(model=scripted(*[{"tool": "history", "args": {}}] * 40))
+    res = run(tools, reserve_model_calls=1)
+    assert res.stop_reason == "turns_exhausted"
+    assert len(tools.tool_names()) == 19 and len(tools.requests) == 21  # 20 turns plus one grace request
+    assert tools.budget_remaining()["model_calls"] == StepBudget().max_model_calls_per_event - 21 >= 1
+
+
+# ---------------------------------------------------------------- 3. reply parser
+@pytest.mark.parametrize(
+    "reply,expected",
+    [
+        ('Example args: {"path": "a.md"}. Now: {"tool": "read_file", "args": {"path": "a.md"}}',
+         ToolCall("read_file", {"path": "a.md"})),
+        ('```json\n{"plan": "look"}\n```\n{"tool": "history"}', ToolCall("history", {})),
+        ('```json\n{"plan": 1}\n{"final": {"memory": "m"}}\n```', Final([], "m")),
+        ('{"context": {"tool": "list_files"}} then {"final": {"actions": [], "memory": "x"}}', Final([], "x")),
+        ('{"tool": "history"} and later {"final": {}}', ToolCall("history", {})),
+    ],
+)
+def test_parse_reply_prefers_the_first_top_level_object_with_a_tool_or_final_key(reply, expected):
+    assert parse_reply(reply) == expected
+
+
+def test_parse_reply_falls_back_when_no_object_has_a_tool_or_final_key():
+    err = parse_reply('{"a": 1} {"b": {"tool": "history"}}')  # the nested "tool" is not top-level
+    assert isinstance(err, ProtocolError) and 'must have a "tool" or a "final" key' in err.message
+    assert extract_json_object('x {"queries": ["a"]} {"tool": "y"}') == {"queries": ["a"]}  # unchanged helper
+
+
+# ------------------------------------------------------ 4. input budget running low
+def test_low_input_budget_compacts_and_requests_a_final_answer_instead_of_giving_up():
+    replies = [{"tool": "read_file", "args": {"path": "big.txt"}}, {"tool": "read_file", "args": {"path": "big.txt"}},
+               final({"type": "note", "text": "done"}, memory="m")]
+    tools = FakeTools({"big.txt": "y" * 20_000}, model=scripted(*replies),
+                      budget=StepBudget(max_model_input_tokens_per_event=9000))
+    res = run(tools)
+    assert res.final and res.stop_reason == "final" and res.actions == [NoteAction("done")]
+    assert "<<final-only>>" not in tools.requests[0].messages[-1].content
+    assert "<<final-only>>" in tools.requests[1].messages[-1].content  # asked once the budget ran low
+    assert tools.tool_names() == ["read_file"]  # the second read was not executed
+    assert any("input-token budget running low" in n for n in res.notes)
+
+
+def test_low_input_budget_still_ends_when_even_the_final_request_does_not_fit():
+    tools = FakeTools({"big.txt": "y" * 20_000}, budget=StepBudget(max_model_input_tokens_per_event=4000),
+                      model=scripted({"tool": "read_file", "args": {"path": "big.txt"}}, final()))
+    res = run(tools, config=LoopConfig(keep_recent_exchanges=1))
+    assert res.stop_reason == "input_budget" and not res.final and len(tools.requests) == 1
+
+
+# -------------------------------------------- 5. write/delete intents before execution
+def test_workspace_changes_are_announced_before_they_are_executed():
+    seen: list[tuple[str, str, bool]] = []
+    tools = FakeTools({"a.md": "x"}, model=scripted(
+        {"tool": "write_file", "args": {"path": "./docs//new.md", "content": "N"}},
+        {"tool": "delete_file", "args": {"path": "a.md"}},
+        {"tool": "read_file", "args": {"path": "a.md"}},
+        final(),
+    ))
+
+    def hook(op: str, path: str) -> None:
+        seen.append((op, path, path in tools.files))
+
+    run(tools, before_workspace_change=hook)
+    assert seen == [("write_file", "docs/new.md", False), ("delete_file", "a.md", True)]
+
+
+def test_llm_agent_passes_run_settings_and_workspace_hook_to_its_memory(tmp_path):
+    class HookMemory(RecordingMemory):
+        def use_model_settings(self, settings):
+            self.log.append(f"settings {settings.embedding_provider}")
+
+        def before_workspace_change(self, op, path):
+            self.log.append(f"intent {op} {path}")
+
+    class HookAgent(RecordingAgent):
+        def make_memory(self, config):
+            return HookMemory(self.log)
+
+    agent = HookAgent(config={"start_turn": False})
+    agent.setup(make_context(tmp_path / "s"))
+    assert agent.log[:2] == ["settings none", "open restart=False"]
+    tools = FakeTools(model=scripted({"tool": "write_file", "args": {"path": "n.md", "content": "c"}}, final()))
+    agent.on_start(tools)
+    tools.new_step()
+    agent.on_event(make_event(1), tools)
+    assert "intent write_file n.md" in agent.log
+    assert agent.log.index("intent write_file n.md") < agent.log.index("after evt-0001 final turns=2")
+
+
+# ------------------------------------------------------------ 8. runtime guidance
+def test_guidance_variants_are_generic_and_share_the_response_rules():
+    assert GUIDANCE_VARIANTS == ("maintainer", "minimal") and RUNTIME_DEFAULTS["runtime_guidance"] == "maintainer"
+    for variant in GUIDANCE_VARIANTS:
+        rules = runtime_rules(variant)
+        assert rules.startswith(RESPONSE_RULES) and rules.endswith(WORK_GUIDANCE[variant])
+        assert "## How to work" in rules
+        low = " ".join(rules.lower().split())
+        # no base rate, no enumeration of kinds of premise changes
+        for phrase in ("most events", "need no reopening", "fact, constraint", "requirement, dependency",
+                       "parked work", "unblock", "waiting for; a topic"):
+            assert phrase not in low, (variant, phrase)
+    maintainer = " ".join(WORK_GUIDANCE["maintainer"].split())
+    assert "New information may affect earlier decisions or pending work." in maintainer
+    assert "Reopen something only when the new information changes its basis" in maintainer
+    minimal = WORK_GUIDANCE["minimal"].lower()
+    for word in ("reopen", "earlier decision", "pending work", "basis", "circumstances"):
+        assert word not in minimal, word
+    assert guidance_sha256("maintainer") != guidance_sha256("minimal")
+    with pytest.raises(ValueError):
+        runtime_rules("eager")
+
+
+def test_guidance_variant_is_configured_recorded_and_used_in_the_prompt(tmp_path):
+    for variant in GUIDANCE_VARIANTS:
+        agent = RecordingAgent(config={"runtime_guidance": variant})
+        d = agent.describe()["config"]
+        assert d["runtime_guidance"] == variant
+        assert d["runtime_guidance_text"] == runtime_rules(variant)
+        assert d["runtime_guidance_sha256"] == hashlib.sha256(runtime_rules(variant).encode()).hexdigest()
+        assert d["runtime_tools"] == ["read_lines"]
+        assert json.dumps(agent.describe(), sort_keys=True) == json.dumps(
+            RecordingAgent(config={"runtime_guidance": variant}).describe(), sort_keys=True)
+        agent.setup(make_context(tmp_path / variant))
+        tools = FakeTools(model=scripted(final(), final()))
+        agent.on_start(tools)
+        tools.new_step()
+        agent.on_event(make_event(1, "Something else", "Other body"), tools)
+        systems = {r.system for r in tools.requests}
+        assert len(systems) == 1  # identical for every step: nothing event-specific
+        assert runtime_rules(variant).rstrip("\n") in systems.pop()
+    with pytest.raises(ValueError, match="runtime_guidance"):
+        RecordingAgent(config={"runtime_guidance": "eager"})

@@ -9,14 +9,19 @@ A strong, ordinary long-lived-agent memory with no temporal-causal machinery:
 - **document index**: the workspace, chunked (``baseline.chunking``) and kept
   current: seed ingestion, re-indexing of each event's changed paths, and of
   the agent's own writes; file texts are stored content-addressed in
-  ``blobs/`` with a ``docs_index.json`` snapshot;
+  ``blobs/`` with a ``docs_index.json`` snapshot. Every ``write_file`` /
+  ``delete_file`` of the agent is logged (path and op) to the append-only
+  ``workspace_intents.jsonl`` *before* it is executed, so that edits of a
+  step cut short by a timeout or crash are re-read after the restart;
 - **hybrid retrieval** over events, notes and document chunks
   (``baseline.retrieval``), optional LLM query expansion (one call);
 - **rolling summary**: rewritten once per event (one call) from what is known
   at that point;
 - **checkpoint**: ``checkpoint.json``, ``docs_index.json`` and
   ``summary.json`` are written atomically (temp file + ``os.replace``); on a
-  restart the indexes are rebuilt deterministically from the stores.
+  restart the indexes are rebuilt deterministically from the stores, and
+  every path changed after the last checkpoint (by an event or by the agent)
+  is queued to be re-read from the workspace.
 
 Modes: ``rag`` (retrieved context), ``full`` (every stored event and note in
 context; documents searchable through the memory tools only) and ``none``
@@ -38,7 +43,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from harness.agent import AgentEvent, ChangedPath
+from harness.agent import AgentEvent, ChangedPath, ModelSettings
 from harness.errors import AccessDenied, ToolError
 from harness.llm import ModelMessage, ModelRequest
 from harness.tool_specs import ArgSpec
@@ -190,6 +195,8 @@ class BaselineMemory(MemorySystem):
         self.dense_note_emitted = False
         self.dense: DenseIndex | None = None
         self.retriever = Retriever()
+        self.intent_count = 0  # records in workspace_intents.jsonl
+        self.embedding_provider: str | None = None  # from the run's ModelSettings, if given
 
     # ---------------------------------------------------------------- static
     def describe(self) -> dict[str, Any]:
@@ -202,12 +209,16 @@ class BaselineMemory(MemorySystem):
             "mode": self.mode,
             "channels": channels if self.mode != "none" else [],
             "fusion": "rrf",
-            "stores": ["events.jsonl", "notes.jsonl", "docs_index.json", "blobs/", "embeddings.jsonl",
-                       "summary.json", "checkpoint.json"],
+            "stores": ["events.jsonl", "notes.jsonl", "workspace_intents.jsonl", "docs_index.json", "blobs/",
+                       "embeddings.jsonl", "summary.json", "checkpoint.json"],
         }
 
     def reserved_model_calls(self) -> int:
         return 1 if self._summary_on() else 0
+
+    def use_model_settings(self, settings: ModelSettings) -> None:
+        provider = getattr(settings, "embedding_provider", None)
+        self.embedding_provider = provider if isinstance(provider, str) else None
 
     def _summary_on(self) -> bool:
         return self.cfg["summary"] == "rolling" and self.mode != "none"
@@ -226,6 +237,7 @@ class BaselineMemory(MemorySystem):
             shutil.rmtree(root)  # a fresh start never inherits stale memory
         (root / "blobs").mkdir(parents=True, exist_ok=True)
         self.root = root
+        self.intent_count = 0
         if self._dense_on():
             cache = EmbeddingCache(root / "embeddings.jsonl")
             self.dense = DenseIndex(cache, embed_chars=self.cfg["embed_chars"], batch_size=self.cfg["embed_batch"])
@@ -263,6 +275,15 @@ class BaselineMemory(MemorySystem):
                         self._queue(cp["path"], front=False)
         for rec in _read_jsonl(self._p("notes.jsonl")):
             self._remember_note(rec)
+        # the agent's own writes and deletes after the last checkpoint: the step may have been cut
+        # short before after_event re-indexed them, so re-read each path from the workspace
+        intents = _read_jsonl(self._p("workspace_intents.jsonl"))
+        self.intent_count = len(intents)
+        covered = ck.get("intents", 0)
+        covered = covered if isinstance(covered, int) and not isinstance(covered, bool) and covered >= 0 else 0
+        for rec in reversed(intents[covered:]):
+            if isinstance(rec.get("path"), str):
+                self._queue(rec["path"], front=True)
         index = _read_json(self._p("docs_index.json"), {})
         paths = index.get("paths", {}) if isinstance(index, dict) else {}
         for path in sorted(paths):
@@ -353,6 +374,16 @@ class BaselineMemory(MemorySystem):
         }
         _append_jsonl(self._p("notes.jsonl"), rec)
         self._remember_note(rec)
+
+    def before_workspace_change(self, op: str, path: str) -> None:
+        """Log the agent's write/delete durably before it happens (re-read after a restart if need be)."""
+        if self.mode == "none" or self.root is None:
+            return
+        path = _norm_path(path)
+        if not path or path.startswith("/") or ".." in path.split("/"):
+            return  # refused by the workspace anyway: nothing can become stale
+        _append_jsonl(self._p("workspace_intents.jsonl"), {"op": op, "path": path, "seq": self._current_seq()})
+        self.intent_count += 1
 
     # ------------------------------------------------------------ documents
     def _queue(self, path: str, *, front: bool) -> None:
@@ -664,11 +695,7 @@ class BaselineMemory(MemorySystem):
                 name="memory_search",
                 args=(ArgSpec("query", "str"), ArgSpec("kind", "opt_str", None), ArgSpec("since_seq", "opt_int", None),
                       ArgSpec("until_seq", "opt_int", None), ArgSpec("path", "opt_str", None)),
-                description=(
-                    f"Search your memory: earlier events, your notes from earlier events, and indexed repository "
-                    f"files (keyword, semantic and entity retrieval). Optional filters: kind (event, note or doc), "
-                    f"a seq range, a path prefix. Returns up to {self.top_k} hits, best first."
-                ),
+                description=self._search_description(),
                 handler=self._tool_search,
                 max_chars=min(64_000, self.top_k * (snippet + 200) + 1000),
             ),
@@ -680,6 +707,32 @@ class BaselineMemory(MemorySystem):
                 max_chars=self.cfg["event_chars"] + 2000,
             ),
         ]
+
+    def _vector_channel_text(self) -> str | None:
+        """What the dense channel really is, given the run's embedding provider (None: no vector channel)."""
+        provider = self.embedding_provider
+        if provider == "none":
+            return None  # no embedding model in this run: the channel cannot work
+        if provider == "hash":
+            return "similarity of hashed word and character n-gram vectors (lexical, not semantic)"
+        return "embedding-vector similarity (the run's embedding model)"
+
+    def _search_description(self) -> str:
+        channels: list[str] = []
+        if self.cfg["retrieval"] != "dense":
+            channels.append("keyword match (BM25)")
+        if self.cfg["retrieval"] != "lexical":
+            vector = self._vector_channel_text()
+            if vector:
+                channels.append(vector)
+        channels.append("entity matching (ids, file paths, versions)")
+        return (
+            f"Search your memory: earlier events, your notes from earlier events, and indexed repository "
+            f"files. Retrieval: {', '.join(channels)}, fused by rank. Optional filters: kind (event, note or doc), "
+            f"a path prefix, and since_seq/until_seq, which filter events and notes by their event seq and "
+            f"repository files by the seq at which their content was indexed. Returns up to {self.top_k} hits, "
+            f"best first."
+        )
 
     def _tool_search(self, tools: Any, args: dict[str, Any]) -> str:
         kind = args["kind"]
@@ -778,6 +831,7 @@ class BaselineMemory(MemorySystem):
                 "notes": len(self.notes),
                 "seed_ingested": self.seed_ingested,
                 "pending_paths": list(self.pending_paths),
+                "intents": self.intent_count,
                 "unreadable": sorted(self.unreadable),
                 "dense": {"failures": dense["failures"], "reason": dense["reason"]},
                 "dense_note_emitted": self.dense_note_emitted,

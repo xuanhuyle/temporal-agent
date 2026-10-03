@@ -244,6 +244,24 @@ def test_embedding_cache_survives_a_torn_line(tmp_path):
     assert again.get(text_sha256("t")) == (0.5, 0.25) and len(again) == 1
 
 
+def test_embedding_cache_repairs_a_torn_line_so_the_next_record_is_readable(tmp_path):
+    p = tmp_path / "emb.jsonl"
+    EmbeddingCache(p).put_many([(text_sha256("t"), (0.5, 0.25))], "m")
+    with open(p, "a") as fh:
+        fh.write('{"sha256": "x", "vec')  # crash mid-append
+    again = EmbeddingCache(p)
+    assert p.read_text().endswith("\n") and len(p.read_text().splitlines()) == 1
+    again.put_many([(text_sha256("u"), (0.0, 1.0))], "m")
+    third = EmbeddingCache(p)
+    assert third.get(text_sha256("u")) == (0.0, 1.0) and third.get(text_sha256("t")) == (0.5, 0.25)
+    assert len(third) == 2
+    # a damaged complete line in the middle is skipped, not cut off with what follows
+    with open(p, "a") as fh:
+        fh.write("not json\n")
+    third.put_many([(text_sha256("v"), (1.0, 0.0))], "m")
+    assert len(EmbeddingCache(p)) == 3
+
+
 # ========================================================= retrieval strength
 ADRS = {
     "docs/adr/0001-storage.md": "# ADR-0001: Keep records in SQLite\n\n## Context\nOne host, low write volume.\n\n"

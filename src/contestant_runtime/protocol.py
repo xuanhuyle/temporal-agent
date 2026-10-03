@@ -4,15 +4,19 @@ Rendering and parsing for the shared contestant runtime (milestone-2 design
 section 7). Everything here is a pure function of its inputs, so two runs
 with the same inputs send byte-identical requests.
 
-- :func:`render_system_prompt`: harness instructions, the runtime's generic
-  maintainer guidance (identical for every contestant), a tool catalogue
-  (``- name(args): description``) and exactly one ``<<tools: a, b, ...>>`` line.
+- :func:`render_system_prompt`: harness instructions, the runtime's rules
+  (response format plus a standing working guidance whose variant,
+  ``maintainer`` or ``minimal``, is the configuration key
+  ``runtime_guidance``; identical for every event and every contestant), a
+  tool catalogue (``- name(args): description``) and exactly one
+  ``<<tools: a, b, ...>>`` line.
 - :func:`render_event_message` / :func:`render_start_message`: the first user
   message of a step (``<<event seq=N id=...>>`` or ``<<start>>``), followed
   by memory sections each starting ``<<memory TITLE>>``.
 - :func:`render_observation`: ``<<observation tool=NAME status=...>>`` plus
   the (size-capped) result text.
-- :func:`parse_reply`: one JSON object, fenced or bare, into
+- :func:`parse_reply`: the reply's first top-level JSON object with a
+  ``tool`` or ``final`` key (fenced blocks first, then bare objects) into
   :class:`ToolCall` | :class:`Final` | :class:`ProtocolError`.
 """
 
@@ -34,7 +38,7 @@ TRUNCATION_MARKER = "[... {n} characters truncated ...]"
 # must not cost quadratic time.
 MAX_OBJECT_STARTS = 256
 
-RUNTIME_RULES = """\
+RESPONSE_RULES = """\
 ## How to respond
 
 Reply with exactly one JSON object and nothing else. You may wrap it in a
@@ -57,21 +61,30 @@ Reply with exactly one JSON object and nothing else. You may wrap it in a
 
 Each event has a limited number of turns, tool calls and model calls. When you
 are told to give your final answer, reply with the final form.
+"""
 
+# The standing working guidance: a recorded configuration choice of the shared
+# runtime (config key ``runtime_guidance``). Each variant is identical for every
+# event and every contestant and carries no event-specific information.
+#
+# - ``maintainer`` (default): generic maintainer practice, including that new
+#   information may affect earlier decisions or pending work and that reopening
+#   needs evidence that their basis changed;
+# - ``minimal``: working and format rules only, with no sentence about
+#   reconsidering earlier decisions (for ablations).
+WORK_GUIDANCE: dict[str, str] = {
+    "maintainer": """\
 ## How to work
 
 - Read the event carefully: what does it ask of you, and what does it tell you?
-- New information can change the premises of earlier decisions or unblock
-  earlier work. For every event, ask whether it changes a fact, constraint,
-  requirement, dependency or assumption that an earlier decision or a parked
-  work item relied on. Use the memory sections below the event, your memory
-  tools, the repository (read, search) and its history (history, read_at,
-  diff) to find which earlier decisions or work items rest on what changed.
+- New information may affect earlier decisions or pending work. Use the memory
+  sections below the event, your memory tools, the repository (read, search)
+  and its history (history, read_at, diff) to find what the event bears on.
 - Verify before acting. Read the decision record or work item and the evidence
-  itself. Reopen only when the new information actually undermines the basis
-  of the decision or removes what the work was waiting for; a topic merely
-  being mentioned is not enough. Unnecessary reopening is penalized, and so is
-  missing a reopening that was needed. Most events need no reopening.
+  itself. Reopen something only when the new information changes its basis,
+  and support that with evidence; a topic merely being mentioned is not
+  enough. Unnecessary reopening is penalized, and so is missing a reopening
+  that was needed.
 - When a reopening is justified and a code or configuration change follows
   from it, make the change in your workspace and run the tests to check it.
 - Cite in "evidence" the ids of the events that support your conclusion (the
@@ -79,12 +92,39 @@ are told to give your final answer, reply with the final form.
   "seed" for the initial repository.
 - Keep your memory useful: record what could matter later, including what
   might become relevant if circumstances change.
-"""
+""",
+    "minimal": """\
+## How to work
+
+- Read the event carefully: what does it ask of you, and what does it tell you?
+- Use the memory sections below the event, your memory tools, the repository
+  (read, search) and its history (history, read_at, diff) as you need them.
+- When a code or configuration change is needed, make it in your workspace and
+  run the tests to check it.
+- Cite in "evidence" the ids of the events that support your conclusion (the
+  current one and earlier ones). In "historical_state" use event ids, or
+  "seed" for the initial repository.
+- Keep your memory useful: record what could matter later.
+""",
+}
+GUIDANCE_VARIANTS: tuple[str, ...] = tuple(WORK_GUIDANCE)
+DEFAULT_GUIDANCE = "maintainer"
 
 
-def guidance_sha256() -> str:
-    """Hash of the runtime's fixed guidance text (recorded in ``describe()``)."""
-    return hashlib.sha256(RUNTIME_RULES.encode("utf-8")).hexdigest()
+def runtime_rules(guidance: str = DEFAULT_GUIDANCE) -> str:
+    """The runtime's fixed rules for a guidance variant: the response format, then the working guidance."""
+    if guidance not in WORK_GUIDANCE:
+        raise ValueError(f"runtime_guidance must be one of {', '.join(GUIDANCE_VARIANTS)}, got {guidance!r}")
+    return RESPONSE_RULES + "\n" + WORK_GUIDANCE[guidance]
+
+
+# The rules of the default variant (kept for importers of the original constant).
+RUNTIME_RULES = runtime_rules(DEFAULT_GUIDANCE)
+
+
+def guidance_sha256(guidance: str = DEFAULT_GUIDANCE) -> str:
+    """Hash of the runtime's fixed rules for ``guidance`` (recorded in ``describe()``)."""
+    return hashlib.sha256(runtime_rules(guidance).encode("utf-8")).hexdigest()
 
 
 # ------------------------------------------------------------------ catalogue
@@ -106,9 +146,11 @@ class CatalogueEntry:
         return f"{self.name}({', '.join(parts)})"
 
 
-def render_system_prompt(instructions: str, catalogue: Sequence[CatalogueEntry]) -> str:
-    """Harness instructions, runtime rules, tool catalogue, then the single ``<<tools: ...>>`` line."""
-    lines = [instructions.rstrip("\n"), "", RUNTIME_RULES.rstrip("\n"), "", "## Tools", ""]
+def render_system_prompt(
+    instructions: str, catalogue: Sequence[CatalogueEntry], guidance: str = DEFAULT_GUIDANCE
+) -> str:
+    """Harness instructions, runtime rules (``guidance`` variant), tool catalogue, then the single ``<<tools: ...>>`` line."""
+    lines = [instructions.rstrip("\n"), "", runtime_rules(guidance).rstrip("\n"), "", "## Tools", ""]
     for entry in catalogue:
         desc = " ".join(entry.description.split())
         lines.append(f"- {entry.signature()}: {desc}")
@@ -240,23 +282,65 @@ def _first_object(text: str) -> dict[str, Any] | None:
     return None
 
 
+def _top_level_objects(text: str) -> list[dict[str, Any]]:
+    """Every top-level JSON object in ``text``, in order (string-aware; objects nested in one are skipped)."""
+    out: list[dict[str, Any]] = []
+    pos = text.find("{")
+    tries = 0
+    while pos != -1 and tries < MAX_OBJECT_STARTS:
+        tries += 1
+        try:
+            value, end = _DECODER.raw_decode(text, pos)
+        except (json.JSONDecodeError, RecursionError):
+            value, end = None, pos + 1
+        if isinstance(value, dict):
+            out.append(value)
+        else:
+            end = pos + 1
+        pos = text.find("{", end)
+    return out
+
+
+def _json_fences(text: str) -> list[str]:
+    """Bodies of the reply's ```` ``` ```` and ```` ```json ```` code blocks, in order."""
+    return [m.group(2) for m in _FENCE.finditer(text) if m.group(1).lower() in ("", "json")]
+
+
 def extract_json_object(text: str) -> dict[str, Any] | None:
     """Extract one JSON object: a fenced code block (```` ``` ```` or ```` ```json ````) first, else the first bare object."""
-    for m in _FENCE.finditer(text):
-        tag = m.group(1).lower()
-        if tag not in ("", "json"):
-            continue
-        obj = _first_object(m.group(2))
+    for body in _json_fences(text):
+        obj = _first_object(body)
         if obj is not None:
             return obj
     return _first_object(text)
+
+
+def _is_reply_object(obj: dict[str, Any]) -> bool:
+    return "tool" in obj or "final" in obj
+
+
+def extract_reply_object(text: str) -> dict[str, Any] | None:
+    """The object a reply means: the first top-level JSON object with a ``tool`` or ``final`` key.
+
+    Fenced code blocks are searched first, then the whole text. If no object
+    has either key, this falls back to :func:`extract_json_object` (so the
+    reply is reported as an object without a ``tool`` or ``final`` key).
+    """
+    for body in _json_fences(text):
+        for obj in _top_level_objects(body):
+            if _is_reply_object(obj):
+                return obj
+    for obj in _top_level_objects(text):
+        if _is_reply_object(obj):
+            return obj
+    return extract_json_object(text)
 
 
 def parse_reply(text: str) -> Reply:
     """Parse a model reply into a tool call, a final answer, or a protocol error."""
     if not isinstance(text, str) or not text.strip():
         return ProtocolError("empty reply")
-    obj = extract_json_object(text)
+    obj = extract_reply_object(text)
     if obj is None:
         return ProtocolError("no JSON object found in the reply")
     has_tool, has_final = "tool" in obj, "final" in obj
