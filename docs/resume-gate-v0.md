@@ -125,3 +125,86 @@ tool, credential or dependency state. That boundary is application-specific.
 
 The manifest store should be at least as durable as the LangGraph checkpointer in
 production. v0.1 ships an in-memory store for tests and local examples only.
+
+
+## Automatic LangGraph capture (v0.2)
+
+For the common case, applications no longer need to supply separate
+`checkpoint_manifest` and `current_manifest` callbacks.
+
+Use:
+
+```python
+guarded = GuardedLangGraph.auto(
+    compiled_graph,
+    store=JsonDirectoryManifestStore(".resume-gate"),
+)
+```
+
+With no application annotations, Resume Gate automatically fingerprints:
+
+- LangGraph package version;
+- graph topology;
+- input/output/state schema shape;
+- registered `ToolNode` tools and their argument schemas.
+
+Those values are sampled when the graph pauses and again immediately before
+`Command(resume=...)`.
+
+This catches, without application-specific rules:
+
+- tool removal between deployments → `BLOCK`;
+- tool schema/description change → `REVALIDATE`;
+- state-schema drift → `MIGRATE`;
+- graph/framework/runtime drift → `REVALIDATE`.
+
+The automatic schema capture has a non-Pydantic fallback so it does not require
+applications to change otherwise executable Python 3.11 `TypedDict` graphs
+merely to make Resume Gate work.
+
+### Optional live context
+
+LangGraph cannot infer external business authority generically. A single
+optional provider can add current policy, approvals and dependencies:
+
+```python
+def live_context(snapshot, config):
+    return {
+        "policy_version": policy_store.current_version(),
+        "authorities": approval_store.for_thread(config),
+        "dependencies": dependency_store.current_readings(),
+    }
+
+guarded = GuardedLangGraph.auto(
+    compiled_graph,
+    context_provider=live_context,
+    store=JsonDirectoryManifestStore(".resume-gate"),
+)
+```
+
+The same provider is called at pause time and resume time. Resume Gate preserves
+the pause-time result in the manifest, so the developer does not maintain two
+parallel representations of "then" and "now".
+
+### Persistence
+
+`JsonDirectoryManifestStore` is a small single-host persistent store. It writes
+one JSON document per LangGraph thread/namespace using atomic replacement.
+
+It is appropriate for local prototypes and single-host deployments. A
+distributed production deployment should implement the small `ManifestStore`
+interface on the same durability tier as its LangGraph checkpointer.
+
+### Verified deployment scenario
+
+The LangGraph integration CI now exercises a real cross-deployment case:
+
+1. Deployment A registers `refund_customer`.
+2. A persisted thread pauses at an interrupt.
+3. Resume Gate automatically records the tool surface.
+4. Deployment B is compiled without `refund_customer`.
+5. The same persisted thread is resumed.
+6. Resume Gate discovers the removed tool from the new graph and returns
+   `BLOCK` before LangGraph executes the next node.
+
+No checkpoint/current manifest callbacks are supplied in that test.
