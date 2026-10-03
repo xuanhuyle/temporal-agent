@@ -32,7 +32,11 @@ def _fmt(value: Any) -> str:
 
 def _ratio(m: dict[str, Any]) -> str:
     v = m.get("value")
-    return f"{_fmt(v)} ({m.get('numerator')}/{m.get('denominator')})" if v is not None else "n/a"
+    if v is None:
+        return "n/a"
+    if m.get("numerator") is None or m.get("denominator") is None:
+        return _fmt(v)  # a mean (e.g. historical-state fidelity), not a ratio
+    return f"{_fmt(v)} ({m.get('numerator')}/{m.get('denominator')})"
 
 
 def summarize_run(run_dir: Path) -> dict[str, Any]:
@@ -40,9 +44,12 @@ def summarize_run(run_dir: Path) -> dict[str, Any]:
     meta = json.loads((run_dir / "metadata.json").read_text(encoding="utf-8"))
     scores = json.loads((run_dir / "scores.json").read_text(encoding="utf-8"))
     tool_counts: dict[str, Counter] = {}
+    served: dict[str, Counter] = {}
     for rec in read_jsonl(run_dir / "trace.jsonl"):
         if rec.get("type") == "tool_call":
             tool_counts.setdefault(rec["agent"], Counter())[rec["tool"]] += 1
+            if rec["tool"] == "model_complete" and isinstance(rec.get("meter"), dict):
+                served.setdefault(rec["agent"], Counter())[rec["meter"].get("model")] += 1
     agents = {}
     for name, s in scores["agents"].items():
         eff = s.get("efficiency", {})
@@ -51,6 +58,7 @@ def summarize_run(run_dir: Path) -> dict[str, Any]:
             "step_status": s["step_status"],
             "efficiency": eff,
             "tool_counts": dict(sorted(tool_counts.get(name, Counter()).items())),
+            "served_models": dict(sorted(served.get(name, Counter()).items())),
             "reopens": [
                 {k: r.get(k) for k in ("seq", "target", "classification")} for r in s.get("reopen_log", [])
             ],
@@ -62,17 +70,28 @@ def summarize_run(run_dir: Path) -> dict[str, Any]:
         "fingerprint": meta.get("fingerprint"),
         "scenario": meta["scenario"]["scenario_id"],
         "model": meta["config"].get("model"),
+        "model_runtime": meta.get("model_runtime"),
         "isolation": meta.get("isolation"),
         "agents": agents,
     }
 
 
 def render_markdown(summary: dict[str, Any]) -> str:
+    provider = (summary.get("model") or {}).get("provider")
     lines = [
         f"### Run `{summary['run_id']}`",
         "",
+    ]
+    if provider == "fake":
+        lines += [
+            "> **Fake model (machinery check).** The deterministic `fake-v1` test double chose these tool calls "
+            "and reopens by hashing. The scores below say nothing about baseline quality.",
+            "",
+        ]
+    lines += [
         f"- scenario: `{summary['scenario']}`, status: `{summary['status']}`, protocol: `{summary['protocol_version']}`",
         f"- model: `{json.dumps(summary['model'], sort_keys=True)}`",
+        f"- model runtime: `{json.dumps(summary.get('model_runtime'), sort_keys=True)}`",
         f"- fingerprint: `{summary['fingerprint']}`",
         "",
         "| agent | " + " | ".join(label for _, label in METRICS) + " | steps |",
@@ -95,6 +114,16 @@ def render_markdown(summary: dict[str, Any]) -> str:
             f"| {name} | {e.get('model_calls', 0)} | {e.get('model_input_tokens', 0)} | {e.get('model_output_tokens', 0)} "
             f"| {e.get('retrieval_tokens', 0)} | {e.get('embedding_tokens', 0)} | {cost} | {e.get('tool_calls', 0)} "
             f"| {e.get('commands', 0)} | {e.get('tool_result_chars', 0)} | {round(e.get('wall_clock_ms', 0) / 1000, 1)} |"
+        )
+    lines += ["", "| agent | served model(s) | tokens known | cost basis | auxiliary tokens (in/out) | provider errors |",
+              "|---|---|---|---|---|---|"]
+    for name, a in summary["agents"].items():
+        e = a["efficiency"]
+        models = ", ".join(f"{k}: {v}" for k, v in a["served_models"].items()) or "none"
+        lines.append(
+            f"| {name} | {models} | {e.get('tokens_known', True)} | {'known' if e.get('cost_known', True) else 'incomplete'} "
+            f"| {e.get('model_auxiliary_input_tokens', 0)}/{e.get('model_auxiliary_output_tokens', 0)} "
+            f"| {e.get('model_provider_errors', 0)} |"
         )
     lines += ["", "| agent | tool calls by tool |", "|---|---|"]
     for name, a in summary["agents"].items():
