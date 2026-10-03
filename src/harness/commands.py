@@ -34,15 +34,32 @@ Execution (``docs/milestone-2-design.md`` section 3):
 - on timeout the process group is killed with ``SIGKILL`` (``timed_out``,
   ``exit_code`` ``None``); the group is killed after every command anyway,
   and the scratch ``tmp`` and ``home`` are wiped;
-- output is decoded as UTF-8 with replacement and normalized for
-  determinism (workspace path -> ``.``, scratch paths -> ``<tmp>``, pytest
-  durations -> ``in <t>s``), then truncated (head and a larger tail).
+- output is decoded as UTF-8 (incrementally, with replacement) and
+  normalized for determinism *while it streams*, then truncated (head and a
+  larger tail), so truncation is decided on normalized text and never depends
+  on host path lengths. Normalized (see :class:`_Normalizer`):
+
+  * the workspace path (as given and resolved) -> ``.``; the scratch
+    directory, its ``tmp`` and pytest's relative form of it -> ``<tmp>``;
+  * pytest durations: ``in 0.12s`` / ``in 61.03s (0:01:01)`` -> ``in <t>s``;
+    ``--durations`` rows ``0.01s call ...`` -> ``<t>s call ...`` and the
+    ``(N durations < 0.005s hidden.`` count -> ``<n>`` (which rows appear can
+    still depend on timing; that is inherent to ``--durations``);
+  * object addresses: ``0x`` followed by 6 or more hex digits, delimited by
+    non-alphanumerics (``<Foo object at 0x7f3a2c1d9e80>``, ``id=0x55d0c3a1``)
+    -> ``0x<addr>``. Shorter constants such as ``0x1F`` or ``0xFFFF`` are kept.
+
+  Not normalized: host facts that are constant per host and interpreter
+  (pytest's ``platform ... -- Python 3.11.x, pytest-x.y`` header, stdlib
+  paths in tracebacks, the user name in ``pytest-of-<user>``) and decimal
+  ``id()`` values a program prints itself.
 
 The tripwire is not a sandbox; see ``harness.tripwire`` and the design doc.
 """
 
 from __future__ import annotations
 
+import codecs
 import json
 import os
 import re
@@ -82,7 +99,6 @@ _POLL_S = 0.05
 _READ_CHUNK = 65536
 
 _MODULE_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\Z")
-_DURATION_RE = re.compile(r"\bin \d+(?:\.\d+)?s(?: \(\d+:\d{2}:\d{2}\))?")
 _PYTHONS = ("python", "python3")
 
 
@@ -185,14 +201,90 @@ def parse_command(command: object, workspace_root: Path) -> CommandPlan:
 
 
 # ------------------------------------------------------------------ output
+_DURATION_SRC = r"\bin \d+(?:\.\d+)?s(?: \(\d+:\d{2}:\d{2}\))?"
+# pytest --durations rows: f"{duration:02.2f}s {when:<8} {nodeid}" at the start of a line.
+_DURATION_ROW_SRC = r"(?<=\n)\d+\.\d+s(?= +(?:setup|call|teardown)\b)"
+_HIDDEN_COUNT_SRC = r"(?<=\()\d+(?= durations < \d)"
+# Object addresses (id/repr): 0x and at least 6 hex digits, not part of a longer word.
+_ADDRESS_SRC = r"(?<![0-9A-Za-z_])0x[0-9a-fA-F]{6,}(?![0-9A-Za-z_])"
+_FIXED_TOKENS = {"dur": "in <t>s", "row": "<t>s", "hidden": "<n>", "addr": "0x<addr>"}
+# A line longer than this many characters is normalized in pieces (memory stays bounded);
+# a piece always keeps the last _LONG_LINE_KEEP characters back for context.
+_LONG_LINE_CHARS = 1 << 18
+_LONG_LINE_KEEP = 1 << 16
+
+
+class _Normalizer:
+    """One-pass normalizer: host paths (longest first), pytest durations and object addresses.
+
+    Every pattern lies within one line and looks at most one character
+    before or after a match, so text can be normalized in pieces cut after a
+    newline (or, for very long lines, away from any match) with the same
+    result as normalizing it whole; see :class:`_OutputStream`.
+    """
+
+    def __init__(self, replacements: Sequence[tuple[str, str]]) -> None:
+        tokens: dict[str, str] = {}
+        for path, token in sorted(set(replacements), key=lambda pt: (-len(pt[0]), pt)):
+            if path and path != os.sep:
+                tokens.setdefault(path, token)
+        self._tokens = tokens
+        branches = []
+        if tokens:
+            alternation = "|".join(re.escape(p) for p in tokens)  # dict order: longest first
+            # Do not rewrite a longer sibling name such as "<ws>2" or "<ws>-old".
+            branches.append(rf"(?P<path>(?<![\w.-])(?:{alternation})(?![\w-]))")
+        branches += [
+            rf"(?P<dur>{_DURATION_SRC})",
+            rf"(?P<row>{_DURATION_ROW_SRC})",
+            rf"(?P<hidden>{_HIDDEN_COUNT_SRC})",
+            rf"(?P<addr>{_ADDRESS_SRC})",
+        ]
+        self.pattern = re.compile("|".join(branches))
+        self.longest = max((len(p) for p in tokens), default=0)
+        # Every match contains one of these substrings (or has it in its lookahead on the same line);
+        # text without any of them is left as it is without running the regex (output floods).
+        self._triggers = tuple(tokens) + ("in ", "0x", "durations", "setup", "call", "teardown")
+
+    def matches(self, text: str, start: int, end: int) -> list[re.Match[str]]:
+        """The matches in ``text[start:end]``; ``text[start - 1]`` is context (lookbehind) only."""
+        if not any(text.find(t, start, end) >= 0 for t in self._triggers):
+            return []
+        return list(self.pattern.finditer(text, start, end))
+
+    def token(self, match: re.Match[str]) -> str:
+        kind = match.lastgroup
+        if kind == "path":
+            return self._tokens[match.group()]
+        return _FIXED_TOKENS[kind]  # type: ignore[index]
+
+    def substitute(self, text: str, matches: Sequence[re.Match[str]], start: int, end: int) -> str:
+        """``text[start:end]`` with ``matches`` (all within it, in order) replaced by their tokens."""
+        out = []
+        pos = start
+        for m in matches:
+            out.append(text[pos:m.start()])
+            out.append(self.token(m))
+            pos = m.end()
+        out.append(text[pos:end])
+        return "".join(out)
+
+    def segment(self, text: str, start: int, end: int) -> str:
+        """Normalize ``text[start:end]``; ``text[start - 1]`` is context (lookbehind) only."""
+        return self.substitute(text, self.matches(text, start, end), start, end)
+
+    def __call__(self, text: str) -> str:
+        buf = "\n" + text  # a newline before the start: same as start-of-text for every pattern
+        return self.segment(buf, 1, len(buf))
+
+
 def normalize_output(text: str, replacements: Sequence[tuple[str, str]]) -> str:
-    """Replace host paths (longest first) and pytest durations so output is deterministic."""
-    for path, token in sorted(set(replacements), key=lambda pt: (-len(pt[0]), pt)):
-        if not path or path == os.sep:
-            continue
-        # Do not rewrite a longer sibling name such as "<ws>2" or "<ws>-old".
-        text = re.sub(r"(?<![\w.-])" + re.escape(path) + r"(?![\w-])", lambda _m, t=token: t, text)
-    return _DURATION_RE.sub("in <t>s", text)
+    """Replace host paths (longest first), pytest durations and object addresses so output is deterministic."""
+    return _Normalizer(replacements)(text)
+
+
+def _truncation_marker(omitted: int) -> str:
+    return f"\n[... output truncated: {omitted} characters omitted ...]\n"
 
 
 def truncate_output(text: str, max_chars: int) -> tuple[str, bool]:
@@ -205,35 +297,95 @@ def truncate_output(text: str, max_chars: int) -> tuple[str, bool]:
     head_n = max_chars // 4
     tail_n = max_chars - head_n
     omitted = len(text) - head_n - tail_n
-    marker = f"\n[... output truncated: {omitted} characters omitted ...]\n"
-    return text[:head_n] + marker + text[len(text) - tail_n:], True
+    return text[:head_n] + _truncation_marker(omitted) + text[len(text) - tail_n:], True
 
 
-class _Capture:
-    """Bounded capture of a byte stream: the first ``cap`` bytes and the last ``cap`` bytes."""
+class _TextWindow:
+    """Bounded record of a text stream that renders exactly as ``truncate_output(whole_text, max_chars)``."""
 
-    def __init__(self, cap: int) -> None:
-        self.cap = cap
-        self.head = bytearray()
-        self.tail = bytearray()
+    def __init__(self, max_chars: int) -> None:
+        self.max_chars = max_chars
+        self.head_n = max_chars // 4
+        self.tail_n = max_chars - self.head_n
+        self.head = ""
+        self.tail = ""
         self.total = 0
 
-    def feed(self, data: bytes) -> None:
-        self.total += len(data)
-        room = self.cap - len(self.head)
-        if room > 0:
-            self.head += data[:room]
-            data = data[room:]
-        if data:
-            self.tail += data
-            if len(self.tail) > 2 * self.cap:
-                del self.tail[: len(self.tail) - self.cap]
+    def add(self, text: str) -> None:
+        if not text:
+            return
+        self.total += len(text)
+        if len(self.head) < self.max_chars:
+            self.head += text[: self.max_chars - len(self.head)]
+        self.tail += text
+        if len(self.tail) > 2 * self.tail_n:
+            self.tail = self.tail[-self.tail_n:]
 
-    def parts(self) -> tuple[bytes, bytes, int]:
-        """(head, tail, omitted) where omitted bytes lie between head and tail."""
-        tail = bytes(self.tail[-self.cap:]) if len(self.tail) > self.cap else bytes(self.tail)
-        omitted = self.total - len(self.head) - len(tail)
-        return bytes(self.head), tail, omitted
+    def render(self) -> tuple[str, bool]:
+        if self.total <= self.max_chars:
+            return self.head, False
+        omitted = self.total - self.head_n - self.tail_n
+        return self.head[: self.head_n] + _truncation_marker(omitted) + self.tail[-self.tail_n:], True
+
+
+class _OutputStream:
+    """Decode, normalize and window a child's output as it arrives, in bounded memory.
+
+    The result equals ``truncate_output(normalize(decode(all_bytes)), max_chars)``
+    whatever the chunking, so it never depends on where the host's absolute
+    paths (of varying length) made the raw byte stream cross a buffer limit.
+    Text is normalized up to the last complete line; a line longer than
+    ``_LONG_LINE_CHARS`` is cut away from any match, keeping the last
+    ``_LONG_LINE_KEEP`` characters back (exact unless a single digit/hex run
+    or path is longer than that).
+    """
+
+    def __init__(self, normalizer: _Normalizer, max_chars: int) -> None:
+        self._norm = normalizer
+        self._decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
+        self._buf = "\n"  # _buf[0] is context only (the character before the pending text)
+        self._window = _TextWindow(max_chars)
+        self._keep = max(_LONG_LINE_KEEP, 2 * normalizer.longest + 64)
+        self._long = max(_LONG_LINE_CHARS, 2 * self._keep)
+
+    def feed(self, data: bytes) -> None:
+        self._push(self._decoder.decode(data))
+
+    def _push(self, text: str) -> None:
+        if not text:
+            return
+        base = len(self._buf)
+        self._buf += text
+        nl = text.rfind("\n")
+        if nl >= 0:
+            cut = base + nl + 1
+            self._window.add(self._norm.segment(self._buf, 1, cut))
+            self._buf = self._buf[cut - 1:]
+        if len(self._buf) - 1 > self._long:
+            self._cut_long_line()
+
+    def _cut_long_line(self) -> None:
+        buf = self._buf
+        pos = len(buf) - self._keep
+        done: list[re.Match[str]] = []
+        for m in self._norm.matches(buf, 1, len(buf)):
+            if m.end() <= pos:
+                done.append(m)
+                continue
+            if m.start() < pos:
+                pos = m.start()  # never cut through a match
+            break
+        if pos <= 1:  # one match longer than the whole window: cut anyway, memory must stay bounded
+            pos = len(buf) - self._keep
+            done = [m for m in done if m.end() <= pos]
+        self._window.add(self._norm.substitute(buf, done, 1, pos))
+        self._buf = buf[pos - 1:]
+
+    def finish(self) -> tuple[str, bool]:
+        self._push(self._decoder.decode(b"", final=True))
+        self._window.add(self._norm.segment(self._buf, 1, len(self._buf)))
+        self._buf = "\n"
+        return self._window.render()
 
 
 # --------------------------------------------------------------- bootstrap
@@ -477,20 +629,6 @@ class CommandRunner:
             pairs.append((os.path.join(p, "tmp"), "<tmp>"))
         return pairs
 
-    def _render(self, capture: _Capture) -> tuple[str, bool]:
-        head, tail, omitted = capture.parts()
-        reps = self._replacements()
-        if omitted == 0:
-            text = normalize_output((head + tail).decode("utf-8", errors="replace"), reps)
-            return truncate_output(text, self.max_output_chars)
-        head_text = normalize_output(head.decode("utf-8", errors="replace"), reps)
-        tail_text = normalize_output(tail.decode("utf-8", errors="replace"), reps)
-        head_n = self.max_output_chars // 4
-        tail_n = self.max_output_chars - head_n
-        dropped = max(0, len(head_text) - head_n) + max(0, len(tail_text) - tail_n)
-        marker = f"\n[... output truncated: {dropped} characters and {omitted} further bytes omitted ...]\n"
-        return head_text[:head_n] + marker + tail_text[max(0, len(tail_text) - tail_n):], True
-
     # ----------------------------------------------------------------- run
     def run(self, command: str, timeout_s: float) -> dict[str, Any]:
         """Run ``command`` with a wall-clock limit of ``timeout_s`` seconds; see the module docstring."""
@@ -503,9 +641,9 @@ class CommandRunner:
         finally:
             _wipe_dir(self.tmp_dir)
             _wipe_dir(self.home_dir)
-        output, truncated = self._render(capture)
-        reps = self._replacements()
-        shown = [normalize_output(v, reps) for v in violations.lines]
+        output, truncated = capture.finish()
+        normalize = _Normalizer(self._replacements())
+        shown = [normalize(v) for v in violations.lines]
         if violations.total > len(violations.lines):
             shown.append(f"... {violations.total - len(violations.lines)} further violations not shown")
         return {
@@ -518,7 +656,7 @@ class CommandRunner:
             "wall_clock_ms": round((time.monotonic() - started) * 1000.0, 3),
         }
 
-    def _execute(self, plan: CommandPlan, timeout_s: float) -> tuple[int | None, bool, _Capture, _Violations]:
+    def _execute(self, plan: CommandPlan, timeout_s: float) -> tuple[int | None, bool, _OutputStream, _Violations]:
         _wipe_dir(self.tmp_dir)
         _wipe_dir(self.home_dir)
         boot = self._write_boot()
@@ -555,7 +693,8 @@ class CommandRunner:
             raise
         os.close(cfg_r)
         os.close(viol_w)
-        session = _Session(proc, cfg_w, viol_r, payload, _Capture(4 * self.max_output_chars))
+        stream = _OutputStream(_Normalizer(self._replacements()), self.max_output_chars)
+        session = _Session(proc, cfg_w, viol_r, payload, stream)
         try:
             timed_out = session.supervise(timeout_s)
         finally:
@@ -585,7 +724,7 @@ class _Violations:
 class _Session:
     """One running command: feeds its config, collects output and violations, enforces the deadline."""
 
-    def __init__(self, proc: subprocess.Popen, cfg_w: int, viol_r: int, payload: bytes, capture: _Capture) -> None:
+    def __init__(self, proc: subprocess.Popen, cfg_w: int, viol_r: int, payload: bytes, capture: _OutputStream) -> None:
         self.proc = proc
         self.capture = capture
         self.violations = _Violations([])
