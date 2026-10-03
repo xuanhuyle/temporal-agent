@@ -1,0 +1,14 @@
+{
+  "platform": "Fleetline PaaS",
+  "service": "tasklane-api",
+  "region": "eu-west-1",
+  "tier": "shared-0.25",
+  "vcpu": 0.25,
+  "vcpu_dedicated": false,
+  "memory_mb": 512,
+  "instances": 1,
+  "persistent_volume_gb": 5,
+  "managed_postgres": false,
+  "managed_redis": false,
+  "log_retention_days": 90
+}

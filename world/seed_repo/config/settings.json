@@ -1,0 +1,8 @@
+{
+  "database_path": "var/tasklane.sqlite3",
+  "pbkdf2_iterations": 120000,
+  "session_ttl_hours": 336,
+  "reconcile_interval_minutes": 15,
+  "checkout_grace_minutes": 30,
+  "paygate_api_base": "https://api.paygate.example/v1"
+}

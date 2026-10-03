@@ -1,0 +1,368 @@
+{
+  "schema_version": "tab.ground_truth/1",
+  "scenario_id": "smoke_v1",
+  "canary": "TAB-GT-CANARY-smoke_v1-6983f83bad25a098",
+  "targets": {
+    "ADR-0001": {
+      "kind": "decision",
+      "introduced_by": "seed",
+      "decided_on": "2025-09-02",
+      "summary": "SQLite as the only database; job queue in SQLite."
+    },
+    "ADR-0002": {
+      "kind": "decision",
+      "introduced_by": "seed",
+      "decided_on": "2025-10-14",
+      "summary": "PBKDF2 at 120k iterations because of the shared-0.25 CPU budget."
+    },
+    "ADR-0003": {
+      "kind": "decision",
+      "introduced_by": "seed",
+      "decided_on": "2025-11-20",
+      "summary": "Poll PayGate every 15 min; 30 min checkout grace (no webhooks on Starter)."
+    },
+    "ADR-0004": {
+      "kind": "decision",
+      "introduced_by": "evt-0002",
+      "decided_on": "2026-01-08",
+      "summary": "past_due is entitled, assuming PayGate cancels after the final retry."
+    },
+    "TCK-0102": {
+      "kind": "work_item",
+      "introduced_by": "evt-0001",
+      "decided_on": "2026-01-06",
+      "summary": "Pricing-page typo."
+    },
+    "TCK-0107": {
+      "kind": "work_item",
+      "introduced_by": "evt-0003",
+      "decided_on": "2026-01-12",
+      "summary": "Invoice PDFs, blocked on SDK support."
+    }
+  },
+  "events": {
+    "evt-0001": {
+      "role": "distractor",
+      "should_trigger_reconsideration": false,
+      "near_miss_of": null,
+      "acceptable_reopens": [],
+      "notes": "Copy fix in tasklane/plans.py; no decision involved."
+    },
+    "evt-0002": {
+      "role": "decision_setup",
+      "should_trigger_reconsideration": false,
+      "near_miss_of": null,
+      "acceptable_reopens": [],
+      "notes": "Introduces ADR-0004 with a premise that is false for this account."
+    },
+    "evt-0003": {
+      "role": "parked_setup",
+      "should_trigger_reconsideration": false,
+      "near_miss_of": null,
+      "acceptable_reopens": [],
+      "notes": "Introduces TCK-0107, blocked on SDK support for invoice PDFs."
+    },
+    "evt-0004": {
+      "role": "distractor",
+      "should_trigger_reconsideration": false,
+      "near_miss_of": "ADR-0003",
+      "acceptable_reopens": [],
+      "notes": "10-minute PayGate outage; reconcile retries and self-heals; ADR-0003 unaffected."
+    },
+    "evt-0005": {
+      "role": "trigger",
+      "should_trigger_reconsideration": true,
+      "near_miss_of": null,
+      "acceptable_reopens": [
+        "ADR-0003"
+      ],
+      "notes": "Delayed evidence: PayGate leaves exhausted subscriptions past_due. A stale-poller hypothesis about ADR-0003 is defensible to check, so reopening it is neutral."
+    },
+    "evt-0006": {
+      "role": "distractor",
+      "should_trigger_reconsideration": false,
+      "near_miss_of": "TCK-0107",
+      "acceptable_reopens": [],
+      "notes": "Dependency bump with the same shape as evt-0008, before it and unrelated to any blocker: reopening TCK-0107 here is a false intervention."
+    },
+    "evt-0007": {
+      "role": "trigger",
+      "should_trigger_reconsideration": true,
+      "near_miss_of": null,
+      "acceptable_reopens": [],
+      "notes": "Constraint behind ADR-0002 (shared-0.25 CPU) disappears."
+    },
+    "evt-0008": {
+      "role": "trigger",
+      "should_trigger_reconsideration": true,
+      "near_miss_of": null,
+      "acceptable_reopens": [],
+      "notes": "SDK 1.4.0 adds invoice PDF download: TCK-0107's blocker is resolved."
+    },
+    "evt-0009": {
+      "role": "distractor",
+      "should_trigger_reconsideration": false,
+      "near_miss_of": null,
+      "acceptable_reopens": [],
+      "notes": "Log retention change; no decision depends on log retention."
+    },
+    "evt-0010": {
+      "role": "distractor",
+      "should_trigger_reconsideration": false,
+      "near_miss_of": "ADR-0001",
+      "acceptable_reopens": [],
+      "notes": "Mentions ADR-0001 but follows it; nothing about it changes."
+    }
+  },
+  "reconsiderations": [
+    {
+      "id": "R1",
+      "pattern": "C",
+      "trigger_event": "evt-0005",
+      "affected_targets": [
+        "ADR-0004"
+      ],
+      "window": {
+        "from_seq": 5,
+        "to_seq": 7
+      },
+      "abstention_acceptable": false,
+      "evidence_locus": "workspace",
+      "causal_path": [
+        {
+          "ref": "evt-0005",
+          "kind": "event",
+          "note": "Account still Pro three weeks after its renewal and three retries failed; PayGate still shows past_due."
+        },
+        {
+          "ref": "assumption:paygate-cancels-after-final-retry",
+          "kind": "assumption",
+          "note": "ADR-0004's premise; false for this account (subscriptions stay past_due)."
+        },
+        {
+          "ref": "ADR-0004",
+          "kind": "decision",
+          "note": "past_due treated as entitled."
+        },
+        {
+          "ref": "tasklane/billing.py",
+          "kind": "behavior",
+          "note": "Unbounded paid access while past_due."
+        }
+      ],
+      "historical_state": {
+        "known_then": [
+          "seed",
+          "evt-0002"
+        ],
+        "true_then": [
+          "evt-0005"
+        ],
+        "known_now_about_then": [
+          "evt-0005"
+        ]
+      },
+      "remediation": {
+        "evaluate_at_seq": 7,
+        "acceptable": [
+          {
+            "id": "past_due_access_bounded",
+            "checks": [
+              {
+                "type": "hidden_pytest",
+                "files": [
+                  "hidden_tests/test_r1_past_due_access_ends.py"
+                ]
+              }
+            ]
+          }
+        ],
+        "reference": [
+          {
+            "op": "write_file",
+            "path": "tasklane/billing.py",
+            "source": "reference/R1/tasklane/billing.py"
+          },
+          {
+            "op": "write_file",
+            "path": "tests/test_billing.py",
+            "source": "reference/R1/tests/test_billing.py"
+          },
+          {
+            "op": "write_file",
+            "path": "docs/adr/0004-keep-plan-while-payment-is-retried.md",
+            "source": "reference/R1/docs/adr/0004-keep-plan-while-payment-is-retried.md"
+          }
+        ]
+      },
+      "difficulty": {
+        "causal_depth": 2,
+        "temporal_lag": "medium",
+        "lag_events": 3,
+        "lag_days": 47,
+        "wording": "natural"
+      },
+      "notes": "Delayed observation of a retroactive fact (pattern C with a D flavour)."
+    },
+    {
+      "id": "R2",
+      "pattern": "F",
+      "trigger_event": "evt-0008",
+      "affected_targets": [
+        "TCK-0107"
+      ],
+      "window": {
+        "from_seq": 8,
+        "to_seq": 10
+      },
+      "abstention_acceptable": false,
+      "evidence_locus": "event_history",
+      "causal_path": [
+        {
+          "ref": "evt-0008",
+          "kind": "event",
+          "note": "SDK 1.4.0 adds invoices.download_pdf()."
+        },
+        {
+          "ref": "blocker:sdk-has-no-invoice-pdf",
+          "kind": "assumption",
+          "note": "TCK-0107 was parked because SDK 1.3.x had no PDF endpoint."
+        },
+        {
+          "ref": "TCK-0107",
+          "kind": "work_item",
+          "note": "Parked invoice-PDF ticket."
+        }
+      ],
+      "historical_state": {
+        "known_then": [
+          "seed",
+          "evt-0003"
+        ],
+        "true_then": [],
+        "known_now_about_then": [
+          "evt-0008"
+        ]
+      },
+      "remediation": {
+        "evaluate_at_seq": 10,
+        "acceptable": [
+          {
+            "id": "provider_exposes_invoice_pdf",
+            "checks": [
+              {
+                "type": "hidden_pytest",
+                "files": [
+                  "hidden_tests/test_r2_invoice_pdf.py"
+                ]
+              }
+            ]
+          }
+        ],
+        "reference": [
+          {
+            "op": "write_file",
+            "path": "tasklane/providers/payments.py",
+            "source": "reference/R2/tasklane/providers/payments.py"
+          }
+        ]
+      },
+      "difficulty": {
+        "causal_depth": 2,
+        "temporal_lag": "medium",
+        "lag_events": 5,
+        "lag_days": 63,
+        "wording": "natural"
+      },
+      "notes": "Parked dependency resolved by a routine dependency bump (pattern F with an E flavour)."
+    },
+    {
+      "id": "R3",
+      "pattern": "A",
+      "trigger_event": "evt-0007",
+      "affected_targets": [
+        "ADR-0002"
+      ],
+      "window": {
+        "from_seq": 7,
+        "to_seq": 9
+      },
+      "abstention_acceptable": false,
+      "evidence_locus": "workspace",
+      "causal_path": [
+        {
+          "ref": "evt-0007",
+          "kind": "event",
+          "note": "Production moved to 2 dedicated vCPUs."
+        },
+        {
+          "ref": "constraint:shared-0.25-cpu-budget",
+          "kind": "assumption",
+          "note": "600k iterations took ~1.4 s on shared-0.25; ~210 ms on a dedicated vCPU."
+        },
+        {
+          "ref": "ADR-0002",
+          "kind": "decision",
+          "note": "120k iterations as a hardware compromise."
+        },
+        {
+          "ref": "config/settings.json",
+          "kind": "behavior",
+          "note": "pbkdf2_iterations."
+        }
+      ],
+      "historical_state": {
+        "known_then": [
+          "seed"
+        ],
+        "true_then": [],
+        "known_now_about_then": [
+          "evt-0007"
+        ]
+      },
+      "remediation": {
+        "evaluate_at_seq": 9,
+        "acceptable": [
+          {
+            "id": "owasp_cost_with_upgrade_on_login",
+            "checks": [
+              {
+                "type": "json_value",
+                "path": "config/settings.json",
+                "pointer": "/pbkdf2_iterations",
+                "op": "ge",
+                "value": 600000
+              },
+              {
+                "type": "hidden_pytest",
+                "files": [
+                  "hidden_tests/test_r3_password_cost.py"
+                ]
+              }
+            ]
+          }
+        ],
+        "reference": [
+          {
+            "op": "write_file",
+            "path": "config/settings.json",
+            "source": "reference/R3/config/settings.json"
+          },
+          {
+            "op": "write_file",
+            "path": "docs/adr/0002-password-hashing-cost.md",
+            "source": "reference/R3/docs/adr/0002-password-hashing-cost.md"
+          }
+        ]
+      },
+      "difficulty": {
+        "causal_depth": 2,
+        "temporal_lag": "far",
+        "lag_events": 7,
+        "lag_days": 146,
+        "wording": "natural"
+      },
+      "notes": "A platform constraint behind a seed decision disappears (pattern A)."
+    }
+  ]
+}

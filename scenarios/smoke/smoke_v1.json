@@ -1,0 +1,38 @@
+{
+  "base_dir": "../..",
+  "budgets": {
+    "max_tool_calls_per_event": 200
+  },
+  "content_hashes": {
+    "events": "143e43e8b80694bd5fb8b8046f8d84fdb769eb5a0f2b50578b9775b0d0331d6d",
+    "ground_truth": "8ac525e59ea4006e30a283a5fce8d5d8fb0c4ea366629152a2aa94291164cc5d",
+    "manifest": "a94c49ebdf2e17649fcd284adf87f68d1988f3b3c2f4cc89ae48b1cd8ef04bed",
+    "seed_repo": "3857903c39263203ae0f2724a705e1163a305d1119f4b7f824d7f63d69a8828c"
+  },
+  "description": "10-event machinery smoke test on the tasklane seed: 3 reconsiderations (delayed evidence, constraint disappears, parked dependency resolves) and 5 distractors. Not a held-out evaluation set.",
+  "difficulty": {
+    "distractor_density": "medium",
+    "history_length": "short"
+  },
+  "events": "world/events/smoke_v1/events.jsonl",
+  "family": "smoke",
+  "ground_truth": "world/ground_truth/smoke_v1",
+  "held_out": false,
+  "scenario_id": "smoke_v1",
+  "schema_version": "tab.scenario/1",
+  "seed_repo": "world/seed_repo",
+  "status": "frozen",
+  "version": 1,
+  "world_state_hashes": [
+    "3857903c39263203ae0f2724a705e1163a305d1119f4b7f824d7f63d69a8828c",
+    "2ae03d059865969cefd9c39b1df18e7110aefd8f404f52d12addeeb9802c8d8f",
+    "2ae03d059865969cefd9c39b1df18e7110aefd8f404f52d12addeeb9802c8d8f",
+    "2ae03d059865969cefd9c39b1df18e7110aefd8f404f52d12addeeb9802c8d8f",
+    "2ae03d059865969cefd9c39b1df18e7110aefd8f404f52d12addeeb9802c8d8f",
+    "a54298cb0cfad4acc28e0f56a08b4aa38cf4854e303b3f7a0fcca7d30a2f3918",
+    "e1c7cc06b6ece92fdb248281196cfc64c1f59f0d8424acd8ad939cba1cc514a9",
+    "24ca4fb0765b7c75f944590905a20a60fed75472054ba936a0cac24fb18d1201",
+    "e32ff03ce683150bd46406ef13ffec2e3c4d713d47dde3e2cb320e0851b0cfa4",
+    "661214bc18cccdde1eea463432383dd9e320a354a3633d99fd085304366ab95b"
+  ]
+}
