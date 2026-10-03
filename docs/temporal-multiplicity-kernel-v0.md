@@ -91,13 +91,20 @@ After installing the package:
 
 or:
 
-    PYTHONPATH=src python -m multiplicity.hindsight_eval \
+    PYTHONPATH=src python -m multiplicity_experiments.hindsight_eval \
       --provider claude-cli \
       --model <model> \
       --effort high
 
 The command uses the repository's existing metered model gateway, so both
 conditions are served by the same configured model.
+
+Run the `claude-cli` provider from a normal terminal: the runner refuses to
+start inside a Claude Code session (`CLAUDECODE` set). The frozen protocol
+(v0.1), the exact command, the pre-registered verdict rule and the results are
+in [experiments/tmk-hindsight-v0-results.md](experiments/tmk-hindsight-v0-results.md).
+Re-analyse a result file with
+`PYTHONPATH=src python -m multiplicity_experiments.hindsight_analysis RESULT.json`.
 
 An Anthropic API run is also supported through provider=anthropic when the
 environment is configured for the existing harness.
