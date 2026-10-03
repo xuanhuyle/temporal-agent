@@ -17,8 +17,11 @@ def test_agents_have_isolated_workspaces_and_state(mini_scenario, runs_dir):
     beta_notes = sorted(p.name for p in (final / "beta" / "workspace" / "notes").iterdir())
     assert alpha_notes == ["alpha-1.md", "alpha-2.md", "alpha-3.md"]
     assert beta_notes == ["beta-1.md", "beta-2.md", "beta-3.md"]
-    assert sorted(p.name for p in (final / "alpha" / "state").iterdir()) == ["memory-1.txt", "memory-2.txt", "memory-3.txt"]
-    assert list((final / "reader" / "state").iterdir()) == []
+    def visible(d):  # .home/.tmp are the redirected HOME/TMPDIR inside the state dir
+        return sorted(p.name for p in d.iterdir() if not p.name.startswith("."))
+
+    assert visible(final / "alpha" / "state") == ["memory-1.txt", "memory-2.txt", "memory-3.txt"]
+    assert visible(final / "reader" / "state") == []
     # The world part of every workspace is identical; only agent edits differ.
     assert tree_hash(final / "reader" / "workspace") != tree_hash(final / "alpha" / "workspace")
 

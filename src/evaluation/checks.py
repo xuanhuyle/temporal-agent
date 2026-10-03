@@ -19,7 +19,15 @@ cannot reconfigure:
   the snapshot;
 - a pass requires the JUnit report to show exactly the expected number of
   hidden test cases, all passed (no skips, failures, or errors), not just a
-  zero exit code.
+  zero exit code;
+- the hidden test files are deleted as soon as pytest has collected them, so
+  workspace code (which only runs afterwards) cannot copy them.
+
+This resists *accidental* interference by workspace files (conftest hooks,
+``addopts``, plugins, shadowed modules, early exits). It does not resist
+*deliberate* forgery: workspace code runs inside the test process and could,
+for instance, rewrite the report from an ``atexit`` hook. That requires an OS
+sandbox for the test process (see docs/milestone-1-design.md §10).
 """
 
 from __future__ import annotations
@@ -42,12 +50,26 @@ PYTEST_TIMEOUT_S = 180
 _PY_FLAGS = ("-P", "-s", "-B")
 
 _BOOTSTRAP = """\
+import os
 import sys
 import pytest
 snapshot, ini, rootdir, junit = sys.argv[1:5]
+hidden = sys.argv[5:]
+del sys.argv[1:]
+
+
+class _UnlinkAfterCollection:
+    # Hidden test files are removed once collected, before any workspace code runs.
+    @staticmethod
+    def pytest_collection_finish(session):
+        for path in hidden:
+            if os.path.isfile(path):
+                os.unlink(path)
+
+
 sys.path.append(snapshot)
 sys.exit(pytest.main(["-c", ini, "--rootdir", rootdir, "-p", "no:cacheprovider", "-q",
-                      "--junitxml", junit, *sys.argv[5:]]))
+                      "--junitxml", junit, "--noconftest", *hidden], plugins=[_UnlinkAfterCollection()]))
 """
 _HYGIENE_BOOTSTRAP = """\
 import sys
@@ -129,7 +151,7 @@ def run_hidden_pytest(check: dict[str, Any], snapshot: Path, gt: GroundTruth) ->
         junit = tmp_path / "junit.xml"
         code = _run(
             [sys.executable, *_PY_FLAGS, "-c", _BOOTSTRAP, str(snapshot), str(ini), str(hidden_dir), str(junit),
-             "--noconftest", *targets],
+             *targets],
             cwd=home,
             home=home,
         )

@@ -125,7 +125,6 @@ class Reconsideration:
 class GroundTruth:
     scenario_id: str
     canary: str
-    root: Path
     targets: Mapping[str, dict[str, Any]]
     events: Mapping[str, EventLabel]
     reconsiderations: tuple[Reconsideration, ...]
@@ -440,6 +439,16 @@ def load_ground_truth(
             )
         )
 
+    for eid, lab in events.items():
+        if lab.near_miss_of is None:
+            continue
+        for r in recs:
+            if lab.near_miss_of in r.affected_targets and r.in_window(event_seq[eid]):
+                _fail(
+                    f"events.{eid} is a near-miss of {lab.near_miss_of} inside {r.id}'s window; "
+                    "a reopen there could never count as a false intervention"
+                )
+
     triggers = {r.trigger_event for r in recs}
     for eid, lab in events.items():
         if lab.should_trigger_reconsideration and eid not in triggers:
@@ -448,7 +457,6 @@ def load_ground_truth(
     return GroundTruth(
         scenario_id=raw["scenario_id"],
         canary=raw["canary"],
-        root=gt_dir.resolve(),
         targets=targets,
         events=events,
         reconsiderations=tuple(recs),

@@ -12,9 +12,15 @@ Reopen classification, for a reopen of target ``t`` at step ``s``:
 ``neutral``        ``t`` is listed in the event's ``acceptable_reopens`` (a
                    defensible but not required reopen), or ``t`` was introduced
                    by this very event (reviewing a decision as it is made).
-``late``           ``t`` is affected by an R whose window already closed.
-``false``          anything else: invalid or unknown target, reopening before
-                   the evidence arrived, or a target the event does not bear on.
+``late``           ``t`` is affected by an R whose window already closed (and by
+                   no later R).
+``false``          anything else: invalid or unknown target, reopening the
+                   target of a near-miss control at that control, reopening
+                   before the evidence arrived, or a target the event does not
+                   bear on.
+
+A reopen is matched to the in-window R with the most recent trigger; one
+reopen of a target satisfies every open ``(R, t)`` pair for it.
 
 Precision = TP / (TP + late + false); duplicates and neutral reopens are
 reported but excluded. The false-intervention rate counts negative-control
@@ -36,7 +42,7 @@ from harness.agent import Action, ReopenAction, canonical_target
 from harness.canonical import copy_tree
 from harness.events import Event
 
-EVALUATOR_VERSION = "0.2.0"
+EVALUATOR_VERSION = "0.3.0"
 SCORES_SCHEMA_VERSION = "tab.scores/1"
 AXES = ("pattern", "causal_depth", "temporal_lag", "wording", "evidence_locus")
 
@@ -49,11 +55,15 @@ def ratio(numerator: int, denominator: int) -> dict[str, Any]:
     }
 
 
-def set_f1(predicted: Iterable[str], gold: Iterable[str]) -> float:
-    """Set F1; two empty sets agree perfectly (1.0)."""
+def set_f1(predicted: Iterable[str], gold: Iterable[str]) -> float | None:
+    """Set F1; ``None`` (not scored) when both sets are empty.
+
+    An empty gold set is only scored when the agent asserts something for it
+    (which then scores 0), so a content-free claim earns no credit.
+    """
     p, g = set(predicted), set(gold)
     if not p and not g:
-        return 1.0
+        return None
     return 2 * len(p & g) / (len(p) + len(g))
 
 
@@ -80,12 +90,17 @@ class Evaluator:
             for t, info in gt.targets.items()
         }
         self._snapshot_seqs = {r.remediation.evaluate_at_seq for r in gt.reconsiderations if r.remediation}
-        self._snap_root = Path(tempfile.mkdtemp(prefix="tab-eval-snapshots-"))
+        self._snap_root: Path | None = None
+
+    def open(self) -> None:
+        """Create evaluator-private snapshot storage (call inside the run's cleanup scope)."""
+        if self._snap_root is None:
+            self._snap_root = Path(tempfile.mkdtemp(prefix="tab-eval-snapshots-"))
 
     @property
     def private_paths(self) -> list[Path]:
         """Evaluator-only directories that agents must never touch."""
-        return [self._snap_root]
+        return [] if self._snap_root is None else [self._snap_root]
 
     def add_agent(self, name: str) -> None:
         if name in self._ledgers:
@@ -93,17 +108,21 @@ class Evaluator:
         self._ledgers[name] = _Ledger()
 
     def close(self) -> None:
-        shutil.rmtree(self._snap_root, ignore_errors=True)
+        if self._snap_root is not None:
+            shutil.rmtree(self._snap_root, ignore_errors=True)
 
     # --------------------------------------------------------------- per step
     def _fidelity(self, action: ReopenAction, r: Reconsideration) -> dict[str, Any]:
         if action.historical_state is None:
             return {"provided": False, "score": 0.0, "components": {}}
         claimed = action.historical_state.to_dict()
-        components = {
-            key: set_f1((v.strip().lower() for v in claimed[key]), r.historical_state[key]) for key in HISTORICAL_KEYS
-        }
-        return {"provided": True, "score": sum(components.values()) / len(components), "components": components}
+        components = {}
+        for key in HISTORICAL_KEYS:
+            f1 = set_f1((v.strip().lower() for v in claimed[key]), r.historical_state[key])
+            if f1 is not None:
+                components[key] = f1
+        score = sum(components.values()) / len(components) if components else 0.0
+        return {"provided": True, "score": score, "components": components}
 
     def _classify(self, ledger: _Ledger, seq: int, event_id: str, index: int, action: ReopenAction) -> dict[str, Any]:
         target = canonical_target(action.target)
@@ -117,32 +136,40 @@ class Evaluator:
         if target is None:
             rec.update(classification="false", reason="invalid_target")
             return rec
+        label = self.gt.events[event_id]
         affecting = [r for r in self.gt.reconsiderations if target in r.affected_targets]
-        in_window = [r for r in affecting if r.in_window(seq)]
+        # Most recent trigger first: a reopen answers the latest evidence it can see.
+        in_window = sorted((r for r in affecting if r.in_window(seq)), key=lambda r: r.trigger_seq, reverse=True)
         unmatched = [r for r in in_window if (r.id, target) not in ledger.matched]
         if unmatched:
+            # One reopen of a target covers every open reconsideration of it (repeats earn nothing);
+            # latency and fidelity are judged against the most recent trigger.
+            for other in unmatched:
+                ledger.matched[(other.id, target)] = seq
             r = unmatched[0]
-            ledger.matched[(r.id, target)] = seq
             rec.update(
                 classification="true_positive",
-                reason="optional" if r.abstention_acceptable else "required",
+                reason="optional" if all(x.abstention_acceptable for x in unmatched) else "required",
                 reconsideration=r.id,
+                also_matched=[x.id for x in unmatched[1:]],
                 latency_events=seq - r.trigger_seq,
                 fidelity=self._fidelity(action, r),
             )
         elif in_window:
             rec.update(classification="duplicate", reason="already_reopened", reconsideration=in_window[0].id)
-        elif target in self.gt.events[event_id].acceptable_reopens:
+        elif target in label.acceptable_reopens:
             rec.update(classification="neutral", reason="acceptable_at_event")
         elif target in self.gt.targets and self._intro_seq[target] == seq:
             rec.update(classification="neutral", reason="introduced_here")
+        elif target not in self.gt.targets:
+            rec.update(classification="false", reason="unknown_target")
+        elif label.near_miss_of == target:
+            rec.update(classification="false", reason="near_miss")
+        elif any(seq < r.window_from for r in affecting):
+            rec.update(classification="false", reason="before_evidence")
         elif any(seq > r.window_to for r in affecting):
             late = [r for r in affecting if seq > r.window_to]
             rec.update(classification="late", reason="after_window", reconsideration=late[-1].id)
-        elif target not in self.gt.targets:
-            rec.update(classification="false", reason="unknown_target")
-        elif any(seq < r.window_from for r in affecting):
-            rec.update(classification="false", reason="before_evidence")
         else:
             rec.update(classification="false", reason="not_affected")
         return rec
@@ -164,6 +191,8 @@ class Evaluator:
 
     def snapshot(self, agent: str, seq: int, workspace_root: Path) -> dict[str, Any]:
         """Copy the workspace (regular files only) into evaluator-private storage."""
+        self.open()
+        assert self._snap_root is not None
         dest = self._snap_root / agent / f"seq-{seq:04d}"
         skipped = copy_tree(workspace_root, dest, regular_only=True)
         self._ledgers[agent].snapshots[seq] = dest
@@ -308,7 +337,8 @@ class Evaluator:
                 "value": _mean(fid_all),
                 "coverage": ratio(len(fid_provided), len(tps)),
                 "components_when_provided": {
-                    key: _mean([f["components"][key] for f in fid_provided]) for key in HISTORICAL_KEYS
+                    key: _mean([f["components"][key] for f in fid_provided if key in f["components"]])
+                    for key in HISTORICAL_KEYS
                 },
             },
             "present_remediation_success": ratio(len([r for r in required_rem if r.id in passed]), len(required_rem)),

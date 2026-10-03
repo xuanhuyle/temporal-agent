@@ -17,6 +17,7 @@ any failure the trace, partial outputs and final agent state are preserved.
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import os
 import platform
@@ -57,6 +58,8 @@ from harness.workspace import Workspace
 from harness.world import apply_event
 
 RUN_SCHEMA_VERSION = "tab.run/1"
+# Default output root of the CLI; always protected, even when a run writes elsewhere.
+DEFAULT_RUNS_ROOT = Path(__file__).resolve().parents[2] / "runs"
 AGENT_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
 OUTPUT_FILES = ("metadata.json", "events.jsonl", "actions.jsonl", "scores.json", "trace.jsonl", "evaluation.jsonl")
 NON_CONTESTANT_ROLES = ("reference", "oracle")
@@ -152,6 +155,15 @@ def _describe(agent: Agent) -> dict[str, Any]:
     return d
 
 
+def _describe_guarded(agent: Agent, denied: list[Path]) -> dict[str, Any]:
+    """``describe()`` is agent code too: run it under the guard in a throwaway directory."""
+    with tempfile.TemporaryDirectory(prefix="tab-describe-") as scratch, guard.armed(denied):
+        lane = f"describe:{agent.name}"
+        guard.register_lane(lane, Path(scratch))
+        with guard.agent_call(lane, Path(scratch), guard.lane_env(Path(scratch))):
+            return _describe(agent)
+
+
 def _allocate_run_dir(runs_dir: Path, run_id: str) -> tuple[str, Path]:
     runs_dir.mkdir(parents=True, exist_ok=True)
     candidate, n = run_id, 1
@@ -211,12 +223,18 @@ def step_order(names: list[str], seed: int, seq: int) -> list[str]:
     return order
 
 
+def write_manifest(run_dir: Path) -> None:
+    tmp = Path(run_dir) / ".MANIFEST.sha256.tmp"
+    tmp.write_text(manifest_listing(run_dir), encoding="utf-8")
+    os.replace(tmp, Path(run_dir) / "MANIFEST.sha256")
+
+
 def manifest_listing(run_dir: Path) -> str:
     """``sha256  relative/path`` for every file in a run directory except the listing itself."""
     lines = []
     for path in sorted(p for p in Path(run_dir).rglob("*") if p.is_file() and not p.is_symlink()):
         rel = path.relative_to(run_dir).as_posix()
-        if rel == "MANIFEST.sha256":
+        if rel in ("MANIFEST.sha256", ".MANIFEST.sha256.tmp"):
             continue
         lines.append(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {rel}")
     return "\n".join(lines) + "\n"
@@ -237,7 +255,17 @@ def run(
             raise ValueError(f"invalid agent name {n!r}")
     if len(set(names)) != len(names):
         raise ValueError(f"agent names must be unique: {names}")
-    agent_specs = [{"name": a.name, **_describe(a)} for a in agents]
+    runs_dir = Path(config.runs_dir).resolve()
+    tmp_root = Path(tempfile.gettempdir()).resolve()
+    if tmp_root == runs_dir or runs_dir in tmp_root.parents:
+        raise ValueError("runs_dir must not contain the system temp directory (agent lanes live there)")
+    denied_base = scenario.protected_paths() + [
+        runs_dir,
+        scenario.base_dir / "runs",
+        DEFAULT_RUNS_ROOT,
+        scenario.base_dir / "world",
+    ]
+    agent_specs = [{"name": a.name, **_describe_guarded(a, denied_base)} for a in agents]
     if scenario.status != "frozen":
         contestants = [s["name"] for s in agent_specs if s["role"] not in NON_CONTESTANT_ROLES]
         if contestants:
@@ -279,7 +307,6 @@ def run(
     base_id = config.run_id or (
         f"{replay_of}__replay" if replay_of else f"{scenario.scenario_id}__{'+'.join(names)}__{config_hash[:10]}"
     )
-    runs_dir = Path(config.runs_dir).resolve()
     run_id, run_dir = _allocate_run_dir(runs_dir, base_id)
 
     try:
@@ -331,6 +358,7 @@ def run(
     blobs_dir = run_dir / "blobs"
     blobs_dir.mkdir()
     redact = _Redactor()
+    guard_stack = contextlib.ExitStack()
     lanes: list[_Lane] = []
     final_copied = False
     scores: dict[str, Any] | None = None
@@ -341,7 +369,9 @@ def run(
         digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
         path = blobs_dir / f"{digest}.json"
         if not path.exists():
-            path.write_text(text, encoding="utf-8")
+            tmp = blobs_dir / f".{digest}.tmp"
+            tmp.write_text(text, encoding="utf-8")
+            os.replace(tmp, path)
         return digest
 
     def copy_final_state() -> None:
@@ -355,6 +385,7 @@ def run(
             copy_tree(lane.state_dir, dest / "state", regular_only=True)
 
     try:
+        evaluator.open()
         for agent in agents:
             lane_root = Path(tempfile.mkdtemp(prefix="tab-lane-"))
             ws_root, state_dir = lane_root / "workspace", lane_root / "state"
@@ -372,16 +403,29 @@ def run(
         redact.add(Path.home(), "<home>")
         redact.add(tempfile.gettempdir(), "<tmp>")
 
-        protected = scenario.protected_paths() + [runs_dir, run_dir] + evaluator.private_paths
+        protected = denied_base + [run_dir] + evaluator.private_paths
         for lane in lanes:
             lane.workspace = Workspace(lane.workspace.root, protected)
-        denied_common = protected + [scenario.base_dir / "world"] + [lane.workspace.root for lane in lanes]
+        # Agent code may not touch evaluator data, run outputs, the world sources,
+        # any workspace (ToolBox only) or other lanes; it may write only to its state.
+        guard_stack.enter_context(guard.armed(protected + [lane.root for lane in lanes]))
+        for lane in lanes:
+            guard.register_lane(lane.name, lane.state_dir)
 
-        def guarded(lane: _Lane, fn: Callable[[], Any]) -> tuple[Any, list[str]]:
-            denied = denied_common + [other.root for other in lanes if other is not lane]
-            with guard.agent_call(denied, [lane.state_dir], cwd=lane.state_dir) as policy:
-                result = fn()
-            return result, list(policy.violations)
+        def guarded(lane: _Lane, fn: Callable[[], Any]) -> tuple[Any, BaseException | None, list[str]]:
+            """Run agent code; returns (result, exception, guard violations). Only Ctrl-C escapes."""
+            collected: list[str] = []
+            try:
+                with guard.agent_call(lane.name, lane.state_dir, guard.lane_env(lane.state_dir)) as collected:
+                    return fn(), None, collected
+            except KeyboardInterrupt:
+                raise
+            except BaseException as exc:  # noqa: BLE001 - agent faults (even SystemExit) are data
+                return None, exc, collected
+
+        def describe_exc(exc: BaseException) -> tuple[str | None, str | None]:
+            text = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+            return redact(f"{type(exc).__name__}: {exc}"), redact(text)
 
         def make_recorder(lane: _Lane, seq: int, calls: list[dict[str, Any]]) -> Callable[[dict[str, Any]], None]:
             def recorder(rec: dict[str, Any]) -> None:
@@ -421,17 +465,19 @@ def run(
                 instructions=INSTRUCTIONS,
                 instructions_version=INSTRUCTIONS_VERSION,
             )
-            try:
-                _, violations = guarded(lane, lambda: lane.agent.setup(ctx))
+            _, exc, violations = guarded(lane, lambda: lane.agent.setup(ctx))
+            if exc is None:
                 trace.emit("agent_setup", agent=lane.name, status="ok", error=None, guard_violations=violations)
-            except Exception as exc:  # noqa: BLE001 - agent faults are data
+            else:
                 lane.enabled = False
+                error, tb = describe_exc(exc)
                 trace.emit(
                     "agent_setup",
                     agent=lane.name,
                     status="agent_error",
-                    error=redact(f"{type(exc).__name__}: {exc}"),
-                    traceback=redact(traceback.format_exc()),
+                    error=error,
+                    traceback=tb,
+                    guard_violations=violations,
                 )
 
         # Step 0: optional ingestion of the seed world, same budget for every agent.
@@ -439,15 +485,14 @@ def run(
             if lane.enabled:
                 start_calls: list[dict[str, Any]] = []
                 tools = ToolBox(lane.workspace, budget, make_recorder(lane, 0, start_calls))
-                status_s, error, tb, violations = "ok", None, None, []
-                try:
-                    _, violations = guarded(lane, lambda: lane.agent.on_start(tools))
-                except BudgetExceeded as exc:
-                    status_s, error = "budget_exceeded", str(exc)
-                except Exception as exc:  # noqa: BLE001
-                    status_s, error, tb = "agent_error", f"{type(exc).__name__}: {exc}", traceback.format_exc()
-                finally:
-                    tools.close()
+                status_s, error, tb = "ok", None, None
+                _, exc, violations = guarded(lane, lambda: lane.agent.on_start(tools))
+                tools.close()
+                if isinstance(exc, BudgetExceeded):
+                    status_s, error = "budget_exceeded", redact(str(exc))
+                elif exc is not None:
+                    status_s = "agent_error"
+                    error, tb = describe_exc(exc)
                 if tools.exhausted and status_s == "ok":
                     status_s, error = "budget_exceeded", "tool-call budget exhausted (exception caught by agent)"
                 lane.tool_calls += tools.calls_made
@@ -455,8 +500,8 @@ def run(
                     "agent_start",
                     agent=lane.name,
                     status=status_s,
-                    error=redact(error),
-                    traceback=redact(tb),
+                    error=error,
+                    traceback=tb,
                     guard_violations=violations,
                     tool_calls=tools.calls_made,
                     workspace_tree=tree_hash(lane.workspace.root),
@@ -530,24 +575,21 @@ def run(
                 )
                 calls: list[dict[str, Any]] = []
                 tools = ToolBox(lane.workspace, budget, make_recorder(lane, event.seq, calls))
-                status_s, error, tb, violations = "ok", None, None, []
-                response: Any = AgentResponse()
+                status_s, error, tb = "ok", None, None
                 t0 = time.perf_counter()
-                try:
-                    response, violations = guarded(lane, lambda: lane.agent.on_event(view, tools))
-                except BudgetExceeded as exc:
-                    status_s, error, response = "budget_exceeded", str(exc), AgentResponse()
-                except Exception as exc:  # noqa: BLE001 - agent faults are data
-                    status_s, error, tb = "agent_error", f"{type(exc).__name__}: {exc}", traceback.format_exc()
-                    response = AgentResponse()
+                response, exc, violations = guarded(lane, lambda: lane.agent.on_event(view, tools))
+                tools.close()
+                elapsed_ms = (time.perf_counter() - t0) * 1000.0
+                if isinstance(exc, BudgetExceeded):
+                    status_s, error, response = "budget_exceeded", redact(str(exc)), AgentResponse()
+                elif exc is not None:
+                    status_s, response = "agent_error", AgentResponse()
+                    error, tb = describe_exc(exc)
                 else:
                     try:
                         _validate_response(response)
-                    except TypeError as exc:
-                        status_s, error, response = "invalid_response", str(exc), AgentResponse()
-                finally:
-                    tools.close()
-                elapsed_ms = (time.perf_counter() - t0) * 1000.0
+                    except TypeError as invalid:
+                        status_s, error, response = "invalid_response", str(invalid), AgentResponse()
                 if tools.exhausted and status_s == "ok":
                     status_s, error = "budget_exceeded", "tool-call budget exhausted (exception caught by agent)"
 
@@ -563,8 +605,8 @@ def run(
                     seq=event.seq,
                     agent=lane.name,
                     status=status_s,
-                    error=redact(error),
-                    traceback=redact(tb),
+                    error=error,
+                    traceback=tb,
                     guard_violations=violations,
                     actions=actions_dicts,
                     usage=response.usage.to_dict(),
@@ -585,7 +627,7 @@ def run(
                         "event_id": event.event_id,
                         "agent": lane.name,
                         "status": status_s,
-                        "error": redact(error),
+                        "error": error,
                         "actions": actions_dicts,
                         "usage": response.usage.to_dict(),
                         "tool_calls": calls,
@@ -606,22 +648,30 @@ def run(
         for lane in lanes:
             if not lane.enabled:
                 continue
-            try:
-                _, violations = guarded(lane, lane.agent.teardown)
+            _, exc, violations = guarded(lane, lane.agent.teardown)
+            if exc is None:
                 trace.emit("agent_teardown", agent=lane.name, status="ok", error=None, guard_violations=violations)
-            except Exception as exc:  # noqa: BLE001
+            else:
+                error, tb = describe_exc(exc)
                 trace.emit(
                     "agent_teardown",
                     agent=lane.name,
                     status="agent_error",
-                    error=redact(f"{type(exc).__name__}: {exc}"),
-                    traceback=redact(traceback.format_exc()),
+                    error=error,
+                    traceback=tb,
+                    guard_violations=violations,
                 )
             final_tree = tree_hash(lane.workspace.root)
             if final_tree != lane.expected_tree:
                 trace.emit(
                     "out_of_band_mutation", seq=None, agent=lane.name, expected=lane.expected_tree, actual=final_tree
                 )
+
+        alive = guard.live_agent_threads()
+        if alive:
+            # Threads outliving teardown are no longer guarded once the run ends.
+            trace.emit("agent_threads_alive", counts=dict(sorted(alive.items())))
+        guard_stack.close()
 
         copy_final_state()
         efficiency = {
@@ -657,20 +707,30 @@ def run(
             pass
         raise
     finally:
-        try:
-            copy_final_state()
-        except Exception as copy_exc:  # noqa: BLE001
-            metadata["final_state_error"] = f"{type(copy_exc).__name__}: {copy_exc}"
+        # Every finalization step runs even if an earlier one fails, and none of
+        # them may replace the exception that ended the run.
+        finalization_errors: list[str] = []
+
+        def attempt(label: str, fn: Callable[[], Any]) -> None:
+            try:
+                fn()
+            except Exception as fin_exc:  # noqa: BLE001
+                finalization_errors.append(redact(f"{label}: {type(fin_exc).__name__}: {fin_exc}") or label)
+
+        attempt("disarm guard", guard_stack.close)
+        attempt("copy final state", copy_final_state)
         for writer in (trace, events_out, actions_out, evaluation_out):
-            writer.close()
+            attempt(f"close {writer.path.name}", writer.close)
         for lane in lanes:
             shutil.rmtree(lane.root, ignore_errors=True)
-        evaluator.close()
+        attempt("evaluator cleanup", evaluator.close)
         metadata["status"] = status
         metadata["finished_at"] = _now_iso()
         if status == "completed":
-            metadata["fingerprint"] = run_fingerprint(run_dir)
-        write_json_atomic(run_dir / "metadata.json", metadata)
-        (run_dir / "MANIFEST.sha256").write_text(manifest_listing(run_dir), encoding="utf-8")
+            attempt("fingerprint", lambda: metadata.__setitem__("fingerprint", run_fingerprint(run_dir)))
+        if finalization_errors:
+            metadata["finalization_errors"] = finalization_errors
+        attempt("metadata", lambda: write_json_atomic(run_dir / "metadata.json", metadata))
+        attempt("manifest", lambda: write_manifest(run_dir))
 
     return RunResult(run_id=run_id, run_dir=run_dir, status=status, scores=scores, fingerprint=metadata["fingerprint"])

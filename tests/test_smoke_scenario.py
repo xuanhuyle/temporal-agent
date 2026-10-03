@@ -134,3 +134,62 @@ def test_docs_do_not_quote_smoke_ground_truth(smoke):
             for t in r.affected_targets:
                 for m in re.finditer(re.escape(r.trigger_event), text):
                     assert t not in text[max(0, m.start() - 200): m.end() + 200]
+
+
+def _world_at(smoke, seq, dest):
+    from harness.workspace import Workspace
+    from harness.world import apply_event
+
+    scenario, events, _ = smoke
+    copy_tree(scenario.seed_dir, dest)
+    ws = Workspace(dest)
+    for ev in events[:seq]:
+        apply_event(ev, ws)
+    return dest
+
+
+def _edit(root, rel, old, new):
+    path = root / rel
+    text = path.read_text()
+    assert old in text, (rel, old)
+    path.write_text(text.replace(old, new, 1))
+
+
+R1_GRACE_7_DAYS = (
+    "tasklane/billing.py",
+    "    if status == \"incomplete\":",
+    "    if status == \"past_due\" and now - subscription.current_period_end <= timedelta(days=7):\n"
+    "        return _entitlements(subscription.plan_id, \"past_due_grace\")\n\n    if status == \"incomplete\":",
+)
+
+
+@pytest.mark.parametrize(
+    "rid,edits,expected",
+    [
+        # R1: any bounded grace passes; a revert (no grace at all) or no change fails
+        ("R1", [("tasklane/billing.py", '"active", "trialing", "past_due"', '"active", "trialing"'), R1_GRACE_7_DAYS], True),
+        ("R1", [("tasklane/billing.py", '"active", "trialing", "past_due"', '"active", "trialing"')], False),
+        ("R1", [], False),
+        # R2: any provider method returning the SDK's PDF passes; a fake PDF does not
+        ("R2", [("tasklane/providers/payments.py", "    @staticmethod\n    def _call(",
+                 "    def download_invoice_pdf(self, invoice_id: str) -> bytes:\n"
+                 "        return self._call(self._client.invoices.download_pdf, invoice_id)\n\n"
+                 "    @staticmethod\n    def _call(")], True),
+        ("R2", [("tasklane/providers/payments.py", "    @staticmethod\n    def _call(",
+                 "    def invoice_pdf(self, invoice_id: str) -> bytes:\n"
+                 "        return b'%PDF-1.4 ' + invoice_id.encode()\n\n"
+                 "    @staticmethod\n    def _call(")], False),
+        # R3: OWASP cost or above passes; a compromise below it does not
+        ("R3", [("config/settings.json", '"pbkdf2_iterations": 120000', '"pbkdf2_iterations": 1000000')], True),
+        ("R3", [("config/settings.json", '"pbkdf2_iterations": 120000', '"pbkdf2_iterations": 400000')], False),
+    ],
+)
+def test_remediation_checks_accept_reasonable_fixes_and_reject_degenerate_ones(smoke, tmp_path, rid, edits, expected):
+    from evaluation.checks import evaluate_alternatives
+
+    _, _, gt = smoke
+    r = next(x for x in gt.reconsiderations if x.id == rid)
+    world = _world_at(smoke, r.remediation.evaluate_at_seq, tmp_path / "world")
+    for rel, old, new in edits:
+        _edit(world, rel, old, new)
+    assert evaluate_alternatives(r.remediation.acceptable, world, gt)["passed"] is expected

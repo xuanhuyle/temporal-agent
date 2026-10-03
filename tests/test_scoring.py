@@ -177,18 +177,29 @@ def test_abstention_acceptable_is_not_penalized(tmp_path):
     assert s["reopening_precision"]["value"] == 1.0
 
 
-def test_fidelity_is_mean_set_f1_over_the_three_components(tmp_path):
+def test_fidelity_is_mean_set_f1_over_asserted_or_labelled_components(tmp_path):
     perfect = HistoricalState(known_then=("seed",), known_now_about_then=("evt-0002",))
     partial = HistoricalState(known_then=("seed", "evt-0001"))
     s = _score(tmp_path, {2: [ReopenAction("ADR-0001", historical_state=perfect),
                               ReopenAction("ADR-0002", historical_state=partial)]})
     fid = s["historical_state_fidelity"]
-    # perfect: 1.0 (empty true_then agrees with an empty label);
-    # partial: known_then 2/3, true_then 1.0, known_now_about_then 0.0 -> 5/9
-    assert fid["value"] == pytest.approx((1.0 + 5 / 9) / 2)
+    # true_then is empty in both claim and label: not scored (no free credit).
+    # perfect: (1 + 1) / 2 = 1.0; partial: known_then 2/3, known_now_about_then 0 -> 1/3
+    assert fid["value"] == pytest.approx((1.0 + 1 / 3) / 2)
     assert fid["coverage"] == {"value": 1.0, "numerator": 2, "denominator": 2}
     assert fid["components_when_provided"]["known_now_about_then"] == pytest.approx(0.5)
-    assert set_f1([], []) == 1.0 and set_f1(["a"], []) == 0.0
+    assert fid["components_when_provided"]["true_then"] is None
+    assert set_f1([], []) is None and set_f1(["a"], []) == 0.0
+
+
+def test_content_free_claims_earn_no_fidelity(tmp_path):
+    s = _score(tmp_path, {2: [ReopenAction("ADR-0001", historical_state=HistoricalState())]})
+    assert s["historical_state_fidelity"]["value"] == 0.0
+    wrong_true_then = HistoricalState(known_then=("seed",), true_then=("evt-0002",), known_now_about_then=("evt-0002",))
+    (tmp_path / "b").mkdir()
+    s = _score(tmp_path / "b", {2: [ReopenAction("ADR-0001", historical_state=wrong_true_then)]})
+    # asserting a retroactive fact the label does not have costs a zero component
+    assert s["historical_state_fidelity"]["value"] == pytest.approx(2 / 3)
 
 
 def test_missing_historical_state_scores_zero(tmp_path):
@@ -284,3 +295,78 @@ def test_hidden_test_reference_must_stay_inside_ground_truth(tmp_path):
     ]
     with pytest.raises(GroundTruthError):
         _gt(tmp_path, labels)
+
+
+def _score_labels(tmp_path, labels, steps):
+    d = tmp_path / "custom_gt"
+    d.mkdir(parents=True)
+    (d / "labels.json").write_text(json.dumps(labels))
+    gt = load_ground_truth(d, {f"evt-{i:04d}": i for i in range(1, N + 1)})
+    ev = Evaluator(gt, _events(), {"scenario_id": "synthetic"}, "h")
+    ev.add_agent("a")
+    ws = tmp_path / "ws_custom"
+    ws.mkdir()
+    for seq in range(1, N + 1):
+        ev.observe_step("a", seq, steps.get(seq, []))
+        if ev.needs_snapshot(seq):
+            ev.snapshot("a", seq, ws)
+    try:
+        return ev.finalize({"a": {}}, {"a": {"ok": N}})["agents"]["a"]
+    finally:
+        ev.close()
+
+
+def _extra_r(rid, trigger, target, window):
+    return {
+        "id": rid, "pattern": "B", "trigger_event": trigger, "affected_targets": [target],
+        "window": {"from_seq": window[0], "to_seq": window[1]}, "abstention_acceptable": False,
+        "evidence_locus": "workspace",
+        "causal_path": [{"ref": trigger, "kind": "event", "note": ""}, {"ref": target, "kind": "decision", "note": ""}],
+        "historical_state": {"known_then": ["seed"], "true_then": [], "known_now_about_then": [trigger]},
+        "remediation": None,
+        "difficulty": {"causal_depth": 1, "temporal_lag": "medium" if int(trigger[-1]) > 2 else "near",
+                       "lag_events": int(trigger[-1]), "lag_days": 0, "wording": "natural"},
+    }
+
+
+def test_near_miss_reopen_is_a_false_intervention(tmp_path):
+    labels = _labels()
+    labels["events"]["evt-0001"]["near_miss_of"] = "ADR-0001"
+    s = _score_labels(tmp_path, labels, {1: [ReopenAction("ADR-0001")]})
+    assert [(r["classification"], r["reason"]) for r in s["reopen_log"]] == [("false", "near_miss")]
+    assert s["false_intervention_rate"]["numerator"] == 1
+
+
+def test_near_miss_inside_a_same_target_window_is_rejected(tmp_path):
+    labels = _labels()
+    labels["events"]["evt-0003"]["near_miss_of"] = "ADR-0001"  # inside R1's window [2, 4]
+    d = tmp_path / "gt"
+    d.mkdir()
+    (d / "labels.json").write_text(json.dumps(labels))
+    with pytest.raises(GroundTruthError, match="near-miss"):
+        load_ground_truth(d, {f"evt-{i:04d}": i for i in range(1, N + 1)})
+
+
+def test_reopen_between_two_windows_is_premature_not_late(tmp_path):
+    labels = _labels()
+    labels["reconsiderations"][0]["window"] = {"from_seq": 2, "to_seq": 3}
+    labels["reconsiderations"][0]["remediation"]["evaluate_at_seq"] = 3
+    labels["reconsiderations"].append(_extra_r("R9", "evt-0005", "ADR-0001", (5, 6)))
+    s = _score_labels(tmp_path, labels, {4: [ReopenAction("ADR-0001")]})
+    assert [(r["classification"], r["reason"]) for r in s["reopen_log"]] == [("false", "before_evidence")]
+
+
+def test_shared_target_matches_latest_trigger_and_repeats_earn_nothing(tmp_path):
+    labels = _labels()
+    labels["events"]["evt-0003"].update(role="trigger", should_trigger_reconsideration=True)
+    labels["reconsiderations"].append(_extra_r("R9", "evt-0003", "ADR-0001", (3, 5)))
+    order_a = _score_labels(tmp_path / "a", labels, {3: [ReopenAction("ADR-0001"), ReopenAction("ADR-0001")]})
+    labels["reconsiderations"].reverse()
+    order_b = _score_labels(tmp_path / "b", labels, {3: [ReopenAction("ADR-0001"), ReopenAction("ADR-0001")]})
+    for s in (order_a, order_b):  # independent of ground-truth list order
+        first, second = s["reopen_log"]
+        assert first["classification"] == "true_positive" and first["reconsideration"] == "R9"
+        assert first["also_matched"] == ["R1"] and first["latency_events"] == 0
+        assert second["classification"] == "duplicate"
+        assert s["temporal_governance_recall"]["numerator"] == 2  # R1/ADR-0001 and R9/ADR-0001
+        assert s["reopening_precision"] == {"value": 1.0, "numerator": 1, "denominator": 1}

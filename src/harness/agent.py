@@ -84,9 +84,15 @@ class InvalidAction(ValueError):
 def _str_tuple(value: object, field_name: str) -> tuple[str, ...]:
     if value is None:
         return ()
-    if isinstance(value, str) or not all(isinstance(v, str) for v in value):  # type: ignore[union-attr]
+    if isinstance(value, (str, bytes)):
         raise InvalidAction(f"{field_name} must be a list of strings")
-    return tuple(value)  # type: ignore[arg-type]
+    try:
+        items = tuple(value)  # type: ignore[arg-type]  # materialize once: generators are one-shot
+    except TypeError:
+        raise InvalidAction(f"{field_name} must be a list of strings") from None
+    if not all(isinstance(v, str) for v in items):
+        raise InvalidAction(f"{field_name} must be a list of strings")
+    return items
 
 
 HISTORICAL_STATE_KEYS = ("known_then", "true_then", "known_now_about_then")
@@ -219,6 +225,11 @@ class StepBudget:
     """Per-event budget applied identically to every contestant."""
 
     max_tool_calls_per_event: int = 200
+
+    def __post_init__(self) -> None:
+        n = self.max_tool_calls_per_event
+        if isinstance(n, bool) or not isinstance(n, int) or n < 1:
+            raise ValueError("max_tool_calls_per_event must be a positive integer")
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

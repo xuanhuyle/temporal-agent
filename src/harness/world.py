@@ -16,19 +16,22 @@ class ApplyResult:
     ops: list[dict[str, Any]] = field(default_factory=list)
     conflicts: list[dict[str, Any]] = field(default_factory=list)
 
-    def to_dict(self) -> dict[str, Any]:
-        return {"ops": self.ops, "conflicts": self.conflicts}
-
 
 def apply_event(event: Event, ws: Workspace) -> ApplyResult:
     """Apply an event's world changes to ``ws`` in order.
 
-    The world is authoritative: a failed precondition (``expect_sha256``) or a
-    delete of a missing file is recorded as a conflict but never aborts, so
-    every contestant's world stays on the scripted track.
+    The world is authoritative: a failed precondition (``expect_sha256``), a
+    delete of a missing file, or agent-made files/directories standing in the
+    way are recorded as conflicts but never abort, so every contestant's world
+    stays on the scripted track.
     """
     result = ApplyResult()
     for change in event.world_changes:
+        obstructions = ws.clear_obstructions(change.path)
+        if obstructions:
+            result.conflicts.append(
+                {"path": change.path, "reason": "obstructed", "expected": None, "actual": obstructions}
+            )
         before = ws.file_sha256(change.path)
         if change.expect_sha256 is not None and before != change.expect_sha256:
             result.conflicts.append(

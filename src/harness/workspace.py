@@ -13,6 +13,7 @@ from __future__ import annotations
 import errno
 import os
 import re
+import shutil
 import stat
 import tempfile
 from pathlib import Path
@@ -43,6 +44,10 @@ def validate_relpath(rel: object, *, allow_root: bool = False) -> tuple[str, ...
         raise AccessDenied(f"path must be a string, got {type(rel).__name__}")
     if rel == "" or "\x00" in rel or "\\" in rel:
         raise AccessDenied(f"invalid path: {rel!r}")
+    try:
+        rel.encode("utf-8")
+    except UnicodeEncodeError:
+        raise AccessDenied(f"path is not valid UTF-8: {rel!r}") from None
     if rel.startswith("/") or rel.startswith("~") or re.match(r"^[A-Za-z]:", rel):
         raise AccessDenied(f"absolute paths are not allowed: {rel!r}")
     parts = []
@@ -233,6 +238,32 @@ class Workspace:
         if not isinstance(content, str):
             raise ToolError("content must be a string")
         self.write_bytes(rel, content.encode("utf-8"))
+
+    def clear_obstructions(self, rel: str) -> list[str]:
+        """Make ``rel`` writable as a regular file (harness-only, for world changes).
+
+        Removes a directory at ``rel`` and any non-directory standing where a
+        parent directory must be. Returns the relative paths removed.
+        """
+        parts = validate_relpath(rel)
+        removed: list[str] = []
+        current = self.root
+        for i, part in enumerate(parts):
+            current = current / part
+            last = i == len(parts) - 1
+            try:
+                st = os.lstat(current)
+            except FileNotFoundError:
+                break
+            rel_here = "/".join(parts[: i + 1])
+            if last and stat.S_ISDIR(st.st_mode):
+                shutil.rmtree(current)
+                removed.append(rel_here)
+            elif not last and not stat.S_ISDIR(st.st_mode):
+                os.unlink(current)
+                removed.append(rel_here)
+                break
+        return removed
 
     def delete(self, rel: str) -> None:
         target = self._resolve(rel)

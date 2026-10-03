@@ -227,6 +227,10 @@ def reconcile_subscriptions(
         if updated != local:
             save_subscription(conn, updated, now)
             changed += 1
+    if failed and not checked:
+        # Nothing could be refreshed: fail the run so it is retried and visible
+        # in the job's last_error instead of silently reporting success.
+        raise ProviderError(f"could not reconcile any of {failed} subscriptions")
     return ReconcileResult(checked=checked, changed=changed, failed=failed)
 
 

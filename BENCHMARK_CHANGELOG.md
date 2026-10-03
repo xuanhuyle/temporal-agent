@@ -25,3 +25,42 @@ version, and each entry says which runs it invalidates.
   - Scenario: uniform 3-step windows, negative controls after the last
     trigger, and behavioural hidden tests as remediation criteria. Workspace
     suite health is reported separately as hygiene.
+
+## 0.1.1 (Milestone 1, adversarial review; before any contestant run)
+
+The adversarial review confirmed these findings, and they were fixed before
+release. `smoke_v1` was regenerated and refrozen. It had only ever been run
+by reference agents (dummy, keyword, oracle), so no contestant result is
+affected.
+
+- **Guard:**
+  - The policy is process-wide, and threads started by agent code are attributed to their agent.
+  - `describe()` runs guarded.
+  - Default and repository run directories are protected.
+  - Agents may write only inside their state dir, and `HOME`, `TMPDIR` and `XDG_*` are redirected there.
+  - `multiprocessing` spawn and forkserver are blocked, and fd-relative walks are checked.
+- **Robustness:**
+  - Every agent `BaseException` except Ctrl-C is recorded, never fatal.
+  - Serialization is total (ASCII-escaped JSON).
+  - OS-level tool failures become path-free, traced tool errors.
+  - World writes clear agent-made obstructions.
+  - Finalization steps cannot mask the original error, and the manifest is written atomically.
+  - `runs_dir` and `StepBudget` are validated.
+- **Replay:** reproduces budget overruns that occur after `finally`-block calls, agent-raised budget errors and non-string arguments. Guard violations and private state are exempt from comparison, and the replay manifest stays complete.
+- **Fingerprint:** excludes agents' private state tree.
+- **Scoring (evaluator 0.3.0, harness 0.2.0; before any contestant run):**
+  - A reopen at a near-miss control is a false intervention.
+  - A reopen between two windows is premature, not late.
+  - Reopens match the most recent trigger, and one reopen covers all of a target's open pairs, independent of ground-truth order.
+  - Fidelity components that are empty on both sides are not scored.
+  - The loader rejects a near-miss inside a same-target window.
+- **Remediation checks:** hidden tests are deleted after collection, and the deliberate-forgery limitation is documented.
+- **smoke_v1:**
+  - The look-alike dependency bump moved before the SDK trigger (evt-0006); the index migration is now evt-0010.
+  - The R1 hidden test goes through the reconcile job and also requires the plan to be kept during PayGate's retries, so a plain revert of ADR-0004 fails.
+  - The R2 hidden test accepts any provider PDF method that returns the SDK's bytes.
+  - The support ticket and ADR-0004 narratives now cite effects the code actually has, and the migration message describes the real query cost.
+- **Seed:**
+  - A wrong password costs a configured-cost hash during a cost change.
+  - A reconcile poll that refreshes nothing fails visibly.
+  - Test connections are closed.

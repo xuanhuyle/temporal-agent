@@ -11,6 +11,10 @@ from harness.canonical import canonical_json, pretty_json, sha256_text, strip_vo
 
 TRACE_SCHEMA_VERSION = "tab.trace/1"
 
+# Keys excluded from fingerprints: an agent's private state may legitimately
+# embed its (random, absolute) state_dir path, so it is recorded but not hashed.
+FINGERPRINT_EXEMPT_KEYS = ("state_tree",)
+
 # Files whose canonical content defines a run's fingerprint.
 FINGERPRINT_FILES = ("events.jsonl", "actions.jsonl", "trace.jsonl", "evaluation.jsonl", "scores.json")
 
@@ -78,7 +82,7 @@ def canonical_records(path: Path, ignore_keys: Iterable[str] = ()) -> list[str]:
 
 def run_fingerprint(run_dir: Path, ignore_keys: Iterable[str] = ()) -> str:
     """sha256 over the canonical, volatile-free content of the fingerprinted files."""
-    ignore_keys = tuple(ignore_keys)
+    ignore_keys = tuple(ignore_keys) + FINGERPRINT_EXEMPT_KEYS
     parts = []
     for name in FINGERPRINT_FILES:
         parts.append(name)

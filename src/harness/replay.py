@@ -22,13 +22,15 @@ from harness.agent import (
     Usage,
     action_from_dict,
 )
-from harness.runner import RunConfig, RunResult, run
+from harness.runner import RunConfig, RunResult, run, write_manifest
 from harness.scenario import ScenarioError, load_scenario
 from harness.tools import BudgetExceeded, ToolBox
 from harness.trace import FINGERPRINT_FILES, canonical_records, read_jsonl, run_fingerprint, write_json_atomic
 from harness.workspace import ToolError
 
-REPLAY_EXEMPT_KEYS = ("state_tree",)
+# Private agent state and out-of-band accesses caught by the guard are agent
+# internals that replay (which re-issues only ToolBox calls) cannot reproduce.
+REPLAY_EXEMPT_KEYS = ("state_tree", "guard_violations")
 SWALLOWED_BUDGET = "tool-call budget exhausted (exception caught by agent)"
 
 
@@ -42,6 +44,13 @@ def _recreate_exception(error: str) -> Exception:
     if not sep or not name.isidentifier():
         name, message = "AgentError", error
     return type(name, (Exception,), {})(message)
+
+
+def _reconstruct_arg(value: Any) -> Any:
+    """Recorded non-string arguments come back as an object of the same type name."""
+    if isinstance(value, dict) and set(value) == {"unrecordable_type"}:
+        return type(value["unrecordable_type"], (), {})()
+    return value
 
 
 class _Unexpected:
@@ -94,23 +103,19 @@ class ReplayAgent(Agent):
         if self._setup and self._setup["status"] != "ok":
             raise _recreate_exception(self._setup["error"])
 
-    def _replay_calls(self, seq: int, propagate_budget: bool, tools: ToolBox) -> None:
+    def _replay_calls(self, seq: int, rec: dict[str, Any] | None, tools: ToolBox) -> None:
+        """Re-issue every recorded call of a step, then reproduce a budget overrun if one ended it."""
         for call in self._calls.get(seq, []):
             fn = getattr(tools, call["tool"])
             try:
-                fn(**call["args"])
-            except ToolError:
+                fn(**{k: _reconstruct_arg(v) for k, v in call["args"].items()})
+            except (ToolError, BudgetExceeded):
                 pass
-            except BudgetExceeded:
-                if propagate_budget:
-                    raise
-
-    @staticmethod
-    def _propagates_budget(rec: dict[str, Any] | None) -> bool:
-        return bool(rec) and rec["status"] == "budget_exceeded" and rec["error"] != SWALLOWED_BUDGET
+        if rec and rec["status"] == "budget_exceeded" and rec["error"] != SWALLOWED_BUDGET:
+            raise BudgetExceeded(rec["error"])
 
     def on_start(self, tools: ToolBox) -> None:
-        self._replay_calls(0, self._propagates_budget(self._start), tools)
+        self._replay_calls(0, self._start, tools)
         if self._start and self._start["status"] == "agent_error":
             raise _recreate_exception(self._start["error"])
 
@@ -122,7 +127,7 @@ class ReplayAgent(Agent):
         resp = self._responses.get(event.seq)
         if resp is None:
             raise ReplayError(f"no recorded response for {self.name} at seq {event.seq}")
-        self._replay_calls(event.seq, self._propagates_budget(resp), tools)
+        self._replay_calls(event.seq, resp, tools)
         if resp["status"] == "agent_error":
             raise _recreate_exception(resp["error"])
         if resp["status"] == "invalid_response":
@@ -185,4 +190,5 @@ def replay_run(run_dir: Path, *, runs_dir: Path | None = None, scenario_path: Pa
         "replay_fingerprint": run_fingerprint(result.run_dir, REPLAY_EXEMPT_KEYS),
     }
     write_json_atomic(result.run_dir / "replay_report.json", report)
+    write_manifest(result.run_dir)  # keep the manifest complete
     return result, report

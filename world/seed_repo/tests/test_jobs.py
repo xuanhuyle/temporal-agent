@@ -21,7 +21,7 @@ from tasklane.jobs import (
     schedule_next_reconcile,
 )
 from tasklane.projects import create_account
-from tasklane.providers import ProviderUnavailable
+from tasklane.providers import ProviderError, ProviderUnavailable
 
 
 def job_row(conn, job_id):
@@ -217,6 +217,15 @@ def test_reconcile_continues_past_a_failing_subscription(
     assert get_subscription(conn, canceled).status == "canceled"
     assert get_subscription(conn, canceled).plan_id == "pro"
     assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 2
+
+
+def test_reconcile_fails_when_no_subscription_could_be_refreshed(
+    conn, settings, provider, sandbox, now
+):
+    subscribe_account(conn, settings, now, sandbox, "a@example.com")
+    sandbox.fail_next(1, error="api_error")
+    with pytest.raises(ProviderError, match="could not reconcile any"):
+        reconcile_subscriptions(conn, provider, now)
 
 
 def test_schedule_next_reconcile(conn, settings, now):

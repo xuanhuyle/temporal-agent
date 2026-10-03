@@ -11,8 +11,8 @@ and dropped the account to the Free plan immediately.
 
 Most failed renewals are expired or replaced cards that customers fix within a
 day. Dropping them to Free on the first failed charge produced 14 support
-tickets in December, and two accounts lost access to projects above the Free
-limit in the middle of a working day.
+tickets in December, and two accounts were blocked from creating projects
+above the Free limit in the middle of a working day.
 
 PayGate already retries failed renewals. Our dunning page in the PayGate
 dashboard shows 3 automatic retries over 3 days, after which PayGate cancels

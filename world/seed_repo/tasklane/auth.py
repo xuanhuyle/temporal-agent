@@ -151,8 +151,9 @@ def authenticate(
     If the stored hash uses a different iteration count than
     ``settings.pbkdf2_iterations``, it is replaced with a fresh hash at the
     configured cost (no data migration is needed to change the cost).
-    An unknown email costs the same hashing work as a wrong password, so
-    response times do not reveal which emails are registered.
+    An unknown email and a wrong password both cost one hash at the configured
+    cost, even while stored hashes still use an older cost, so response times
+    do not reveal which emails are registered.
     """
     row = conn.execute(
         "SELECT id, password_hash FROM users WHERE email = ?",
@@ -162,6 +163,11 @@ def authenticate(
         hash_password(password, settings.pbkdf2_iterations, _UNKNOWN_USER_SALT)
         return None
     if not verify_password(password, row["password_hash"]):
+        parsed = _parse(row["password_hash"])
+        shortfall = settings.pbkdf2_iterations - (parsed[0] if parsed else 0)
+        if shortfall > 0:
+            # Top up to the configured cost so a cost change cannot reveal registered emails.
+            _derive(password, _UNKNOWN_USER_SALT, shortfall)
         return None
 
     user_id = int(row["id"])

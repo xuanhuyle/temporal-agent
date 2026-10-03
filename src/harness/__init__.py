@@ -5,4 +5,4 @@ Contestant-facing modules are ``harness.agent``, ``harness.tools`` and
 paths to scenario manifests, future events, or evaluator ground truth.
 """
 
-HARNESS_VERSION = "0.1.0"
+HARNESS_VERSION = "0.2.0"

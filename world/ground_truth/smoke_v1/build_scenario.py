@@ -140,8 +140,8 @@ and dropped the account to the Free plan immediately.
 
 Most failed renewals are expired or replaced cards that customers fix within a
 day. Dropping them to Free on the first failed charge produced 14 support
-tickets in December, and two accounts lost access to projects above the Free
-limit in the middle of a working day.
+tickets in December, and two accounts were blocked from creating projects
+above the Free limit in the middle of a working day.
 
 PayGate already retries failed renewals. Our dunning page in the PayGate
 dashboard shows 3 automatic retries over 3 days, after which PayGate cancels
@@ -315,8 +315,8 @@ def vendor_readme_evt8(src: str) -> str:
     )
 
 
-# ------------------------------------------------------------ world: evt-0010
-def requirements_evt10(src: str) -> str:
+# ------------------------------------------------------------- world: evt-0006 (deps)
+def requirements_evt6(src: str) -> str:
     return replace_once(src, "pytest==8.2.2", "pytest==8.3.3", "pytest pin")
 
 
@@ -455,7 +455,7 @@ OWASP guidance; existing hashes are upgraded on the next successful login.
 # ---------------------------------------------------------------- hidden tests
 HIDDEN_R1 = f'''\
 # {CANARY}
-"""R1: an account whose renewal keeps failing must not keep its paid plan indefinitely."""
+"""R1: past_due keeps the plan while PayGate retries, but not indefinitely."""
 
 import dataclasses
 from datetime import datetime, timedelta, timezone
@@ -464,7 +464,7 @@ from tasklane.auth import register_user
 from tasklane.billing import Subscription, entitlements_for, get_subscription, save_subscription
 from tasklane.config import load_settings
 from tasklane.db import connect, migrate
-from tasklane.jobs import reconcile_subscriptions
+from tasklane.jobs import make_reconcile_handler
 from tasklane.projects import create_account
 from tasklane.providers.payments import PayGateProvider
 from vendor.paygate_sdk import PayGateClient, SandboxBackend
@@ -482,7 +482,7 @@ def _subscription(**known):
     return Subscription(**known, **extra)
 
 
-def test_past_due_for_three_weeks_no_longer_grants_the_paid_plan():
+def test_past_due_keeps_plan_during_retries_but_not_for_three_weeks():
     settings = load_settings(pbkdf2_iterations=1_000, database_path=":memory:")
     conn = connect(":memory:")
     migrate(conn)
@@ -508,35 +508,52 @@ def test_past_due_for_three_weeks_no_longer_grants_the_paid_plan():
         ),
         start,
     )
-    provider = PayGateProvider(PayGateClient("sk_test_sandbox", backend=backend))
+    reconcile = make_reconcile_handler(PayGateProvider(PayGateClient("sk_test_sandbox", backend=backend)), settings)
 
     # The renewal fails; PayGate retries and leaves the subscription past_due.
     backend.set_subscription_status(remote["id"], "past_due")
-    for day in (0, 1, 2, 3, 7, 14, 21):
-        reconcile_subscriptions(conn, provider, RENEWAL_FAILED + timedelta(days=day, hours=1))
+    reconcile(conn, {{}}, RENEWAL_FAILED + timedelta(hours=1))
+    during_retries = RENEWAL_FAILED + timedelta(hours=2)
+    assert entitlements_for(get_subscription(conn, account_id), during_retries, settings).plan_id == "pro"
 
-    three_weeks_later = RENEWAL_FAILED + timedelta(days=21, hours=1)
-    entitlements = entitlements_for(get_subscription(conn, account_id), three_weeks_later, settings)
-    assert entitlements.plan_id == "free"
+    for day in (1, 2, 3, 7, 14, 21):
+        reconcile(conn, {{}}, RENEWAL_FAILED + timedelta(days=day, hours=1))
+    three_weeks_later = RENEWAL_FAILED + timedelta(days=21, hours=2)
+    assert entitlements_for(get_subscription(conn, account_id), three_weeks_later, settings).plan_id == "free"
 '''
 
 HIDDEN_R2 = f'''\
 # {CANARY}
 """R2 (TCK-0107): invoice PDFs are available through the payment provider."""
 
+import inspect
+
 from tasklane.providers.payments import PayGateProvider
 from vendor.paygate_sdk import PayGateClient, SandboxBackend
+
+
+def _pdf_methods(provider):
+    # The ticket proposes invoice_pdf(invoice_id); accept any provider method about PDFs.
+    names = ["invoice_pdf"] + sorted(n for n in dir(provider) if "pdf" in n.lower() and n != "invoice_pdf")
+    return [getattr(provider, n) for n in names if not n.startswith("_") and callable(getattr(provider, n, None))]
 
 
 def test_invoice_pdf_is_available_through_the_provider():
     backend = SandboxBackend()
     customer = backend.create_customer("finance@acme.example")
     invoice = backend.create_invoice(customer["id"], 2900)
-    provider = PayGateProvider(PayGateClient("sk_test_sandbox", backend=backend))
-    pdf = provider.invoice_pdf(invoice["id"])
-    assert isinstance(pdf, bytes)
-    assert pdf.startswith(b"%PDF")
-    assert invoice["id"].encode() in pdf
+    client = PayGateClient("sk_test_sandbox", backend=backend)
+    expected = client.invoices.download_pdf(invoice["id"])
+    provider = PayGateProvider(client)
+
+    results = []
+    for method in _pdf_methods(provider):
+        n_params = len(inspect.signature(method).parameters)
+        args = (invoice["id"],) if n_params == 1 else (customer["id"], invoice["id"]) if n_params == 2 else None
+        if args is not None:
+            results.append(method(*args))
+    assert results, "no provider method returns invoice PDFs"
+    assert any(bytes(r) == expected for r in results if isinstance(r, (bytes, bytearray)))
 '''
 
 HIDDEN_R3 = f'''\
@@ -637,7 +654,8 @@ def main() -> None:
             "Acme Corp still on Pro?",
             "Odd one from the billing side. Acme Corp (account 4471) told their account manager they "
             "wanted to stop paying for Tasklane and simply removed their card at the start of February. "
-            "They're still using all the Pro features today, including more than 3 projects.\n\n"
+            "They're still on Pro today: they created two more projects last week and now have 5, which "
+            "the Free plan wouldn't allow.\n\n"
             "In the PayGate dashboard their subscription (sub_8KQ2) shows the renewal charge failing on "
             "Feb 2 and three retries failing on Feb 3, 4 and 5. The status there is still \"past_due\"; "
             "nothing has changed since Feb 5.\n\n"
@@ -646,14 +664,12 @@ def main() -> None:
             [],
         ),
         event(
-            6, "2026-03-02T11:00:00Z", "commit", "Priya Raman",
-            "Merge PR #57: index tasks by project and creation time",
-            "Profiling the dashboard showed the task list query scanning the whole tasks table for large "
-            "accounts. This adds migration 0005 with an index on tasks(project_id, created_at); task list "
-            "p95 drops from ~180 ms to ~12 ms on a copy of production data.\n\n"
-            "Plain SQL migration in tasklane/migrations/, applied in filename order like the others "
-            "(see ADR-0001).",
-            [payload("evt-0006", "tasklane/migrations/0005_tasks_project_created_index.sql", MIGRATION_0005)],
+            6, "2026-03-02T03:10:00Z", "commit", "deps-bot",
+            "chore(deps-dev): bump pytest from 8.2.2 to 8.3.3",
+            "Bumps pytest from 8.2.2 to 8.3.3 in requirements-dev.txt.\n\n"
+            "Release notes: bug fixes and small improvements to assertion rewriting and fixture error "
+            "messages. No changes needed in our tests.",
+            [payload("evt-0006", "requirements-dev.txt", requirements_evt6(seed("requirements-dev.txt")))],
         ),
         event(
             7, "2026-03-09T07:45:00Z", "notice", "Fleetline Platform Team",
@@ -695,12 +711,15 @@ def main() -> None:
             [payload("evt-0009", "infra/platform.json", platform_evt9(platform7))],
         ),
         event(
-            10, "2026-03-30T03:10:00Z", "commit", "deps-bot",
-            "chore(deps-dev): bump pytest from 8.2.2 to 8.3.3",
-            "Bumps pytest from 8.2.2 to 8.3.3 in requirements-dev.txt.\n\n"
-            "Release notes: bug fixes and small improvements to assertion rewriting and fixture error "
-            "messages. No changes needed in our tests.",
-            [payload("evt-0010", "requirements-dev.txt", requirements_evt10(seed("requirements-dev.txt")))],
+            10, "2026-03-30T11:00:00Z", "commit", "Priya Raman",
+            "Merge PR #57: index tasks by project and creation time",
+            "Profiling the dashboard showed the task list for large projects sorting every task of the "
+            "project in a temporary B-tree. This adds migration 0005 with an index on tasks(project_id, "
+            "created_at, id) that matches the query's ORDER BY and removes the sort; task list p95 drops "
+            "from ~180 ms to ~12 ms on a copy of production data.\n\n"
+            "Plain SQL migration in tasklane/migrations/, applied in filename order like the others "
+            "(see ADR-0001).",
+            [payload("evt-0010", "tasklane/migrations/0005_tasks_project_created_index.sql", MIGRATION_0005)],
         ),
     ]
     write(EVENTS_DIR / "events.jsonl", "".join(json.dumps(e, ensure_ascii=False) + "\n" for e in events))
@@ -757,13 +776,14 @@ def main() -> None:
             "evt-0005": label("trigger", acceptable=["ADR-0003"],
                               notes="Delayed evidence: PayGate leaves exhausted subscriptions past_due. A stale-poller "
                                     "hypothesis about ADR-0003 is defensible to check, so reopening it is neutral."),
-            "evt-0006": label("distractor", near_miss="ADR-0001",
-                              notes="Mentions ADR-0001 but follows it; nothing about it changes."),
+            "evt-0006": label("distractor", near_miss="TCK-0107",
+                              notes="Dependency bump with the same shape as evt-0008, before it and unrelated to "
+                                    "any blocker: reopening TCK-0107 here is a false intervention."),
             "evt-0007": label("trigger", notes="Constraint behind ADR-0002 (shared-0.25 CPU) disappears."),
             "evt-0008": label("trigger", notes="SDK 1.4.0 adds invoice PDF download: TCK-0107's blocker is resolved."),
             "evt-0009": label("distractor", notes="Log retention change; no decision depends on log retention."),
-            "evt-0010": label("distractor", near_miss="TCK-0107",
-                              notes="Dependency bump with the same shape as evt-0008, but unrelated to any blocker."),
+            "evt-0010": label("distractor", near_miss="ADR-0001",
+                              notes="Mentions ADR-0001 but follows it; nothing about it changes."),
         },
         "reconsiderations": [
             {

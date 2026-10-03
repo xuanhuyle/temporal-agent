@@ -2,7 +2,8 @@
 
 Every artifact the harness emits goes through :func:`canonical_json` so that two
 runs with the same inputs produce byte-identical output (apart from fields
-listed in :data:`VOLATILE_KEYS`).
+listed in :data:`VOLATILE_KEYS`). Output is ASCII-only (non-ASCII is escaped),
+so any Python string, including lone surrogates, serializes without error.
 """
 
 from __future__ import annotations
@@ -28,12 +29,12 @@ VOLATILE_KEYS = frozenset(
 
 def canonical_json(obj: Any) -> str:
     """Serialize ``obj`` deterministically (sorted keys, no whitespace, no NaN)."""
-    return json.dumps(obj, sort_keys=True, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+    return json.dumps(obj, sort_keys=True, ensure_ascii=True, separators=(",", ":"), allow_nan=False)
 
 
 def pretty_json(obj: Any) -> str:
     """Human-readable but still deterministic JSON with a trailing newline."""
-    return json.dumps(obj, sort_keys=True, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
+    return json.dumps(obj, sort_keys=True, ensure_ascii=True, indent=2, allow_nan=False) + "\n"
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -110,7 +111,7 @@ def tree_hash(root: Path) -> str:
     """Content hash of a directory: sha256 over sorted ``path NUL digest`` lines."""
     h = hashlib.sha256()
     for rel, digest in tree_manifest(root):
-        h.update(rel.encode("utf-8"))
+        h.update(rel.encode("utf-8", "surrogateescape"))
         h.update(b"\0")
         h.update(digest.encode("ascii"))
         h.update(b"\n")

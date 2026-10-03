@@ -14,6 +14,13 @@ FIRST_MIGRATIONS = [
 ]
 
 
+@pytest.fixture
+def memory_conn():
+    connection = connect(":memory:")
+    yield connection
+    connection.close()
+
+
 def shipped_migrations():
     return sorted(path.name for path in db.MIGRATIONS_DIR.glob("*.sql"))
 
@@ -23,10 +30,10 @@ def tables(conn):
     return {row["name"] for row in rows}
 
 
-def test_migrate_applies_all_migrations_in_order(now):
+def test_migrate_applies_all_migrations_in_order(now, memory_conn):
     expected = shipped_migrations()
     assert expected[: len(FIRST_MIGRATIONS)] == FIRST_MIGRATIONS
-    conn = connect(":memory:")
+    conn = memory_conn
     assert migrate(conn, now) == expected
     rows = conn.execute("SELECT name, applied_at FROM schema_migrations ORDER BY rowid").fetchall()
     assert [row["name"] for row in rows] == expected
@@ -42,7 +49,7 @@ def test_migrate_is_idempotent(conn):
     assert count == len(shipped_migrations())
 
 
-def test_migrations_are_applied_by_filename_order(tmp_path, monkeypatch):
+def test_migrations_are_applied_by_filename_order(tmp_path, monkeypatch, memory_conn):
     # Created out of order on purpose; 0002 depends on 0001 and 0010 on both.
     (tmp_path / "0010_c.sql").write_text("CREATE TABLE c (b_id INTEGER REFERENCES b(id));")
     (tmp_path / "0002_b.sql").write_text(
@@ -55,15 +62,15 @@ def test_migrations_are_applied_by_filename_order(tmp_path, monkeypatch):
     (tmp_path / "notes.txt").write_text("not a migration")
     monkeypatch.setattr(db, "MIGRATIONS_DIR", tmp_path)
 
-    conn = connect(":memory:")
+    conn = memory_conn
     assert migrate(conn) == ["0001_a.sql", "0002_b.sql", "0010_c.sql"]
     assert conn.execute("SELECT a_id FROM b").fetchone()["a_id"] == 1
 
 
-def test_new_migration_file_is_picked_up(tmp_path, monkeypatch):
+def test_new_migration_file_is_picked_up(tmp_path, monkeypatch, memory_conn):
     (tmp_path / "0001_a.sql").write_text("CREATE TABLE a (id INTEGER PRIMARY KEY);")
     monkeypatch.setattr(db, "MIGRATIONS_DIR", tmp_path)
-    conn = connect(":memory:")
+    conn = memory_conn
     assert migrate(conn) == ["0001_a.sql"]
 
     (tmp_path / "0002_add_name.sql").write_text("ALTER TABLE a ADD COLUMN name TEXT;")
@@ -71,11 +78,11 @@ def test_new_migration_file_is_picked_up(tmp_path, monkeypatch):
     assert migrate(conn) == []
 
 
-def test_failed_migration_is_rolled_back(tmp_path, monkeypatch):
+def test_failed_migration_is_rolled_back(tmp_path, monkeypatch, memory_conn):
     (tmp_path / "0001_ok.sql").write_text("CREATE TABLE a (id INTEGER PRIMARY KEY);")
     (tmp_path / "0002_broken.sql").write_text("CREATE TABLE b (id INTEGER);\nTHIS IS NOT SQL;")
     monkeypatch.setattr(db, "MIGRATIONS_DIR", tmp_path)
-    conn = connect(":memory:")
+    conn = memory_conn
 
     with pytest.raises(sqlite3.Error):
         migrate(conn)

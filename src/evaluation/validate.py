@@ -91,12 +91,13 @@ def canary_problems(scenario: Scenario, gt: GroundTruth) -> list[str]:
             problems.append(f"ground-truth file without canary: {rel}")
     if not (scenario.ground_truth_dir / CANARY_FILE).is_file():
         problems.append(f"ground truth lacks a {CANARY_FILE} file")
-    roots = [scenario.seed_dir, scenario.events_dir, scenario.manifest_path.parent]
-    roots += [scenario.base_dir / d for d in ("docs", "prompts", "src") if (scenario.base_dir / d).is_dir()]
-    for root in roots:
-        for rel, full in iter_tree(root):
-            if not full.is_symlink() and needle in full.read_bytes():
-                problems.append(f"canary found outside ground truth: {root.name}/{rel}")
+    gt_root = scenario.ground_truth_dir.resolve()
+    for rel, full in iter_tree(scenario.base_dir):
+        top = rel.split("/", 1)[0]
+        if top in (".git", "runs") or full.resolve() == gt_root or gt_root in full.resolve().parents:
+            continue
+        if not full.is_symlink() and full.is_file() and needle in full.read_bytes():
+            problems.append(f"canary found outside ground truth: {rel}")
     return problems
 
 

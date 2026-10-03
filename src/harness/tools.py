@@ -12,6 +12,7 @@ call returns.
 
 from __future__ import annotations
 
+import errno
 from typing import Any, Callable
 
 from harness import guard
@@ -73,7 +74,7 @@ class ToolBox:
     def _invoke(self, tool: str, args: dict[str, Any], fn: Callable[[], Any]) -> Any:
         if self._closed:
             raise ToolBoxClosed(f"{tool}: this ToolBox belongs to a finished step")
-        with guard.suspended():
+        with guard.bypass():
             recorded = {k: _recordable(v) for k, v in args.items()}
             if self._calls >= self._budget.max_tool_calls_per_event:
                 self._exhausted = True
@@ -86,7 +87,18 @@ class ToolBox:
                 bad = [k for k, v in args.items() if not isinstance(v, str)]
                 if bad:
                     raise ToolError(f"{tool}: argument(s) {', '.join(bad)} must be strings")
-                result = fn()
+                for k, v in args.items():
+                    try:
+                        v.encode("utf-8")
+                    except UnicodeEncodeError:
+                        raise ToolError(f"{tool}: argument {k} is not valid UTF-8 text") from None
+                try:
+                    result = fn()
+                except ToolError:
+                    raise
+                except Exception as exc:  # noqa: BLE001 - OS-level failures become path-free tool errors
+                    code = errno.errorcode.get(getattr(exc, "errno", None) or -1, "")
+                    raise ToolError(f"{tool}: {type(exc).__name__}{' ' + code if code else ''}") from None
             except AccessDenied as exc:
                 self._record({"tool": tool, "args": recorded, "status": "denied", "error": str(exc)})
                 raise

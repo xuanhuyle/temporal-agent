@@ -81,9 +81,9 @@
     "evt-0006": {
       "role": "distractor",
       "should_trigger_reconsideration": false,
-      "near_miss_of": "ADR-0001",
+      "near_miss_of": "TCK-0107",
       "acceptable_reopens": [],
-      "notes": "Mentions ADR-0001 but follows it; nothing about it changes."
+      "notes": "Dependency bump with the same shape as evt-0008, before it and unrelated to any blocker: reopening TCK-0107 here is a false intervention."
     },
     "evt-0007": {
       "role": "trigger",
@@ -109,9 +109,9 @@
     "evt-0010": {
       "role": "distractor",
       "should_trigger_reconsideration": false,
-      "near_miss_of": "TCK-0107",
+      "near_miss_of": "ADR-0001",
       "acceptable_reopens": [],
-      "notes": "Dependency bump with the same shape as evt-0008, but unrelated to any blocker."
+      "notes": "Mentions ADR-0001 but follows it; nothing about it changes."
     }
   },
   "reconsiderations": [

@@ -42,7 +42,7 @@ def _headline(scores: dict[str, Any]) -> dict[str, Any]:
 def _cmd_run(args: argparse.Namespace) -> int:
     scenario = load_scenario(Path(args.scenario))
     agents = [create_agent(spec) for spec in (args.agent or ["dummy"])]
-    budget = StepBudget(max_tool_calls_per_event=args.max_tool_calls) if args.max_tool_calls else None
+    budget = StepBudget(max_tool_calls_per_event=args.max_tool_calls) if args.max_tool_calls is not None else None
     config = RunConfig(
         runs_dir=Path(args.runs_dir),
         seed=args.seed,

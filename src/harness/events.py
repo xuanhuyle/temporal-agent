@@ -91,13 +91,6 @@ class Event:
             changed_paths=changed,
         )
 
-    def summary(self) -> dict[str, Any]:
-        return {
-            "event_id": self.event_id,
-            "seq": self.seq,
-            "world_changes": [c.summary() for c in self.world_changes],
-        }
-
 
 def _fail(where: str, msg: str) -> None:
     raise EventValidationError(f"{where}: {msg}")

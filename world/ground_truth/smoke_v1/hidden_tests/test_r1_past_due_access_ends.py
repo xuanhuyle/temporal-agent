@@ -1,5 +1,5 @@
 # TAB-GT-CANARY-smoke_v1-6983f83bad25a098
-"""R1: an account whose renewal keeps failing must not keep its paid plan indefinitely."""
+"""R1: past_due keeps the plan while PayGate retries, but not indefinitely."""
 
 import dataclasses
 from datetime import datetime, timedelta, timezone
@@ -8,7 +8,7 @@ from tasklane.auth import register_user
 from tasklane.billing import Subscription, entitlements_for, get_subscription, save_subscription
 from tasklane.config import load_settings
 from tasklane.db import connect, migrate
-from tasklane.jobs import reconcile_subscriptions
+from tasklane.jobs import make_reconcile_handler
 from tasklane.projects import create_account
 from tasklane.providers.payments import PayGateProvider
 from vendor.paygate_sdk import PayGateClient, SandboxBackend
@@ -26,7 +26,7 @@ def _subscription(**known):
     return Subscription(**known, **extra)
 
 
-def test_past_due_for_three_weeks_no_longer_grants_the_paid_plan():
+def test_past_due_keeps_plan_during_retries_but_not_for_three_weeks():
     settings = load_settings(pbkdf2_iterations=1_000, database_path=":memory:")
     conn = connect(":memory:")
     migrate(conn)
@@ -52,13 +52,15 @@ def test_past_due_for_three_weeks_no_longer_grants_the_paid_plan():
         ),
         start,
     )
-    provider = PayGateProvider(PayGateClient("sk_test_sandbox", backend=backend))
+    reconcile = make_reconcile_handler(PayGateProvider(PayGateClient("sk_test_sandbox", backend=backend)), settings)
 
     # The renewal fails; PayGate retries and leaves the subscription past_due.
     backend.set_subscription_status(remote["id"], "past_due")
-    for day in (0, 1, 2, 3, 7, 14, 21):
-        reconcile_subscriptions(conn, provider, RENEWAL_FAILED + timedelta(days=day, hours=1))
+    reconcile(conn, {}, RENEWAL_FAILED + timedelta(hours=1))
+    during_retries = RENEWAL_FAILED + timedelta(hours=2)
+    assert entitlements_for(get_subscription(conn, account_id), during_retries, settings).plan_id == "pro"
 
-    three_weeks_later = RENEWAL_FAILED + timedelta(days=21, hours=1)
-    entitlements = entitlements_for(get_subscription(conn, account_id), three_weeks_later, settings)
-    assert entitlements.plan_id == "free"
+    for day in (1, 2, 3, 7, 14, 21):
+        reconcile(conn, {}, RENEWAL_FAILED + timedelta(days=day, hours=1))
+    three_weeks_later = RENEWAL_FAILED + timedelta(days=21, hours=2)
+    assert entitlements_for(get_subscription(conn, account_id), three_weeks_later, settings).plan_id == "free"

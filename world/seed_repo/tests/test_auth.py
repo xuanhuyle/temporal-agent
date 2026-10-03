@@ -204,3 +204,18 @@ def test_revoke_session(conn, settings, now):
     assert get_user_id_for_session(conn, second, now) is not None
     revoke_session(conn, first)  # revoking twice is harmless
 
+
+
+def test_wrong_password_costs_the_configured_hash_during_a_cost_change(conn, now, monkeypatch):
+    old = load_settings(pbkdf2_iterations=1_000, database_path=":memory:")
+    new = load_settings(pbkdf2_iterations=5_000, database_path=":memory:")
+    register_user(conn, "ada@example.com", "s3cret-pass", old, now)
+    work = []
+    real = auth._derive
+    monkeypatch.setattr(auth, "_derive", lambda pw, salt, n: work.append(n) or real(pw, salt, n))
+
+    assert authenticate(conn, "ada@example.com", "wrong-pass", new, now) is None
+    wrong_password = sum(work)
+    work.clear()
+    assert authenticate(conn, "nobody@example.com", "wrong-pass", new, now) is None
+    assert wrong_password == sum(work) == 5_000

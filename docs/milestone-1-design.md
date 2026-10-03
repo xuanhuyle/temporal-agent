@@ -101,11 +101,25 @@ segments; no symlink anywhere along the path; nothing resolving outside the
 workspace or into a protected root (ground truth, events, scenarios, runs);
 listing and search never follow links.
 
-**Guard** (`harness.guard`): during every agent call a Python audit hook
-refuses direct filesystem access to protected roots, to every workspace (use
-the ToolBox) and to other agents' state, and refuses subprocess creation.
-This prevents accidental out-of-band access (e.g. an indexer walking the
-repository). It is a tripwire, not a sandbox against hostile code in the same
+**Guard** (`harness.guard`): while a run is armed, a process-wide Python audit
+hook checks every file and process operation made by *agent code*. Agent code
+means the harness thread inside an agent call (including `describe()`), plus
+every thread started from agent code, which is attributed to that agent.
+
+The guard enforces:
+- **No reading** under protected roots: ground truth, events, scenarios, the
+  current and default run directories, the world sources, every workspace
+  (use the ToolBox), other agents' lanes, and evaluator scratch space.
+- **Writes only inside the agent's own `state_dir`**. `HOME`, `TMPDIR` and
+  `XDG_*` point inside it during agent calls, so library caches stay private
+  and cannot leak memory into a later run.
+- **No process creation**, covering `subprocess`, `os.system`, `fork`,
+  `posix_spawn` and `multiprocessing` spawn/forkserver.
+
+Directory file descriptors are resolved through `/proc/self/fd`, so
+`dir_fd`-relative walks are checked too. This prevents accidental out-of-band
+access, such as an indexer walking the repository or a cache under
+`~/.cache`. It is a tripwire, not a sandbox against hostile code in the same
 process (see §10).
 
 `AgentResponse`: `actions` + `usage`. Actions:
@@ -120,8 +134,10 @@ process (see §10).
 `Usage` (self-reported placeholders in Milestone 1): `model_input_tokens`,
 `model_output_tokens`, `retrieval_tokens`, `model_calls`, `cost_usd`.
 
-Failure semantics: if a call raises, the step's actions are lost but tool
-edits persist. `BudgetExceeded` is a `BaseException`. If an agent catches it,
+Failure semantics: if a call raises anything, `SystemExit` and
+`asyncio.CancelledError` included (only Ctrl-C aborts the run), the step is
+recorded as `agent_error`. Its actions and its `Usage` are lost, but tool
+edits persist. Agents that need their spend counted must return normally. `BudgetExceeded` is a `BaseException`. If an agent catches it,
 the step is still recorded as `budget_exceeded` and the returned actions are
 kept.
 
@@ -186,18 +202,23 @@ Classification of a reopen of `t` at step `s`:
 | `true_positive` | `t` affected by R and `s` in R's window (first match per `(R,t)`) | numerator | no |
 | `duplicate` | repeat of a matched `(R,t)` in-window | excluded | no |
 | `neutral` | `t` in the event's `acceptable_reopens`, or `t` introduced by this event | excluded | no |
-| `late` | `t` affected by an R whose window closed | denominator | no |
-| `false` | invalid/unknown target, before the evidence, or unrelated | denominator | yes |
+| `false` | invalid/unknown target; `t` is the event's `near_miss_of`; before the evidence (including between two windows); or unrelated | denominator | yes |
+| `late` | `t` affected by an R whose window closed, and by no later R | denominator | no |
+
+The rules are checked in this order. Matching uses the in-window R with the
+most recent trigger. One reopen of a target satisfies every open `(R, t)`
+pair for that target, so repeating it earns nothing. Matching does not depend
+on the order of reconsiderations in the ground truth.
 
 Metrics (each ratio is `{value, numerator, denominator}`, with `value: null` when the denominator is 0):
 
 - **Temporal governance recall:** matched required `(R, t)` pairs over all required pairs. Reconsiderations with `abstention_acceptable` are excluded.
 - **Reopening precision:** TP / (TP + late + false).
 - **False intervention rate:** negative-control events with at least one `false` reopen, over all negative-control events. Also reported for distractors only.
-- **Historical-state fidelity:** for each TP, the mean set-F1 over the three components, where two empty sets count as 1.0. A TP without `historical_state` scores 0. Also reported: coverage, and per-component means when the state is provided.
+- **Historical-state fidelity:** for each TP, the mean set-F1 over the components that the label or the claim makes non-empty. A component that is empty on both sides is not scored, so content-free claims earn nothing. A TP without `historical_state` scores 0. Also reported: coverage, and per-component means when the state is provided.
 - **Present remediation success:** required reconsiderations whose remediation passes, over required reconsiderations with checks. Also reported: success given that all targets were reopened, optional successes, and `remediated_without_reopen`.
 - **Detection latency:** steps from the trigger to each TP.
-- **Efficiency:** summed usage, tool calls and wall-clock (volatile).
+- **Efficiency:** summed usage, tool calls and wall-clock (volatile). Usage from steps that raised is not counted; read it next to `step_status`.
 - **Hygiene:** whether the agent's own test suite passes on its final workspace. This is reported separately and is not part of remediation.
 - **Breakdowns:** by pattern, causal depth, temporal lag, wording and evidence locus. Scenario-level axes are copied from the manifest.
 - **Per-item tables:** per reconsideration, per event, and the full reopen log.
@@ -208,10 +229,13 @@ environment built from scratch:
 - pytest is imported before the snapshot is *appended* to `sys.path`;
 - an evaluator-owned ini and `--noconftest` apply;
 - plugin autoload is disabled;
-- hidden tests are materialized from memory into a directory outside the snapshot.
+- hidden tests are materialized from memory into a directory outside the
+  snapshot and deleted as soon as they have been collected.
 
 A check passes only if the JUnit report shows exactly the expected number of
-hidden test cases and all of them passed.
+hidden test cases and all of them passed. This resists accidental
+interference from workspace files. It does not resist deliberate forgery by
+workspace code, which runs inside the test process (see §10).
 
 ## 7. Scenario manifest `tab.scenario/1`
 
@@ -235,13 +259,18 @@ Rules:
 - `freeze` refuses to re-freeze changed content; a change needs a new scenario id/version.
 
 Tree hashing is sha256 over the sorted `(relative path, sha256(bytes))` pairs.
-`__pycache__`, `*.pyc` and `.pytest_cache` are ignored, symlinks hash their
-target string, and special files are never opened.
+The following runtime by-products are ignored; they are also excluded from
+snapshots and final state:
+- directories `__pycache__`, `.pytest_cache`, `.mypy_cache` and `.ruff_cache`;
+- files `*.pyc` and `*.pyo`.
+
+Symlinks hash their target string, and special files are never opened.
 
 **Validation** (`python -m harness validate`) checks:
 - loading and cross-validation;
 - the wording lint: no reconsideration verbs next to decision references, no affected target named in a non-explicit trigger, no temporal-contestant vocabulary;
-- the canary: present in every commentable ground-truth file and absent everywhere else;
+- the canary: present in every commentable ground-truth file (JSON files are exempt) and absent from every other file in the repository except `runs/` and `.git`;
+- no near-miss control inside the window of a reconsideration of the same target;
 - at least 50% distractors;
 - no world change touching a reconsideration's remediation paths inside its window;
 - the seed test suite staying green after every event of a world-only replay;
@@ -285,7 +314,7 @@ runs/<run_id>/
   scores.json        # tab.scores/1
   blobs/<sha256>.json  # content-addressed tool results and delivered events
   final_state/<agent>/{workspace,state}/   # preserved on success *and* failure
-  MANIFEST.sha256    # sha256 of every file in the run directory
+  MANIFEST.sha256    # sha256 of every file in the run directory (rewritten after a replay report)
 ```
 
 `trace.jsonl` records each carry an `idx`. The record types are:
@@ -294,22 +323,28 @@ runs/<run_id>/
 - `out_of_band_mutation`, emitted if a workspace changed outside any step;
 - `step_order` and `event_delivered`;
 - `tool_call` (full arguments, status and result hash);
-- `agent_response` (with `guard_violations`);
-- `step_complete` (workspace and state tree hashes), `agent_teardown` and `run_end`.
+- `agent_response` (with `guard_violations`, kept even when the call raised);
+- `step_complete` (workspace and state tree hashes), `agent_teardown`;
+- `agent_threads_alive`, if agent threads outlive teardown;
+- `run_end`.
 
 JSONL records are flushed and fsynced one at a time. JSON files are written
 atomically.
 
 `fingerprint` is the sha256 of the canonical content of events, actions,
-trace, evaluation and scores, with volatile keys (`wall_clock_ms`,
-`started_at`, `finished_at`, `traceback`, `host`, `git`) removed. The same
-inputs give the same fingerprint, regardless of temp dirs or hash seed.
+trace, evaluation and scores. It excludes the volatile keys (`wall_clock_ms`,
+`started_at`, `finished_at`, `traceback`, `host`, `git`) and agents' private
+`state_tree`. Agents' private state may legitimately contain their own
+absolute paths. Output JSON is ASCII-escaped, so any string serializes. The
+same inputs give the same fingerprint, regardless of temp dirs or hash seed.
 
 `replay <run_dir>` re-runs the scenario with a `ReplayAgent` per agent. Each
 one re-issues the recorded tool calls and returns the recorded actions,
-reproducing failures. The replay goes to `<run_id>__replay` and is compared
-record by record with the original. Private state (`state_tree`) is exempt,
-and the report flags differing code hashes.
+reproducing failures, budget overruns and argument errors. The replay goes to
+`<run_id>__replay` and is compared record by record with the original. Two
+things are exempt because replay cannot reproduce agent internals: private
+state (`state_tree`) and caught guard violations (`guard_violations`). The
+report flags differing code hashes.
 
 ## 9. Reference agents
 
@@ -319,11 +354,12 @@ and the report flags differing code hashes.
 
 ## 10. Known limitations and deviations (Milestone 1)
 
-- **Process isolation:** contestants run in the harness process. The guard prevents accidental access only. A subprocess or sandbox boundary, enforced wall-clock limits, and protection against deliberate forgery by code under test are prerequisites for real contestants.
+- **Process isolation:** contestants run in the harness process. The guard prevents accidental access only: hostile code can bypass it with ctypes, gc introspection, raw `_thread`, or threads that outlive the run. Agent construction and imports also happen outside the guard. A subprocess or sandbox boundary, enforced wall-clock limits, and an OS sandbox for hidden-test processes are prerequisites for real contestants. The sandbox is needed to stop deliberate forgery by code under test.
 - **Command execution:** none in the ToolBox, so agents cannot run tests. Remediation is judged by hidden behavioural tests, and suite health is reported separately as hygiene.
 - **Usage metering:** usage is self-reported. A harness-metered model client is deferred to the milestone that adds LLM contestants.
 - **VCS history:** no git log/diff tool is offered. This is an open protocol decision, because adding one later changes the shared tool set.
 - **Recall granularity:** recall is computed over `(reconsideration, target)` pairs, not over decisions.
-- **Historical-state fidelity:** scored at event-id granularity; there is no fact inventory yet.
+- **Historical-state fidelity:** scored at event-id granularity; there is no fact inventory yet. In `smoke_v1` the labels follow a simple pattern: the decision's inputs, then the trigger. A content-free template can therefore score well there, and fidelity should be read as a machinery check. Later scenarios need corroborating and retroactive evidence that cannot be derived mechanically.
 - **Smoke scenario coverage:** `smoke_v1` is a machinery check (`held_out: false`). Its reconsiderations are all `natural` wording, so the explicit and indirect wording levels are not covered.
 - **Lexical shortcuts:** no BM25 shortcut agent exists yet. `keyword` only detects ID matches.
+- **Seed deployment glue:** the seed has no production HTTP transport or worker entry point. It is a codebase under maintenance, not a deployable service.

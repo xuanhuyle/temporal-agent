@@ -4,10 +4,10 @@
     "max_tool_calls_per_event": 200
   },
   "content_hashes": {
-    "events": "e5a34540fdff497f9ac0417e214e944551f7a131e9255689a7c4867e793f4b48",
-    "ground_truth": "d6a727152db0ed4fd1d964402c4e1a008f402b143a74396240fa3cd6d04537dd",
+    "events": "143e43e8b80694bd5fb8b8046f8d84fdb769eb5a0f2b50578b9775b0d0331d6d",
+    "ground_truth": "8ac525e59ea4006e30a283a5fce8d5d8fb0c4ea366629152a2aa94291164cc5d",
     "manifest": "a94c49ebdf2e17649fcd284adf87f68d1988f3b3c2f4cc89ae48b1cd8ef04bed",
-    "seed_repo": "c17b64831c965239f88863a0f73f8697fec02173c54bfe22a220e23b51046576"
+    "seed_repo": "3857903c39263203ae0f2724a705e1163a305d1119f4b7f824d7f63d69a8828c"
   },
   "description": "10-event machinery smoke test on the tasklane seed: 3 reconsiderations (delayed evidence, constraint disappears, parked dependency resolves) and 5 distractors. Not a held-out evaluation set.",
   "difficulty": {
@@ -24,15 +24,15 @@
   "status": "frozen",
   "version": 1,
   "world_state_hashes": [
-    "c17b64831c965239f88863a0f73f8697fec02173c54bfe22a220e23b51046576",
-    "678b2468773e48afbb0096b1afe1d4b9c20c1252d14baefbcaf81bc4b590d0bc",
-    "678b2468773e48afbb0096b1afe1d4b9c20c1252d14baefbcaf81bc4b590d0bc",
-    "678b2468773e48afbb0096b1afe1d4b9c20c1252d14baefbcaf81bc4b590d0bc",
-    "678b2468773e48afbb0096b1afe1d4b9c20c1252d14baefbcaf81bc4b590d0bc",
-    "018e4fd0271d9bdf10568c009f41011a68c626f93972e9cfbe8690397a4030cd",
-    "64d2ce6c37b2e02fa60f8fbc76d1169b582647ef3cd3f24fb04b5f06ed708d7e",
-    "a048afe4597fcc090b23471fa1e4755f306179753ed92b245633855d78f5a7a6",
-    "26fe04af565b93060c849d40b9cab95a206de35704e99dc1bee73df4546e1dd2",
-    "da8191b0586bf5f746fe6fd1a0b466fa3902227656fff662de6b920fe53bc42e"
+    "3857903c39263203ae0f2724a705e1163a305d1119f4b7f824d7f63d69a8828c",
+    "2ae03d059865969cefd9c39b1df18e7110aefd8f404f52d12addeeb9802c8d8f",
+    "2ae03d059865969cefd9c39b1df18e7110aefd8f404f52d12addeeb9802c8d8f",
+    "2ae03d059865969cefd9c39b1df18e7110aefd8f404f52d12addeeb9802c8d8f",
+    "2ae03d059865969cefd9c39b1df18e7110aefd8f404f52d12addeeb9802c8d8f",
+    "a54298cb0cfad4acc28e0f56a08b4aa38cf4854e303b3f7a0fcca7d30a2f3918",
+    "e1c7cc06b6ece92fdb248281196cfc64c1f59f0d8424acd8ad939cba1cc514a9",
+    "24ca4fb0765b7c75f944590905a20a60fed75472054ba936a0cac24fb18d1201",
+    "e32ff03ce683150bd46406ef13ffec2e3c4d713d47dde3e2cb320e0851b0cfa4",
+    "661214bc18cccdde1eea463432383dd9e320a354a3633d99fd085304366ab95b"
   ]
 }
