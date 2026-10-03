@@ -3,6 +3,11 @@ from __future__ import annotations
 from collections.abc import AsyncIterator, Callable, Iterator, Mapping
 from copy import deepcopy
 from dataclasses import dataclass
+import hashlib
+import json
+import os
+from pathlib import Path
+import tempfile
 from typing import Any, Protocol
 
 from .validator import ValidationResult, Verdict, validate_resume
@@ -38,6 +43,58 @@ class InMemoryManifestStore:
 
     def delete(self, key: str) -> None:
         self._items.pop(key, None)
+
+
+class JsonDirectoryManifestStore:
+    """Small persistent store for local/single-host deployments.
+
+    Each thread/namespace key is stored as one JSON document. Writes use an
+    atomic replace so readers never observe a partially-written manifest.
+    """
+
+    def __init__(self, directory: str | os.PathLike[str]) -> None:
+        self.directory = Path(directory)
+        self.directory.mkdir(parents=True, exist_ok=True)
+
+    def _path(self, key: str) -> Path:
+        digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
+        return self.directory / f"{digest}.json"
+
+    def get(self, key: str) -> Manifest | None:
+        path = self._path(key)
+        if not path.exists():
+            return None
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if payload.get("key") != key:
+            raise ValueError("Resume Gate manifest key mismatch")
+        manifest = payload.get("manifest")
+        if not isinstance(manifest, dict):
+            raise ValueError("Resume Gate manifest file is malformed")
+        return manifest
+
+    def put(self, key: str, manifest: Manifest) -> None:
+        payload = {"key": key, "manifest": deepcopy(manifest)}
+        fd, temp_path = tempfile.mkstemp(
+            prefix=".resume-gate-",
+            suffix=".json",
+            dir=self.directory,
+            text=True,
+        )
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                json.dump(payload, handle, sort_keys=True, separators=(",", ":"))
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temp_path, self._path(key))
+        finally:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+
+    def delete(self, key: str) -> None:
+        try:
+            self._path(key).unlink()
+        except FileNotFoundError:
+            pass
 
 
 @dataclass(frozen=True)
@@ -118,6 +175,41 @@ class GuardedLangGraph:
         self.checkpoint_manifest = checkpoint_manifest
         self.current_manifest = current_manifest
         self.store = store or InMemoryManifestStore()
+
+
+    @classmethod
+    def auto(
+        cls,
+        graph: Any,
+        *,
+        context_provider: Callable[
+            [Any, Mapping[str, Any]], Mapping[str, Any] | None
+        ]
+        | None = None,
+        app_version: str | None = None,
+        store: ManifestStore | None = None,
+    ) -> "GuardedLangGraph":
+        """Create a gate with automatic LangGraph manifest capture.
+
+        Zero-configuration mode fingerprints the graph topology, state schemas,
+        LangGraph version and ToolNode tool surface. Applications may optionally
+        supply one context provider for live policy, authority or dependency
+        state; the same provider is sampled at pause and resume.
+        """
+
+        from .autocapture import AutoManifestBuilder
+
+        builder = AutoManifestBuilder(
+            graph,
+            context_provider=context_provider,
+            app_version=app_version,
+        )
+        return cls(
+            graph,
+            checkpoint_manifest=builder,
+            current_manifest=builder,
+            store=store,
+        )
 
     def _snapshot(self, config: Mapping[str, Any]) -> Any:
         return self.graph.get_state(config)
