@@ -14,7 +14,7 @@ from .langgraph import (
     ResumeGateDecision,
     ResumeGateRefused,
 )
-from .validator import Verdict, validate_resume
+from .validator import Issue, ValidationResult, Verdict, validate_resume
 
 
 OpenAIContextProvider = Callable[[Any, Any], Mapping[str, Any] | None]
@@ -205,11 +205,9 @@ class GuardedOpenAIRunner:
         key = _state_key(state)
         saved = self.store.get(key)
         if saved is None:
-            from .validator import Issue
-
             decision = ResumeGateDecision(
                 key=key,
-                result=__import__("resume_gate.validator", fromlist=["ValidationResult"]).ValidationResult(
+                result=ValidationResult(
                     verdict=Verdict.BLOCK,
                     checkpoint_id=key,
                     issues=(
