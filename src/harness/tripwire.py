@@ -5,7 +5,11 @@
 - **reads** (``open`` for reading, directory listings, globbing) are allowed
   only under ``read_roots`` or ``write_roots``;
 - **writes** (``open`` for writing, mkdir/remove/rename/chmod/..., sqlite files)
-  only under ``write_roots``;
+  only under ``write_roots``. There is no exemption for bytecode caches
+  (``__pycache__``, ``*.pyc``): processes that install the tripwire run with
+  ``-B``/``PYTHONDONTWRITEBYTECODE=1`` and write none, and an exemption would
+  give code a writable location outside its allowlist (persisting across runs,
+  shared between contestants);
 - **network**: socket creation, connect, bind and name resolution are refused
   unless ``allow_network``;
 - **processes**: ``subprocess``, ``os.system``/``exec*``/``spawn*``/``fork``,
@@ -186,10 +190,11 @@ def install(
         if path is None:
             return
         if write:
+            # No exemption for bytecode caches: every process that installs the tripwire runs with
+            # -B / PYTHONDONTWRITEBYTECODE=1, and a writable __pycache__ anywhere would let state
+            # persist across runs or pass between contestants.
             if within(path, writes) or path in _ALWAYS_WRITABLE:
                 return
-            if path.endswith((".pyc", ".pyc.tmp")) or f"{sep}__pycache__" in path:
-                return  # bytecode caches (normally disabled with -B)
             refuse(event, "write outside the allowed directories")
         else:
             if within(path, reads) or within(path, writes):

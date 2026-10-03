@@ -571,7 +571,9 @@ def test_output_flood_is_bounded(ws: Path, tmp_path: Path) -> None:
     assert res["exit_code"] == 0
     assert res["truncated"] is True
     assert res["output"].startswith("HEAD") and res["output"].endswith("TAIL\n")
-    assert "further bytes omitted" in res["output"]
+    # The omitted count is exact, in normalized characters (it used to count raw bytes, which made it
+    # depend on host path lengths): 4 + 30_000_000 + 5 characters, minus a 250-character head and a 750 tail.
+    assert "\n[... output truncated: 29999009 characters omitted ...]\n" in res["output"]
     assert len(res["output"]) < 1200
 
 
@@ -597,6 +599,105 @@ def test_normalize_output_rules() -> None:
         "./app.py /data/run/ws2/x /data/run/ws-old <tmp>/f <tmp>/boot "
         "/x/data/run/ws 3 passed in <t>s; 1 failed in <t>s; in <t>s"
     )
+
+
+def test_normalize_output_object_addresses() -> None:
+    text = (
+        "<Foo object at 0x7f3a2c1d9e80> id=0x55d0c3a1 (0xABCDEF) at 0x000000010a2b3c4d\n"
+        "kept: 0x1F 0xFFFF 0x12345 a0x7f3a2c1d9e80 0x7f3a2c1d9e80g 0X7F3A2C1D9E80 _0x7f3a2c1d9e80\n"
+    )
+    assert normalize_output(text, []) == (
+        "<Foo object at 0x<addr>> id=0x<addr> (0x<addr>) at 0x<addr>\n"
+        "kept: 0x1F 0xFFFF 0x12345 a0x7f3a2c1d9e80 0x7f3a2c1d9e80g 0X7F3A2C1D9E80 _0x7f3a2c1d9e80\n"
+    )
+
+
+def test_normalize_output_pytest_duration_report() -> None:
+    text = (
+        "============================= slowest durations ==============================\n"
+        "12.03s call     tests/test_app.py::test_slow\n"
+        "0.01s setup    tests/test_app.py::test_add\n"
+        "0.00s teardown tests/test_app.py::test_add\n"
+        "\n(3 durations < 0.005s hidden.  Use -vv to show these durations.)\n"
+        "took 0.50s call me maybe; 7 passed in 12.10s\n"
+    )
+    assert normalize_output(text, []) == (
+        "============================= slowest durations ==============================\n"
+        "<t>s call     tests/test_app.py::test_slow\n"
+        "<t>s setup    tests/test_app.py::test_add\n"
+        "<t>s teardown tests/test_app.py::test_add\n"
+        "\n(<n> durations < 0.005s hidden.  Use -vv to show these durations.)\n"
+        "took 0.50s call me maybe; 7 passed in <t>s\n"
+    )
+
+
+def _stream_render(data: bytes, reps, max_chars: int, chunks: list[int]) -> tuple[str, bool]:
+    from harness.commands import _Normalizer, _OutputStream
+
+    stream = _OutputStream(_Normalizer(reps), max_chars)
+    pos = 0
+    for n in chunks:
+        stream.feed(data[pos:pos + n])
+        pos += n
+    stream.feed(data[pos:])
+    return stream.finish()
+
+
+def test_streamed_output_equals_normalize_then_truncate(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Whatever the chunking (including mid-character and mid-path cuts), the result is exactly
+    ``truncate_output(normalize_output(decode(all)))``: truncation is decided on normalized text."""
+    import random
+
+    from harness import commands
+
+    monkeypatch.setattr(commands, "_LONG_LINE_CHARS", 400)  # exercise the long-line cuts too
+    monkeypatch.setattr(commands, "_LONG_LINE_KEEP", 100)
+    reps = [("/data/run/ws", "."), ("/data/run/scratch", "<tmp>"), ("/data/run/scratch/tmp", "<tmp>")]
+    pieces = [
+        "/data/run/ws/app.py", " /data/run/ws2/x", " /data/run/scratch/tmp/f", " in 0.12s", " in 61.03s (0:01:01)",
+        " <object at 0x7f3a2c1d9e80>", " 0x1F", " héllo €", "\n", "\n", " plain words", "\n0.01s call t::x",
+        "\n(4 durations < 0.005s hidden.", " yyyyyyyyyyyyyyyy",
+    ]
+    rng = random.Random(1234)
+    for trial in range(60):
+        text = "".join(rng.choice(pieces) for _ in range(rng.randrange(1, 400)))
+        if trial % 3 == 0:
+            text = text.replace("\n", " ")  # one long line
+        data = text.encode("utf-8")
+        if trial % 5 == 0:
+            data = data.replace(b"\xc3\xa9", b"\xc3\xff")  # invalid UTF-8 too
+        expected = truncate_output(normalize_output(data.decode("utf-8", errors="replace"), reps), 300)
+        chunks = [rng.randrange(1, 40) for _ in range(rng.randrange(0, 200))]
+        assert _stream_render(data, reps, 300, chunks) == expected, (trial, text)
+
+
+def test_truncated_output_does_not_depend_on_workspace_path_length(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The same command in two workspaces whose absolute paths differ in length gives identical output."""
+    from harness import commands
+
+    code = """
+        import os, sys
+        for i in range(3000):
+            print(os.path.abspath('app.py'), i, object())
+        sys.stdout.write(' '.join(os.path.abspath('tests') for _ in range(3000)))
+        print(' end', os.getcwd())
+    """
+    results = {}
+    for name in ("a", "b" * 120):
+        ws = _make_workspace(tmp_path / name)
+        runner = CommandRunner(ws, tmp_path / name / "scratch", max_output_chars=1000)
+        for long_line in (None, 2000):
+            if long_line is not None:
+                monkeypatch.setattr(commands, "_LONG_LINE_CHARS", long_line)
+                monkeypatch.setattr(commands, "_LONG_LINE_KEEP", 300)
+            res = runner.run(_py(code), 60)
+            assert res["exit_code"] == 0 and res["truncated"] is True, res
+            results[(name, long_line)] = res["output"]
+        monkeypatch.undo()
+    full = "".join(f"./app.py {i} <object object at 0x<addr>>\n" for i in range(3000))
+    full += " ".join("./tests" for _ in range(3000)) + " end .\n"
+    expected, _ = truncate_output(full, 1000)
+    assert set(results.values()) == {expected}, {k: v[-200:] for k, v in results.items()}
 
 
 def test_truncate_output_rules() -> None:
@@ -632,7 +733,7 @@ def test_workspace_cannot_shadow_the_bootstrap(runner: CommandRunner, ws: Path) 
 
 
 def test_without_pidfd_support(runner: CommandRunner, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.delattr(os, "pidfd_open", raising=False)
+    monkeypatch.delattr(os, "pidfd_open")
     res = runner.run("python -c 'print(1)'", 30)
     assert (res["exit_code"], res["output"], res["timed_out"]) == (0, "1\n", False)
     res = runner.run("python -c 'import time; time.sleep(60)'", 2)
