@@ -48,7 +48,7 @@ from harness import HARNESS_VERSION, guard
 from harness.commands import CommandRunner
 from harness.history import WorldHistory
 from harness.model import create_gateway
-from harness.process import ContestantError, InvalidContestantResponse, StepTimeout
+from harness.process import ContestantCrashed, InvalidContestantResponse, StepTimeout
 from harness.agent import (
     ACTION_SCHEMA_VERSION,
     ACTION_TYPES,
@@ -407,6 +407,8 @@ def run(
         "fingerprint": None,
         "error": None,
     }
+    # Facts read from the machine (e.g. the Claude CLI version); not part of the run's configuration hash.
+    metadata["model_runtime"] = gateway.runtime_info() if config.recorded_model_calls is None else {"backend": "recorded"}
     write_json_atomic(run_dir / "metadata.json", metadata)
 
     trace = TraceWriter(run_dir / "trace.jsonl")
@@ -480,7 +482,8 @@ def run(
         copy_tree(scenario.seed_dir, world_root)
         world_ws = Workspace(world_root)
         history = WorldHistory()
-        expected_states = scenario.data.get("world_state_hashes") or []
+        # A frozen scenario records the world state after every event; a draft's record may be stale.
+        expected_states = (scenario.data.get("world_state_hashes") or []) if scenario.status == "frozen" else []
         redact.add(world_tmp, "<world>")
         redact.add(run_dir, "<run>")
         redact.add(runs_dir, "<runs>")
@@ -550,8 +553,15 @@ def run(
                 return "timeout", redact(str(exc)), None
             if isinstance(exc, InvalidContestantResponse):
                 return "invalid_response", redact(str(exc)), None
+            if isinstance(exc, ContestantCrashed):
+                return "crashed", redact(f"{type(exc).__name__}: {exc}"), None
             error, tb = describe_exc(exc)
             return "agent_error", error, tb
+
+        def check_provider() -> None:
+            """Stop the run if the model provider can no longer serve it (login, usage limit, CLI missing)."""
+            if gateway.fatal_error:
+                raise RuntimeError(f"model provider unavailable; run stopped: {gateway.fatal_error}")
 
         def drain_notices(lane: _Lane, seq: int | None) -> None:
             drain = getattr(lane.agent, "drain_notices", None)
@@ -590,7 +600,6 @@ def run(
                 deadline=deadline,
             )
 
-        reveal_world(0, None)
         trace.emit(
             "run_start",
             schema_version=TRACE_SCHEMA_VERSION,
@@ -604,6 +613,7 @@ def run(
             config=run_config,
             initial={lane.name: {"workspace_tree": tree_hash(lane.workspace.root)} for lane in lanes},
         )
+        reveal_world(0, None)  # state 0 (the seed) exists before any agent code runs
 
         # Setup: identical context for every agent.
         for lane in lanes:
@@ -659,6 +669,7 @@ def run(
                     workspace_tree=tree_hash(lane.workspace.root),
                     state_tree=tree_hash(lane.state_dir),
                 )
+                check_provider()
             lane.expected_tree = tree_hash(lane.workspace.root)
 
         for event in events:
@@ -790,6 +801,7 @@ def run(
                         "wall_clock_ms": round(elapsed_ms, 3),
                     }
                 )
+                check_provider()
 
             # 3. evaluator observation only after every agent completed this step
             for lane in lanes:
@@ -876,6 +888,7 @@ def run(
                 finalization_errors.append(redact(f"{label}: {type(fin_exc).__name__}: {fin_exc}") or label)
 
         attempt("stop contestant processes", close_processes)
+        attempt("close model gateway", gateway.close)
         attempt("disarm guard", guard_stack.close)
         attempt("copy final state", copy_final_state)
         for writer in (trace, events_out, actions_out, evaluation_out, process_out):

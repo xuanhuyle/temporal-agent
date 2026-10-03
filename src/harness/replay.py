@@ -28,6 +28,7 @@ from harness.agent import (
     Usage,
     action_from_dict,
 )
+from harness.model.recorded import recorded_calls_from_trace
 from harness.process import StepTimeout
 from harness.runner import RunConfig, RunResult, run, write_manifest
 from harness.scenario import ScenarioError, load_scenario
@@ -101,6 +102,9 @@ class ReplayAgent(Agent):
             elif t == "agent_teardown":
                 self._teardown = rec
             elif t == "tool_call":
+                # Resolve blob-stored arguments now: during the replayed run this agent's
+                # code runs under the guard, which forbids reading the run directory.
+                rec = {**rec, "args": {k: self._arg(v) for k, v in rec["args"].items()}}
                 self._calls.setdefault(rec["seq"], []).append(rec)
             elif t == "agent_response":
                 self._responses[rec["seq"]] = rec
@@ -125,7 +129,7 @@ class ReplayAgent(Agent):
         for call in self._calls.get(seq, []):
             fn = getattr(tools, call["tool"])
             try:
-                fn(**{k: self._arg(v) for k, v in call["args"].items()})
+                fn(**call["args"])
             except (ToolError, BudgetExceeded):
                 pass
         if rec and rec["status"] == "budget_exceeded" and rec["error"] != SWALLOWED_BUDGET:
@@ -165,36 +169,21 @@ def load_blob(blobs_dir: Path, digest: str) -> Any:
 
 
 def recorded_model_calls(records: list[dict[str, Any]], blobs_dir: Path) -> tuple[dict[str, Any], ...]:
-    """Model and embedding calls of a run that reached the gateway's backend, in trace order.
+    """The run's model and embedding calls that reached a backend, in the gateway's recording format.
 
-    Each item: ``{lane, tool, status, args, result, meter, error}`` with blob
-    references resolved. Calls refused by the ToolBox (budget, invalid request)
-    never reached a backend; they carry no ``meter`` and are left out.
+    Blob-stored arguments are resolved first, so failed calls can be matched by
+    their request hash (see :mod:`harness.model.recorded`).
     """
-    out = []
+    resolved = []
     for rec in records:
         if rec.get("type") != "tool_call" or rec.get("tool") not in ("model_complete", "embed"):
             continue
-        if rec.get("status") == "ok":
-            result = load_blob(blobs_dir, rec["result_sha256"])
-        elif rec.get("status") == "error" and str(rec.get("error", "")).startswith(("model provider error", "replay:")):
-            result = None
-        else:
-            continue
         args = {
             k: (load_blob(blobs_dir, v["blob"]) if isinstance(v, dict) and set(v) == {"blob"} else v)
-            for k, v in rec["args"].items()
+            for k, v in rec.get("args", {}).items()
         }
-        out.append({
-            "lane": rec["agent"],
-            "tool": rec["tool"],
-            "status": rec["status"],
-            "args": args,
-            "result": result,
-            "meter": rec.get("meter"),
-            "error": rec.get("error"),
-        })
-    return tuple(out)
+        resolved.append({**rec, "args": args})
+    return tuple(recorded_calls_from_trace(resolved, lambda sha: load_blob(blobs_dir, sha)))
 
 
 def compare_runs(original: Path, replayed: Path) -> list[dict[str, Any]]:

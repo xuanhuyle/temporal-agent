@@ -284,6 +284,13 @@ class ModelGateway:
         info = getattr(self._backend, "runtime_info", None)
         return dict(info()) if callable(info) else {}
 
+    def close(self) -> None:
+        """Release backend resources (e.g. the Claude CLI backend's scratch directory)."""
+        for b in (self._backend, self._embedder):
+            close = getattr(b, "close", None)
+            if callable(close):
+                close()
+
     def lane(self, name: str) -> "LaneModelService":
         """The ModelService for one agent lane (use the lane's trace name: replay is keyed by it)."""
         if not isinstance(name, str) or not name:

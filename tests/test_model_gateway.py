@@ -172,12 +172,17 @@ def test_gateway_metering_record() -> None:
     assert meter == {
         "provider": "anthropic",
         "model": "claude-opus-5-5",
+        "usage_available": True,
         "input_tokens": 2000,
         "output_tokens": 300,
         "cache_read_input_tokens": 1000,
         "cache_creation_input_tokens": 400,
-        "retrieval_tokens": round(2000 * 4 / r.total_chars()),
+        "total_input_tokens": 3400,  # every prompt token processed: uncached + cache reads + cache writes
+        "auxiliary_input_tokens": 0,
+        "auxiliary_output_tokens": 0,
+        "retrieval_tokens": round(3400 * 4 / r.total_chars()),
         "cost_usd": expected_cost,
+        "cost_basis": "price_table",
         "stop_reason": "end_turn",
         "purpose": "loop",
         "request_sha256": hashlib.sha256(canonical_json(r.to_dict()).encode()).hexdigest(),
