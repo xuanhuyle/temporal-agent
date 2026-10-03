@@ -10,6 +10,9 @@ from harness.agent import ModelSettings
 from harness.llm import ModelMessage, ModelRequest, ModelResponse
 from harness.model.gateway import create_gateway
 
+from .kernel import TemporalMultiplicityKernel
+from .state import AgentState
+
 
 DEFAULT_CASES = (
     Path(__file__).parents[2]
@@ -74,21 +77,50 @@ def load_cases(path: Path = DEFAULT_CASES) -> list[EvalCase]:
     ]
 
 
-def render_case(case: EvalCase, condition: str) -> str:
-    if condition not in {"baseline", "isolated"}:
-        raise ValueError(condition)
+def _state_for_case(case: EvalCase) -> AgentState:
+    state = AgentState(seq=max(int(event["seq"]) for event in case.events))
+    for event in case.events:
+        seq = int(event["seq"])
+        state = state.with_fact(
+            f"event:{seq:04d}",
+            event["text"],
+            known_at=seq,
+            source=case.id,
+        )
+    return state
+
+
+def _visible_events(case: EvalCase, condition: str) -> tuple[tuple[int, str], ...]:
+    kernel = TemporalMultiplicityKernel()
+    full = kernel.snapshot(_state_for_case(case))
 
     if condition == "baseline":
-        visible = case.events
+        state = full.state
+    elif condition == "isolated":
+        branch = kernel.fork(full.state_id, epistemic_cutoff=case.cutoff)
+        state = branch.state
+    else:
+        raise ValueError(condition)
+
+    return tuple(
+        (fact.known_at, str(fact.value))
+        for fact in sorted(state.knowledge, key=lambda item: item.known_at)
+        if fact.known_at <= state.seq
+    )
+
+
+def render_case(case: EvalCase, condition: str) -> str:
+    visible = _visible_events(case, condition)
+
+    if condition == "baseline":
         condition_note = (
             "You can see the complete timeline, including events learned after "
             "the cutoff. Those later events must not influence the answer."
         )
     else:
-        visible = tuple(event for event in case.events if int(event["seq"]) <= case.cutoff)
         condition_note = (
-            "The timeline has been mechanically cut off. No event learned after "
-            "the cutoff is available in this state."
+            "The timeline comes from an executable state fork at the cutoff. "
+            "No event learned later exists in this branch."
         )
 
     lines = [
@@ -96,7 +128,7 @@ def render_case(case: EvalCase, condition: str) -> str:
         f"Cutoff sequence: {case.cutoff}",
         "Timeline:",
     ]
-    lines.extend(f"[seq {event['seq']}] {event['text']}" for event in visible)
+    lines.extend(f"[seq {seq}] {text}" for seq, text in visible)
     lines.extend(
         [
             "",
