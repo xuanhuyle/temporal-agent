@@ -59,7 +59,7 @@ jobs:
         run: python -m pip install --upgrade pip && python -m pip install "pytest>=8.0" "langgraph==1.2.12"
 
       - name: Resume Gate LangGraph integration
-        run: PYTHONPATH=src python -m pytest -q tests/test_resume_gate.py tests/test_resume_gate_public_cases.py tests/test_resume_gate_langgraph.py
+        run: PYTHONPATH=src python -m pytest -q tests/test_resume_gate.py tests/test_resume_gate_public_cases.py tests/test_resume_gate_langgraph.py tests/test_native_bakeoff_langgraph.py
 
 
   resume-gate-openai-agents:
@@ -76,4 +76,4 @@ jobs:
         run: python -m pip install --upgrade pip && python -m pip install "pytest>=8.0" "openai-agents==0.23.1"
 
       - name: Resume Gate OpenAI Agents integration
-        run: PYTHONPATH=src python -m pytest -q tests/test_resume_gate.py tests/test_resume_gate_public_cases.py tests/test_resume_gate_openai_agents.py
+        run: PYTHONPATH=src python -m pytest -q tests/test_resume_gate.py tests/test_resume_gate_public_cases.py tests/test_resume_gate_openai_agents.py tests/test_native_bakeoff_openai.py
