@@ -5,9 +5,10 @@ A controlled experiment to test whether making time an **addressable dimension o
 This repository is intentionally a **benchmark first**. The Tesseract implementation is a contestant, not the benchmark designer.
 
 > **Status (2026-10-03, Milestone 2.5 research reset): disposition A, Stop.**
-> A review of 2025-2026 prior work found every NORTH_STAR concept and
-> mechanism already shipped or published. No residual hypothesis was both
-> distinct and cheap to test. The temporal-architecture program (Tesseract,
+> A review of 2025-2026 prior work found prior art for every NORTH_STAR
+> concept and component mechanism; what remains is integration and untested
+> effects. No residual hypothesis on the thesis was both distinct and cheap
+> to test. The temporal-architecture program (Tesseract,
 > new scenario families) has stopped on value-of-information grounds.
 >
 > This is **not** an EXPERIMENT.md §13 kill: §13 was never run. See
@@ -23,7 +24,7 @@ No prompt tells the agent which past decision to inspect.
 ## Contestants
 
 1. **Baseline** — same model and tools, with checkpoints + strong RAG memory.
-2. **Temporal** — same model and tools, plus Chronicle / Historian / Tesseract temporal navigation.
+2. **Temporal** — same model and tools, plus Chronicle / Historian / Tesseract temporal navigation (stopped under M2.5 disposition A; never implemented).
 
 The model, task stream, tool access, and evaluation conditions must otherwise be identical.
 
@@ -51,7 +52,7 @@ See [NORTH_STAR.md](NORTH_STAR.md) for the broader conceptual model of temporal 
 src/
   contestant_runtime/  # shared LLM agent loop used by every model-backed contestant
   baseline/       # strong conventional contestant: event log, checkpoints, hybrid RAG, summaries
-  tesseract/      # temporal contestant (not implemented; a later milestone)
+  tesseract/      # temporal contestant stub; not implemented, deprecated under M2.5 disposition A
   harness/        # event runner, agent interface, tools, world history, commands,
                   # model gateway (fake / claude-cli / anthropic / replay), contestant processes, replay, CLI
   evaluation/     # ground truth, scorer, remediation checks, oracle, validation
@@ -61,7 +62,7 @@ world/
   ground_truth/   # evaluator-only labels
 scenarios/
   smoke/          # smoke_v1: frozen 10-event machinery check (not held out)
-  simple/ long_history/ high_noise/ deep_causality/   # planned families
+  simple/ long_history/ high_noise/ deep_causality/   # planned families, deprecated (M2.5)
 runs/             # generated experiment outputs (not source of truth)
 results/          # archived runs referenced by reports (milestone-2: fake-model machinery checks only)
 tests/

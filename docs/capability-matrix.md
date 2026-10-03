@@ -6,7 +6,8 @@ Status: Milestone 2.5 research reset, 2026-10-03. Evidence labels ([code],
 
 - The full evidence for each cell is in
   [`research/m2.5-evidence/capability-matrix-evidence.md`](../research/m2.5-evidence/capability-matrix-evidence.md):
-  one justification per non-trivial cell.
+  one justification per non-trivial Matrix A cell. Matrix B cells are
+  justified in the notes under Matrix B.
 - The raw notes are in `research/m2.5-evidence/notes/` and `verify/`.
 
 ## 1. The twenty capabilities
@@ -44,12 +45,12 @@ Legend: ● yes · ◐ partial · `·` no · ? unclear.
 The first nine rows are the mandatory systems. Each was rated by one analyst
 and re-checked by an adversarial verifier (6 of 180 ratings were corrected).
 The remaining rows are the sweep's highest-threat works, each rated in a
-single deep read.
+single deep read, except Memvara, which had two.
 
 | system | rating basis | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| MAGE (2606.06090) | verified; [ns] abstract + [ext] | ◐ | · | ◐ | · | ◐ | ◐ | ● | · | ◐ | ◐ | ◐ | · | · | · | · | · | · | · | · | ◐ |
-| FlowState (2609.34565) | verified; [ext] only | ◐ | · | ◐ | ◐ | · | · | · | · | · | ● | ◐ | · | · | · | · | · | · | · | ◐ | ◐ |
+| MAGE (2606.06090) | verified; [abs] (also on MSR page [ns]) + [ext] | ◐ | · | ◐ | · | ◐ | ◐ | ● | · | ◐ | ◐ | ◐ | · | · | · | · | · | · | · | · | ◐ |
+| FlowState (2609.34565) | verified; [ext] + verbatim abstract [3p] | ◐ | · | ◐ | ◐ | · | · | · | · | · | ● | ◐ | · | · | · | · | · | · | · | ◐ | ◐ |
 | LangGraph 1.2 persistence | verified; [code] + probes | ◐ | · | ◐ | ◐ | ● | ● | ● | ◐ | ◐ | · | · | · | · | · | · | · | · | · | ◐ | ◐ |
 | PoS (2610.01415) | verified; [code] | ● | · | ◐ | ◐ | · | · | · | · | · | ● | ● | · | · | · | ◐ | · | · | · | ◐ | · |
 | Graphiti / Zep (2501.13956) | verified; [code] | ◐ | ◐ | ◐ | ◐ | · | · | · | · | · | ◐ | · | · | · | · | · | · | · | · | ◐ | · |
@@ -62,19 +63,19 @@ single deep read.
 | DeepRewind (2609.36344) | single; [abs] + [code] + probe | ● | · | ◐ | · | · | · | · | ◐ | ◐ | ● | ● | ◐ | · | · | ◐ | ◐ | ◐ | · | ◐ | · |
 | FutureSim (2605.15188) | single; [abs] + [code] | ● | ● | ◐ | ◐ | ◐ | ● | ● | ◐ | ◐ | ◐ | ● | · | ◐ | ● | · | · | · | ● | ◐ | · |
 | Forecast-Dojo (2609.28876) | single; [abs] + [3p] full text | ◐ | ◐ | ◐ | · | ◐ | ● | ◐ | · | · | ● | ● | · | ◐ | ● | · | · | · | ● | ◐ | · |
-| Calibration Is Not Control (2606.21399) | single; [abs] | · | ◐ | ◐ | · | ◐ | ◐ | ● | ● | ◐ | · | ◐ | ◐ | ◐ | ◐ | · | ● | ◐ | ● | · | · |
+| Calibration Is Not Control (2606.21399) | single; [abs] + [3p] full-text digest | · | ◐ | ◐ | · | ◐ | ◐ | ● | ● | ◐ | · | ◐ | ◐ | ◐ | ◐ | · | ● | ◐ | ● | · | · |
 | Trellis / Experience Graphs (2606.29823) | single; [abs] + [3p] full text; **design only** | ● | ◐ | ● | ◐ | ● | ● | ● | ● | ● | ◐ | · | · | · | · | · | · | · | · | ● | ◐ |
 | AER (2603.21692) | single; [abs] + [3p] full text | ◐ | · | ◐ | ◐ | · | ● | ◐ | ◐ | ◐ | ◐ | ◐ | · | · | · | · | · | · | ◐ | ◐ | · |
 | ChronoMem (2607.27773) | single; [abs] + [3p] | ◐ | · | ● | · | ◐ | ◐ | · | · | · | · | · | · | · | · | · | · | · | · | ◐ | · |
 | Corollary (GitHub, JTMS) | single; [code] + probes | ◐ | · | ◐ | · | ◐ | ◐ | · | · | · | ● | ● | · | · | · | · | · | · | ◐ | ◐ | · |
-| Memvara (GitHub, bitemporal) | two single reads; [code] + probes | ◐ | ● | ◐* | ◐ | · | · | · | · | · | ● | ◐ | · | · | · | · | · | · | · | ● | ◐* |
+| Memvara (GitHub, bitemporal) | two single reads; [code] + probes | ◐ | ◐ | ◐* | ◐ | · | · | · | · | · | ● | ◐ | · | · | · | · | · | · | · | ● | ◐* |
 
 \* Two independent deep reads of Memvara disagreed:
 - capability 3: partial vs yes;
 - capability 20: partial vs no.
 
-The table shows the more conservative reading on 3 and the first reading on
-20.
+The table shows the more conservative reading on 3 and the more generous
+reading on 20 (◐; the second read gave ·).
 
 **Caveats on the single-read rows:**
 - **Trellis** describes a design and never evaluates its time travel, so its
@@ -84,18 +85,22 @@ The table shows the more conservative reading on 3 and the first reading on
 
 ## 3. Matrix B: concept-level references, this repository, and the target
 
-These rows are not agent systems. They show that the capabilities agent
-systems leave thin (13-17) are covered outside agents, by
-decision-theoretic, causal-inference, planning and database work. Ratings
-come from the lane evidence in research-landscape §3.
+These rows are mostly not agent systems. They show that the capabilities
+agent systems leave thin (13, 15 and 17) are covered outside agents, by
+decision-theoretic, causal-inference and planning work. Database work covers
+the retrospective columns (1, 2 and 19). Two concept rows include LLM-agent
+works (BAR, SafePred), rated from abstracts only and not deep-read.
+
+Concept-row ratings come from the lane evidence in research-landscape §3.
+The baseline row comes from the code in `src/baseline/` and `src/harness/`.
 
 | reference | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Bitemporal DBs + event sourcing + data versioning (XTDB, Datomic, eventsourcing, Dolt/lakeFS, W3C PROV) [ns] | ● | ● | ◐ | · | ◐ | ◐ | ◐ | · | ◐ | · | · | · | · | · | · | · | · | · | ● | · |
+| Bitemporal DBs + event sourcing + data versioning (XTDB, Datomic, eventsourcing, Dolt/lakeFS, W3C PROV) [ns] | ● | ● | ◐ | · | ◐ | ◐ | ◐ | ◐ | ◐ | · | · | · | · | · | · | · | · | · | ● | · |
 | Potential outcomes + conditional-forecast annulment (Dickerman & Hernán; Metaculus Conditional Pairs; decision markets; performative prediction [unv]) [ns] | · | · | · | · | · | · | · | · | · | · | ● | · | ◐ | ● | · | ● | ● | ● | · | · |
 | Option preservation and feared-future constraints (relative reachability, AUP [unv]; SafeCommit, LCPI, SafePred, SIMMER [abs]) | · | · | · | · | · | · | · | ◐ | · | · | ◐ | ◐ | ◐ | ◐ | ● | ◐ | · | · | · | · |
 | Goal regression / backward planning (classical regression planning; BAR 2505.14079 [abs]) | · | · | · | · | · | · | · | · | · | · | · | · | · | · | ● | · | · | · | · | · |
-| **This repo: Milestone 2 conventional baseline** [code] | ● | ● | ◐ | · | ◐ | ◐ | · | · | · | ◐ | · | · | · | · | · | · | · | · | ◐ | · |
+| **This repo: Milestone 2 conventional baseline** [code] | ● | ● | ◐ | ◐ | ◐ | ◐ | · | · | · | ◐ | ◐ | · | · | · | · | · | · | · | ◐ | · |
 | **NORTH_STAR.md target** | ● | ● | ● | ● | ● | ● | ● | ● | ● | ● | ● | ● | ● | ● | ● | ● | ● | ● | ● | ● |
 
 Notes on Matrix B:
@@ -105,8 +110,10 @@ Notes on Matrix B:
     which is exactly an agent's knowledge state if the agent's beliefs are the
     store's rows. XTDB's docs present `FOR SYSTEM_TIME AS OF` for data "as we
     knew it at the time, without subsequent corrections".
-  - 7 is partial: Datomic `d/with` gives speculative values, and Dolt and
-    lakeFS branch data.
+  - 7 is partial: Dolt and lakeFS branch data from earlier commits (data
+    only, not agent state).
+  - 8 is partial: Datomic `d/with` applies a transaction speculatively
+    without committing it.
 - **Potential outcomes and annulment.**
   - 17 is "yes" as a scoring practice: Metaculus annuls the unrealized
     conditional ("It is not scored").
@@ -118,17 +125,26 @@ Notes on Matrix B:
   - 2: the A1 world-history tools `read_at`/`list_at`/`diff` give every
     contestant past repository states.
   - 3 is partial: per-event notes and `memory_search` take seq filters, but
-    `summary.json` is overwritten and the context the agent actually saw at t
-    is not kept on the contestant side.
+    `summary.json` is overwritten. The context the agent saw at t is kept
+    only in the harness trace (every model request), which no contestant can
+    query.
+  - 4 is partial: `metadata.json` records the model, the instruction version
+    and hash, and the preset; `events.jsonl` keeps every delivered
+    requirement change append-only. Nothing versions policy within a run,
+    and the agent does not consult these records (as for MemoryArena).
   - 5 is partial: `checkpoint.json` keeps only the latest state, for
     restart.
   - 6 is partial: replay exists only at harness level, as recorded-backend
     re-serving, and is not agent-facing.
   - 10 is partial: the rolling summary is free text that is asked to keep
     "decisions in force with their stated reasons and assumptions".
+  - 11 is partial: notes and summary are asked to keep assumptions and open
+    or blocked work, in free text; there are no confidence fields.
   - 19 is partial: A1 diffs over world states and seq-filtered memory search.
-  - The baseline is therefore **weaker than** FlowState-, PoS-, Memvara- or
-    PlanFence-style arms on 3, 10 and 19.
+  - The baseline is therefore weaker than FlowState, PoS and Memvara on 10
+    (◐ vs ●), and weaker than Memvara on 19 (◐ vs ●). On 3 it matches all
+    three at ◐; Memvara reaches ● only under the second deep read. PlanFence
+    is not rated in this matrix.
 
 ## 4. Column-level findings
 
@@ -136,41 +152,48 @@ What each capability's column shows across all 26 rows:
 
 | # | best coverage found | verdict |
 |---|---|---|
-| 1-2 | ActiveGraph, Shepherd, FutureSim (●); bitemporal DBs (●) | saturated |
+| 1-2 | ActiveGraph, Shepherd, FutureSim (●); bitemporal DBs (● concept level) | saturated |
 | 3 | ChronoMem (● memory layer, with a read-scoping invariant and a post-exposure leakage protocol); Trellis (● as design); Memvara known_at, PoS belief snapshots, LangGraph `get_state`, FlowState request tags (◐) | **mechanism exists.** Every partial is a leak or a missing API, not a missing concept. |
-| 4 | ◐ everywhere: LangGraph config capture and server assistant versions; Graphiti procedure entities; AER envelope; OTel GenAI conventions (research-landscape §3.8) | solved as data and attribution; no agent *uses* it |
+| 4 | ◐ at most (13 of 25 rows; · in the rest): LangGraph config capture and server assistant versions; Graphiti procedure entities; AER envelope; OTel GenAI conventions (research-landscape §3.8) | solved as data and attribution; no agent *uses* it |
 | 5-9 | LangGraph, ActiveGraph, Shepherd, MAGE (fork ●), COUNTERMEM and Calibration Is Not Control (counterfactual branches ●) | saturated |
-| 10-11 | PoS, FlowState, DeepRewind, Corollary, Forecast-Dojo, Memvara (●) | saturated |
+| 10-11 | 10: FlowState, PoS, DeepRewind, Forecast-Dojo, Corollary, Memvara (●); 11: PoS, DeepRewind, FutureSim, Forecast-Dojo, Corollary (●) | saturated |
 | 12 | ITP (●); ActiveGraph, Shepherd, DeepRewind, COUNTERMEM, Calibration Is Not Control (◐) | established (ITP, RAP, WebDreamer, WMA) |
-| 13 | ◐ everywhere: several executed forks (Shepherd, ActiveGraph), several outcomes of one question (FutureSim, Forecast-Dojo), conditional pairs (concept level) | no persisted set of imagined multi-step futures in any rated system |
+| 13 | ◐ at most (8 of 25 rows; · in the rest): several executed forks (Shepherd, ActiveGraph), several outcomes of one question (FutureSim, Forecast-Dojo), conditional pairs (concept level) | no persisted set of imagined multi-step futures in any rated system |
 | 14 | FutureSim and Forecast-Dojo (●, as probabilities over outcomes); potential outcomes (● concept level) | established |
-| 15 | PoS and DeepRewind (◐); goal regression and option preservation (● concept-level) | no agent persists *derived* obligations, but the computation is classical |
+| 15 | PoS and DeepRewind (◐); goal regression and option preservation (● in Matrix B, including LLM-agent works BAR and SafePred rated from abstracts) | no deep-read agent persists *derived* obligations, but the computation is classical |
 | 16 | Calibration Is Not Control (●); ITP and DeepRewind (◐) | established for agents |
 | 17 | Calibration Is Not Control and DeepRewind (◐, incidental); annulment (● as practice) | **no agent keeps averted forecasts as typed records.** This is a thin schema addition with a positivity limit (residual-hypotheses.md §4). |
 | 18 | FutureSim, Forecast-Dojo, Calibration Is Not Control (●) | established |
-| 19 | Memvara and Trellis (●); many ◐ | established |
-| 20 | ◐ at most, everywhere. ActiveGraph, Shepherd, LangGraph and MAGE unify historical, actual and counterfactual. Nothing adds the prospective kind. | the only empty "yes" column, and it is integration (research-landscape §4) |
+| 19 | Memvara and Trellis (●); bitemporal DBs (● concept level); many ◐ | established |
+| 20 | ◐ at most. ActiveGraph, Shepherd, LangGraph and MAGE unify historical, actual and counterfactual. ITP pairs present and imagined future state (◐) but has no history. No system spans all four kinds. | one of three columns with no "yes" (with 4 and 13); here the gap is integration (research-landscape §4) |
 
 **Reading the matrix adversarially.** Computed from the tables above,
 excluding the target row:
 
 - **"Yes" in some agent system:** capabilities 1-3, 5-12, 14, 16, 18 and 19.
-- **"Yes" only at concept level** (partial in agent systems): 15 (backward
-  requirements) and 17 (prevented futures).
+- **"Yes" only in Matrix B rows:** 15 (backward requirements) and 17
+  (prevented futures).
+  - 15: classical regression planning, but also LLM-agent works (BAR,
+    SafePred) rated from abstracts only and not deep-read.
+  - 17: scoring practice only (conditional-forecast annulment).
+  - Among deep-read agent systems, both are at most partial.
 - **No "yes" anywhere:** 4, 13 and 20.
-  - **4 (historical policy/objective state)** is partial everywhere among
-    the systems rated here. The tooling that solves it as data (OTel GenAI
+  - **4 (historical policy/objective state)** is at most partial among the
+    systems rated here (◐ in 12 of 20 agent rows, and in this repo's
+    baseline). The tooling that solves it as data (OTel GenAI
     attributes, MLflow, Langfuse and LangSmith versioning) was not rated as a
     row, and no agent *uses* such records when deliberating.
-  - **13 (multiple prospective branches)** is partial everywhere. Agent
+  - **13 (multiple prospective branches)** is at most partial (◐ in 6 of 20
+    agent rows and 2 concept rows). Agent
     systems hold several executed forks or several outcome probabilities, but
     no system maintains a set of imagined, multi-step alternative futures
     that persists. Scenario-ensemble work (FORESIGHT-9, ForecastBench-Sim,
     RDM) was found by the sweep but not deep-read.
   - **20 (unified abstraction)** has no "yes". The closest systems
     (ActiveGraph, Shepherd, LangGraph, MAGE) unify historical, actual and
-    counterfactual state. They miss exactly the prospective kind, which is
-    covered by separate prior art (ITP, FutureSim, potential outcomes).
+    counterfactual state. They miss the prospective kind, which is covered
+    by separate prior art (ITP, FutureSim, potential outcomes). ITP pairs the
+    present with an imagined future but has no history.
 
 None of the three gaps is a missing concept:
 - 4 is an agent-side use of existing records;
@@ -182,7 +205,8 @@ composition and agent-side use, not a missing capability.
 
 ## 5. Justification of non-obvious cells
 
-Per-cell evidence for every row is in the evidence file linked at the top.
+Per-cell evidence for every Matrix A row is in the evidence file linked at
+the top.
 The cells most likely to be challenged:
 
 **MAGE.**
@@ -243,14 +267,21 @@ rest on the same sentence and are not independent evidence.
 **DeepRewind.**
 - **15 ◐, 16 ◐, 17 ◐.** A one-step world-model prediction of its own commit
   action gates commitment by a reversibility score. Blocked-commit
-  predictions remain in the append-only log as "retain as contested". The
-  preservation is incidental, with no scoring semantics.
-- A probe found that **organic contradictions never fired rollback** in the
-  released code.
+  predictions remain in the append-only world-model log
+  (`decision=not_commit`), and the claim is kept through a separate
+  "retain_as_contested" plan step. The preservation is incidental, with no
+  scoring semantics.
+- A probe with default thresholds found that **organic contradictions did
+  not fire rollback** (only the synthetic switch injection did), and no
+  organic code path sets source reliability. Whether the paper's results
+  used this path is unknown.
 
 **FutureSim and Forecast-Dojo.**
-- **14 ● and 18 ●.** Explicit distributions, scored by Brier, with feedback
-  of the form "Your prediction distribution ... | Truth ...".
+- **14 ● and 18 ●.** Both keep explicit distributions scored by Brier.
+  FutureSim feeds results back to the agent during the run ("Your prediction
+  distribution ... | Truth ..."). Forecast-Dojo attaches the scores to logged
+  trajectories for training; its agent never sees outcomes within an
+  episode.
 - **17 ·.** The world does not react to the agent, so there is nothing to
   prevent.
 
@@ -263,11 +294,12 @@ rest on the same sentence and are not independent evidence.
   the protocol; nothing is persisted.
 
 **ChronoMem.** **3 ●**, memory layer only. "after rollback to v*, every
-subsequent read is scoped to v*", plus a post-exposure protocol testing
-"whether an agent can behave counterfactually after rollback".
+subsequent read is scoped to v*" [3p], plus a post-exposure protocol testing
+"whether an agent can behave counterfactually after rollback" [abs].
 
 **Memvara.**
-- **2 ●.** `valid_at=`.
+- **2 ◐.** `valid_at=` gives a valid-time view of stored fact claims only,
+  as for Graphiti, not of the environment.
 - **3 ◐.** `known_at=` / `as_of=` per fact slot. Row-level as-of reads apply
   later-recorded endings, as documented in its INTERNALS and confirmed by a
   probe.
