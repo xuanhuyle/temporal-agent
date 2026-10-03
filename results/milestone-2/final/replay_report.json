@@ -1,0 +1,10 @@
+{
+  "replay_of": "smoke_v1__baseline-k8+baseline-k32+baseline-k64+baseline-full__aba07cb294",
+  "code_hashes_match": true,
+  "replay_run_id": "smoke_v1__baseline-k8+baseline-k32+baseline-k64+baseline-full__aba07cb294__replay",
+  "match": true,
+  "mismatches": [],
+  "original_fingerprint": "f5e64f7214105b465357fa8c0e46cd4531fb44cabe98155d17bc6eab67098a87",
+  "replay_fingerprint": "f5e64f7214105b465357fa8c0e46cd4531fb44cabe98155d17bc6eab67098a87",
+  "replay_run_dir": "run.tar.gz:smoke_v1__baseline-k8+baseline-k32+baseline-k64+baseline-full__aba07cb294__replay"
+}

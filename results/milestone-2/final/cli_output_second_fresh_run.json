@@ -1,0 +1,89 @@
+{
+  "run_id": "smoke_v1__baseline-k8+baseline-k32+baseline-k64+baseline-full__aba07cb294",
+  "run_dir": "(not archived; identical run id and fingerprint)",
+  "status": "completed",
+  "fingerprint": "da8378699d053a471335c5b8b39a1da984308c620b8c847b3036fc610cfbbd02",
+  "model": {
+    "provider": "fake",
+    "name": "fake-v1",
+    "temperature": null,
+    "max_output_tokens": null,
+    "effort": null,
+    "prompt_caching": false,
+    "embedding_provider": "hash",
+    "embedding_model": "hash-ngram-v1",
+    "embedding_dims": 384
+  },
+  "note": "FAKE MODEL: machinery check only. The deterministic test double chose every tool call and reopen by hashing; these scores say nothing about baseline quality.",
+  "embedding_note": "Dense retrieval used lexical hash embeddings (hash-ngram-v1), not a neural semantic embedding (see docs/protocol-amendments.md D1).",
+  "scores": {
+    "baseline-k8": {
+      "temporal_governance_recall": 0.3333333333333333,
+      "reopening_precision": 0.2,
+      "false_intervention_rate": 0.2857142857142857,
+      "historical_state_fidelity": 0.0,
+      "present_remediation_success": 0.0,
+      "step_status": {
+        "ok": 10
+      },
+      "model_calls": 59,
+      "model_input_tokens": 174527,
+      "model_output_tokens": 1706,
+      "cost_usd": 0.0,
+      "uncached_cost_usd": 0.0,
+      "model_provider_errors": 0,
+      "tool_calls": 72
+    },
+    "baseline-k32": {
+      "temporal_governance_recall": 0.3333333333333333,
+      "reopening_precision": 0.16666666666666666,
+      "false_intervention_rate": 0.42857142857142855,
+      "historical_state_fidelity": 0.0,
+      "present_remediation_success": 0.0,
+      "step_status": {
+        "ok": 10
+      },
+      "model_calls": 59,
+      "model_input_tokens": 429831,
+      "model_output_tokens": 1772,
+      "cost_usd": 0.0,
+      "uncached_cost_usd": 0.0,
+      "model_provider_errors": 0,
+      "tool_calls": 72
+    },
+    "baseline-k64": {
+      "temporal_governance_recall": 0.6666666666666666,
+      "reopening_precision": 0.2857142857142857,
+      "false_intervention_rate": 0.42857142857142855,
+      "historical_state_fidelity": 0.0,
+      "present_remediation_success": 0.0,
+      "step_status": {
+        "ok": 10
+      },
+      "model_calls": 59,
+      "model_input_tokens": 736854,
+      "model_output_tokens": 1823,
+      "cost_usd": 0.0,
+      "uncached_cost_usd": 0.0,
+      "model_provider_errors": 0,
+      "tool_calls": 72
+    },
+    "baseline-full": {
+      "temporal_governance_recall": 0.3333333333333333,
+      "reopening_precision": 0.16666666666666666,
+      "false_intervention_rate": 0.42857142857142855,
+      "historical_state_fidelity": 0.0,
+      "present_remediation_success": 0.0,
+      "step_status": {
+        "ok": 10
+      },
+      "model_calls": 49,
+      "model_input_tokens": 252247,
+      "model_output_tokens": 1551,
+      "cost_usd": 0.0,
+      "uncached_cost_usd": 0.0,
+      "model_provider_errors": 0,
+      "tool_calls": 72
+    }
+  }
+}
