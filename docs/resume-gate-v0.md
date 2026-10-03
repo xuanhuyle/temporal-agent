@@ -208,3 +208,90 @@ The LangGraph integration CI now exercises a real cross-deployment case:
    `BLOCK` before LangGraph executes the next node.
 
 No checkpoint/current manifest callbacks are supplied in that test.
+
+
+## OpenAI Agents SDK integration (v0.3)
+
+Resume Gate now supports the OpenAI Agents SDK `RunState` approval/resume boundary
+without changing the shared validator or manifest vocabulary.
+
+Install:
+
+```bash
+pip install -e '.[openai-agents]'
+```
+
+Wrap runs with:
+
+```python
+from resume_gate import GuardedOpenAIRunner
+
+runner = GuardedOpenAIRunner(context_provider=live_context)
+
+result = await runner.run(agent, "refund the customer")
+state = result.to_state()
+state.approve(result.interruptions[0])
+
+# The state may now be serialized, stored and restored.
+result = await runner.run(agent, state)
+```
+
+At the first approval interruption, the wrapper automatically records:
+
+- OpenAI Agents SDK / RunState schema fingerprint;
+- agent/model identity;
+- static tool surface and function-tool argument schemas;
+- any optional live policy / authority / dependency context.
+
+Before a restored `RunState` reaches `Runner.run(...)`, the current manifest is
+rebuilt and passed through the same Resume Gate validator used by LangGraph.
+
+### Verified serialized approval scenario
+
+The dedicated OpenAI Agents SDK 0.23.1 CI test performs this exact sequence:
+
+1. a scripted agent proposes `refund_customer(amount=100)`;
+2. `needs_approval=True` pauses the run;
+3. Resume Gate captures the checkpoint-time manifest;
+4. the approval is granted;
+5. the approved `RunState` is serialized and restored;
+6. current authority is revoked while the run is parked;
+7. the restored state is supplied to `GuardedOpenAIRunner`;
+8. Resume Gate returns `BLOCK`;
+9. the refund function body has not executed.
+
+A control case with unchanged authority resumes successfully and executes the tool once.
+
+The same adapter also detects, without a live context provider:
+
+- tool removed after pause → `BLOCK`;
+- same-named tool with changed argument schema → `REVALIDATE`;
+- missing Resume Gate manifest for a legacy serialized state → fail-closed `BLOCK`.
+
+Dedicated OpenAI integration/product suite: **35 passed**.
+
+### Cross-framework significance
+
+The core validity model now runs unchanged at two different durable resume boundaries:
+
+```text
+LangGraph
+checkpoint + Command(resume=...)
+              ↓
+         Resume Gate
+              ↓
+        next graph node
+
+
+OpenAI Agents SDK
+RunState + Runner.run(...)
+              ↓
+         Resume Gate
+              ↓
+        approved tool
+```
+
+The framework adapters differ. The validator does not.
+
+This is evidence for a reusable **resume-time validity contract**, not evidence yet
+for a standalone company.
