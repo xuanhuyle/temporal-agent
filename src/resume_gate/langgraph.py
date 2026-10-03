@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator, Callable, Iterator, Mapping
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -30,10 +31,10 @@ class InMemoryManifestStore:
 
     def get(self, key: str) -> Manifest | None:
         value = self._items.get(key)
-        return None if value is None else dict(value)
+        return None if value is None else deepcopy(value)
 
     def put(self, key: str, manifest: Manifest) -> None:
-        self._items[key] = dict(manifest)
+        self._items[key] = deepcopy(manifest)
 
     def delete(self, key: str) -> None:
         self._items.pop(key, None)
