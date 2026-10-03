@@ -59,4 +59,4 @@ jobs:
         run: python -m pip install --upgrade pip && python -m pip install "pytest>=8.0"
 
       - name: Temporal multiplicity kernel and hindsight harness
-        run: PYTHONPATH=src python -m pytest -q tests/test_multiplicity_kernel.py tests/test_multiplicity_hindsight_eval.py
+        run: PYTHONPATH=src python -m pytest -q tests/test_multiplicity_kernel.py tests/test_multiplicity_capability.py tests/test_multiplicity_hindsight_eval.py
