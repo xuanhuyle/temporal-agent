@@ -109,12 +109,20 @@ FORGERIES = {
     },
     "addopts_deselect": {"pyproject.toml": '[tool.pytest.ini_options]\naddopts = "-k nothing"\n'},
     "sitecustomize": {"sitecustomize.py": "import os\nos._exit(0)\n"},
-    "planted_hidden_conftest": {"_hidden_tests/conftest.py": "import pytest\ncollect_ignore_glob = ['*']\n"},
+    # Kill the exact-count rule: a skipped hidden test still exits 0.
+    "skip_at_import": {"app.py": "import pytest\npytest.skip('nothing to see', allow_module_level=True)\n"},
+    "skip_at_runtime": {"app.py": "import pytest\ndef batch_limit():\n    pytest.skip('skipped')\n"},
+    "xfail_at_runtime": {"app.py": "import pytest\ndef batch_limit():\n    pytest.xfail('expected')\n"},
+    # Kill append-ordering: shadow a stdlib module the hidden test imports but pytest does not.
+    "stdlib_shadow": {"colorsys.py": "import app\nONE_THIRD = 1 / 3\napp.batch_limit = lambda: 99\n"},
     "exit_on_import": {"app.py": "import os\nos._exit(0)\n"},
     "json_shadow": {"json.py": "def loads(s):\n    return {'batch_limit': 999}\n"},
 }
 
 
+# root_pytest_shadow, conftest_forces_pass, addopts_deselect and sitecustomize are
+# defence in depth: hidden tests live outside the snapshot, so workspace config
+# is never discovered even without -c/--noconftest.
 @pytest.mark.parametrize("case", sorted(FORGERIES))
 def test_remediation_checks_resist_workspace_tampering(mini_scenario, tmp_path, case):
     gt = _gt(mini_scenario)
@@ -351,3 +359,20 @@ def test_canary_never_reaches_contestant_outputs(mini_scenario, runs_dir):
     for path in result.run_dir.rglob("*"):
         if path.is_file():
             assert MINI_CANARY not in path.read_text(errors="replace"), path
+
+
+def test_hidden_check_requires_the_expected_number_of_passing_tests(mini_scenario, tmp_path):
+    import dataclasses
+
+    from evaluation.checks import run_hidden_pytest
+    from harness.canonical import copy_tree
+
+    gt = _gt(mini_scenario)
+    snap = tmp_path / "snap"
+    copy_tree(mini_scenario.seed_dir, snap)
+    (snap / "config.json").write_text('{"batch_limit": 25}\n')
+    check = next(c for c in gt.reconsiderations[0].remediation.acceptable[0].checks if c["type"] == "hidden_pytest")
+    assert run_hidden_pytest(check, snap, gt)["passed"] is True
+    inflated = dataclasses.replace(gt, hidden_test_counts={k: v + 1 for k, v in gt.hidden_test_counts.items()})
+    result = run_hidden_pytest(check, snap, inflated)
+    assert result["passed"] is False and result["detail"]["exit_code"] == 0

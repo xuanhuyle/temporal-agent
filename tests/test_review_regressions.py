@@ -402,3 +402,166 @@ def test_tool_names_match_the_toolbox_surface():
 
     public = sorted(n for n in vars(ToolBox) if not n.startswith("_") and callable(getattr(ToolBox, n)) and n != "close")
     assert sorted(TOOL_NAMES) == public
+
+
+# ------------------------------------------- guard: every hook, every process API
+@pytest.mark.parametrize("hook,record", [("setup", "agent_setup"), ("on_start", "agent_start"),
+                                         ("on_event", "agent_response"), ("teardown", "agent_teardown")])
+def test_guard_applies_in_every_agent_hook(mini_scenario, runs_dir, hook, record):
+    import subprocess
+
+    labels = mini_scenario.ground_truth_dir / "labels.json"
+    world = mini_scenario.base_dir / "world"
+    outcomes: dict[str, str] = {}
+
+    class Prober(_TestAgent):
+        kind = "prober"
+
+        def _probe(self):
+            for label, fn in (("open", lambda: open(labels).read()), ("listdir", lambda: os.listdir(world)),
+                              ("subprocess", lambda: subprocess.run(["true"], check=False))):
+                try:
+                    fn()
+                    outcomes[label] = "allowed"
+                except PermissionError:
+                    outcomes[label] = "denied"
+
+        def setup(self, context):
+            super().setup(context)
+            if hook == "setup":
+                self._probe()
+
+        def on_start(self, tools):
+            if hook == "on_start":
+                self._probe()
+
+        def on_event(self, event, tools):
+            if hook == "on_event" and event.seq == 1:
+                self._probe()
+            return AgentResponse()
+
+        def teardown(self):
+            if hook == "teardown":
+                self._probe()
+
+    result = run(mini_scenario, [Prober("p")], RunConfig(runs_dir=runs_dir, **NO_HYGIENE))
+    assert outcomes == {"open": "denied", "listdir": "denied", "subprocess": "denied"}
+    rec = next(r for r in read_jsonl(result.run_dir / "trace.jsonl") if r["type"] == record)
+    assert len(rec["guard_violations"]) == 3
+
+
+def test_guard_blocks_every_process_creation_api(mini_scenario, runs_dir):
+    import pty
+
+    outcomes: dict[str, str] = {}
+
+    def fork_and_exit():
+        pid = os.fork()
+        if pid == 0:  # only reached if the guard failed; never let the child run pytest
+            os._exit(0)
+        os.waitpid(pid, 0)
+
+    class Spawner(_TestAgent):
+        kind = "spawner"
+
+        def on_event(self, event, tools):
+            if event.seq == 1:
+                for label, fn in (
+                    ("os.system", lambda: os.system("true")),
+                    ("os.posix_spawn", lambda: os.waitpid(os.posix_spawn("/bin/true", ["true"], dict(os.environ)), 0)),
+                    ("os.fork", fork_and_exit),
+                    ("os.spawnv", lambda: os.spawnv(os.P_WAIT, "/bin/true", ["true"])),
+                    ("pty.spawn", lambda: pty.spawn(["true"])),
+                ):
+                    try:
+                        fn()
+                        outcomes[label] = "allowed"
+                    except PermissionError:
+                        outcomes[label] = "denied"
+            return AgentResponse()
+
+    run(mini_scenario, [Spawner("s")], RunConfig(runs_dir=runs_dir, **NO_HYGIENE))
+    assert set(outcomes.values()) == {"denied"}, outcomes
+    from harness import guard
+
+    assert {"os.exec", "os.posix_spawn", "os.fork", "os.forkpty", "os.system", "subprocess.Popen"} <= guard._PROCESS_EVENTS
+
+
+def test_agents_cannot_touch_each_others_private_state(mini_scenario, runs_dir):
+    shared: dict[str, Path] = {}
+    outcomes: dict[str, str] = {}
+
+    class Victim(_TestAgent):
+        kind = "victim"
+
+        def setup(self, context):
+            super().setup(context)
+            (context.state_dir / "secret-notes.txt").write_text("private memory")
+            shared["victim_state"] = context.state_dir
+
+        def on_event(self, event, tools):
+            return AgentResponse()
+
+    class Snoop(_TestAgent):
+        kind = "snoop"
+
+        def on_event(self, event, tools):
+            if event.seq == 1:
+                target = shared["victim_state"]
+                for label, fn in (("read", lambda: (target / "secret-notes.txt").read_text()),
+                                  ("list", lambda: os.listdir(target)),
+                                  ("write", lambda: (target / "planted.txt").write_text("x"))):
+                    try:
+                        fn()
+                        outcomes[label] = "allowed"
+                    except PermissionError:
+                        outcomes[label] = "denied"
+            return AgentResponse()
+
+    result = run(mini_scenario, [Snoop("snoop"), Victim("victim")], RunConfig(runs_dir=runs_dir, **NO_HYGIENE))
+    assert outcomes == {"read": "denied", "list": "denied", "write": "denied"}
+    rec = next(r for r in read_jsonl(result.run_dir / "trace.jsonl")
+               if r["type"] == "agent_response" and r["agent"] == "snoop" and r["seq"] == 1)
+    assert len(rec["guard_violations"]) == 3
+
+
+# ------------------------------------------------------- replay & delivery scope
+def test_replay_detects_tampered_trace_only_fields(mini_scenario, runs_dir):
+    from harness.replay import compare_runs
+    from harness.trace import FINGERPRINT_FILES
+
+    original = run(mini_scenario, [create_agent("dummy")], RunConfig(runs_dir=runs_dir, **NO_HYGIENE))
+    path = original.run_dir / "trace.jsonl"
+    records = [json.loads(line) for line in path.read_text().splitlines()]
+    for rec in records:
+        if rec["type"] == "step_complete":
+            rec["workspace_tree"] = "0" * 64
+            break
+    path.write_text("".join(json.dumps(r) + "\n" for r in records))
+    replayed, report = replay_run(original.run_dir)
+    assert not report["match"]
+    assert [m["file"] for m in report["mismatches"]] == ["trace.jsonl"]
+    assert {m["file"] for m in compare_runs(replayed.run_dir, replayed.run_dir)} == set()
+    assert FINGERPRINT_FILES == ("events.jsonl", "actions.jsonl", "trace.jsonl", "evaluation.jsonl", "scores.json")
+
+
+def test_agents_receive_the_contestant_view_object(mini_scenario, runs_dir):
+    import dataclasses
+
+    from harness.agent import AgentEvent
+
+    received = []
+
+    class Capture(_TestAgent):
+        kind = "capture"
+
+        def on_event(self, event, tools):
+            received.append(event)
+            return AgentResponse()
+
+    run(mini_scenario, [Capture("c")], RunConfig(runs_dir=runs_dir, **NO_HYGIENE))
+    assert len(received) == 3
+    for ev in received:
+        assert type(ev) is AgentEvent
+        assert set(vars(ev)) == {f.name for f in dataclasses.fields(AgentEvent)}
+        assert not hasattr(ev, "world_changes")

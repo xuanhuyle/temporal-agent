@@ -121,3 +121,14 @@ def test_apply_event_records_conflicts_but_applies(tmp_path):
     result = apply_event(load_events(f)[0], Workspace(root))
     assert (root / "f.txt").read_text() == "world"
     assert [c["reason"] for c in result.conflicts] == ["precondition", "missing"]
+
+
+def test_payload_directory_symlink_escape_rejected(tmp_path):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "x.txt").write_text("not a payload")
+    f = _write(tmp_path, [_ev(1, world_changes=[{"op": "write_file", "path": "a", "source": "payloads/linked/x.txt"}])],
+               payloads={"payloads/.keep": ""})
+    (f.parent / "payloads" / "linked").symlink_to(outside)
+    with pytest.raises(EventValidationError, match="escapes payloads"):
+        load_events(f)

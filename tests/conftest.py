@@ -78,7 +78,8 @@ def build_mini_repo(root: Path) -> Path:
     gt_dir = root / "world" / "ground_truth" / "mini_v1"
     _write(
         gt_dir / "hidden_tests" / "test_hidden_mini.py",
-        f"# {MINI_CANARY}\nimport app\n\ndef test_batching_enabled():\n    assert app.batch_limit() >= 10\n",
+        f"# {MINI_CANARY}\nimport colorsys  # a stdlib module pytest itself never imports\n\nimport app\n\n"
+        "def test_batching_enabled():\n    assert colorsys.ONE_THIRD and app.batch_limit() >= 10\n",
     )
     _write(gt_dir / "reference" / "R1" / "config.json", json.dumps({"batch_limit": 50}, indent=2) + "\n")
     _write(gt_dir / "CANARY", MINI_CANARY + "\n")

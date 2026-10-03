@@ -370,3 +370,62 @@ def test_shared_target_matches_latest_trigger_and_repeats_earn_nothing(tmp_path)
         assert second["classification"] == "duplicate"
         assert s["temporal_governance_recall"]["numerator"] == 2  # R1/ADR-0001 and R9/ADR-0001
         assert s["reopening_precision"] == {"value": 1.0, "numerator": 1, "denominator": 1}
+
+
+def _score_with_edits(tmp_path, steps, edits):
+    """Like _score, but applies workspace edits right before the agent step at ``seq``."""
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    gt = _gt(tmp_path)
+    ev = Evaluator(gt, _events(), {"scenario_id": "synthetic"}, "h")
+    ev.add_agent("a")
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    for seq in range(1, N + 1):
+        for rel, text in edits.get(seq, {}).items():
+            if text is None:
+                (ws / rel).unlink()
+            else:
+                (ws / rel).write_text(text)
+        ev.observe_step("a", seq, steps.get(seq, []))
+        if ev.needs_snapshot(seq):
+            ev.snapshot("a", seq, ws)
+    try:
+        return ev.finalize({"a": {}}, {"a": {"ok": N}})["agents"]["a"]
+    finally:
+        ev.close()
+
+
+def test_remediation_is_judged_at_evaluate_at_seq(tmp_path):
+    fixed = '{"on": true}'
+    # R1 evaluates at seq 4: a fix that only lands at seq 5 is too late ...
+    late = _score_with_edits(tmp_path / "late", {}, {5: {"c.json": fixed}})
+    assert late["per_reconsideration"][0]["remediation"]["passed"] is False
+    # ... and a fix present at seq 4 counts even if it is reverted afterwards.
+    reverted = _score_with_edits(tmp_path / "rev", {}, {4: {"c.json": fixed}, 5: {"c.json": None}})
+    assert reverted["per_reconsideration"][0]["remediation"]["passed"] is True
+
+
+def test_late_reopen_at_a_distractor_is_not_a_false_intervention(tmp_path):
+    s = _score(tmp_path, {6: [ReopenAction("ADR-0001")]})  # R1's window [2, 4] closed; evt-0006 is a distractor
+    assert [(r["classification"], r["reason"]) for r in s["reopen_log"]] == [("late", "after_window")]
+    assert s["false_intervention_rate"]["numerator"] == 0
+    assert s["reopening_precision"] == {"value": 0.0, "numerator": 0, "denominator": 1}
+
+
+@pytest.mark.parametrize(
+    "mutate,msg",
+    [
+        (lambda d: d["reconsiderations"][0]["difficulty"].update(lag_events=1), "lag_events"),  # same bucket
+        (lambda d: d["reconsiderations"][0]["historical_state"].update(known_now_about_then=["seed"]), "known_now_about_then"),
+        (lambda d: d["reconsiderations"][0]["historical_state"].update(known_now_about_then=["evt-0003"]), "known_now_about_then"),
+        (lambda d: d["reconsiderations"][0]["historical_state"].update(true_then=["evt-0005"]), "true_then"),
+        (lambda d: d["reconsiderations"][0]["remediation"].update(evaluate_at_seq=1), "evaluate_at_seq"),
+        (lambda d: d["events"]["evt-0006"].update(role="trigger", should_trigger_reconsideration=True), "no reconsideration uses it"),
+        (lambda d: d["reconsiderations"][0]["causal_path"].insert(1, {"ref": "x", "kind": "assumption", "note": ""}), "causal_depth"),
+    ],
+)
+def test_ground_truth_cross_validation_rules(tmp_path, mutate, msg):
+    labels = _labels()
+    mutate(labels)
+    with pytest.raises(GroundTruthError, match=msg):
+        _gt(tmp_path, labels)

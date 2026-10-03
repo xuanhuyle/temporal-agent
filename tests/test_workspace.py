@@ -161,3 +161,17 @@ def test_toolbox_records_unserializable_args_by_type(layout):
     with pytest.raises(ToolError):
         tools.write_file("x.txt", b"bytes")  # type: ignore[arg-type]
     assert records[0]["args"]["content"] == {"unrecordable_type": "bytes"}
+
+
+def test_directory_symlink_to_unprotected_location_is_invisible(tmp_path):
+    root, elsewhere = tmp_path / "ws", tmp_path / "other_lane"
+    root.mkdir()
+    elsewhere.mkdir()
+    (elsewhere / "memory.txt").write_text("another agent's notes")
+    (root / "a.txt").write_text("mine")
+    os.symlink(elsewhere, root / "peek")
+    ws = Workspace(root)  # no protected roots at all
+    assert ws.list_files() == ["a.txt"]
+    assert ws.search("notes")["matches"] == []
+    with pytest.raises(AccessDenied):
+        ws.read_text("peek/memory.txt")

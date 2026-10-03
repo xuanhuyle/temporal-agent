@@ -225,3 +225,19 @@ def test_on_start_ingests_seed_with_budget_and_is_traced(mini_scenario, runs_dir
     first_event_idx = min(r["idx"] for r in trace if r["type"] == "world_event_applied")
     assert all(r["idx"] < first_event_idx for r in trace if r["type"] == "tool_call" and r["seq"] == 0)
     assert result.scores["agents"]["indexer"]["efficiency"]["tool_calls"] == 1 + len(agent.indexed)
+
+
+def test_step_order_depends_on_the_seed():
+    from harness.runner import step_order
+
+    names = ["a", "b", "c", "d"]
+    assert [step_order(names, 0, s) for s in range(1, 30)] != [step_order(names, 1, s) for s in range(1, 30)]
+
+
+def test_usage_and_tool_calls_are_summed_over_steps(mini_scenario, runs_dir):
+    result = run(mini_scenario, [RecordingAgent("r")], RunConfig(runs_dir=runs_dir, hygiene=False))
+    eff = result.scores["agents"]["r"]["efficiency"]
+    assert eff["model_calls"] == 3 and eff["model_input_tokens"] == 30  # 1 call / 10 tokens per step
+    per_step = [a for a in read_jsonl(result.run_dir / "actions.jsonl")]
+    assert all(a["usage"]["model_calls"] == 1 for a in per_step)
+    assert eff["tool_calls"] == sum(len(a["tool_calls"]) for a in per_step) == 3
