@@ -373,9 +373,19 @@ def test_shared_target_matches_latest_trigger_and_repeats_earn_nothing(tmp_path)
 
 
 def _score_with_edits(tmp_path, steps, edits):
-    """Like _score, but applies workspace edits right before the agent step at ``seq``."""
+    """Like _score, but applies workspace edits right before the agent step at ``seq``.
+
+    R2 gets its own remediation evaluated at seq 6, so the workspace is
+    snapshotted at two different steps (4 for R1, 6 for R2).
+    """
     tmp_path.mkdir(parents=True, exist_ok=True)
-    gt = _gt(tmp_path)
+    labels = _labels()
+    labels["reconsiderations"][1]["remediation"] = {
+        "evaluate_at_seq": 6,
+        "acceptable": [{"id": "r2", "checks": [{"type": "file_exists", "path": "R2DONE"}]}],
+        "reference": [],
+    }
+    gt = _gt(tmp_path, labels)
     ev = Evaluator(gt, _events(), {"scenario_id": "synthetic"}, "h")
     ev.add_agent("a")
     ws = tmp_path / "ws"
@@ -399,7 +409,7 @@ def test_remediation_is_judged_at_evaluate_at_seq(tmp_path):
     fixed = '{"on": true}'
     # R1 evaluates at seq 4: a fix that only lands at seq 5 is too late ...
     late = _score_with_edits(tmp_path / "late", {}, {5: {"c.json": fixed}})
-    assert late["per_reconsideration"][0]["remediation"]["passed"] is False
+    assert late["per_reconsideration"][0]["remediation"]["passed"] is False  # even though seq 6 has it
     # ... and a fix present at seq 4 counts even if it is reverted afterwards.
     reverted = _score_with_edits(tmp_path / "rev", {}, {4: {"c.json": fixed}, 5: {"c.json": None}})
     assert reverted["per_reconsideration"][0]["remediation"]["passed"] is True
@@ -416,6 +426,10 @@ def test_late_reopen_at_a_distractor_is_not_a_false_intervention(tmp_path):
     "mutate,msg",
     [
         (lambda d: d["reconsiderations"][0]["difficulty"].update(lag_events=1), "lag_events"),  # same bucket
+        (lambda d: d["reconsiderations"][0]["difficulty"].update(temporal_lag="far"), "temporal_lag must be 'near'"),
+        (lambda d: d["reconsiderations"][0]["difficulty"].update(causal_depth=3), "causal_depth"),
+        (lambda d: d["reconsiderations"][0]["causal_path"].reverse(), "start at the trigger"),
+        (lambda d: d["targets"]["ADR-0001"].update(decided_on="last year"), "decided_on"),
         (lambda d: d["reconsiderations"][0]["historical_state"].update(known_now_about_then=["seed"]), "known_now_about_then"),
         (lambda d: d["reconsiderations"][0]["historical_state"].update(known_now_about_then=["evt-0003"]), "known_now_about_then"),
         (lambda d: d["reconsiderations"][0]["historical_state"].update(true_then=["evt-0005"]), "true_then"),
