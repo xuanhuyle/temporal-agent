@@ -95,7 +95,10 @@ _PROCESS_EVENTS = {
     "pty.spawn",
 }
 _WRITE_FLAGS = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
-_ENV_KEYS = ("HOME", "TMPDIR", "TEMP", "TMP", "XDG_CACHE_HOME", "XDG_DATA_HOME", "XDG_CONFIG_HOME", "XDG_STATE_HOME")
+_ENV_KEYS = (
+    "HOME", "TMPDIR", "TEMP", "TMP", "PWD", "OLDPWD",
+    "XDG_CACHE_HOME", "XDG_DATA_HOME", "XDG_CONFIG_HOME", "XDG_STATE_HOME",
+)
 
 
 def _within(path: str, root: str) -> bool:
@@ -243,6 +246,8 @@ def lane_env(state_dir: Path) -> dict[str, str]:
     home = Path(state_dir) / ".home"
     tmp = Path(state_dir) / ".tmp"
     return {
+        "PWD": str(state_dir),
+        "OLDPWD": str(state_dir),
         "HOME": str(home),
         "TMPDIR": str(tmp),
         "TEMP": str(tmp),
@@ -273,6 +278,8 @@ def agent_call(lane: str, cwd: Path, env: dict[str, str] | None = None) -> Itera
     previous_tempdir = tempfile.tempdir
     for value in (env or {}).values():
         Path(value).mkdir(parents=True, exist_ok=True)
+    previous_argv = sys.argv
+    sys.argv = [previous_argv[0] if previous_argv else "agent"]  # the harness command line names the scenario
     os.environ.update(env or {})
     if env and "TMPDIR" in env:
         tempfile.tempdir = env["TMPDIR"]
@@ -283,6 +290,7 @@ def agent_call(lane: str, cwd: Path, env: dict[str, str] | None = None) -> Itera
         yield collected
     finally:
         _local.lane = previous_lane
+        sys.argv = previous_argv
         os.chdir(previous_cwd)
         tempfile.tempdir = previous_tempdir
         for k, v in previous_env.items():

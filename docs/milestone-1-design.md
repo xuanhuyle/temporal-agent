@@ -108,11 +108,14 @@ every thread started from agent code, which is attributed to that agent.
 
 The guard enforces:
 - **No reading** under protected roots: ground truth, events, scenarios, the
-  current and default run directories, the world sources, every workspace
-  (use the ToolBox), other agents' lanes, and evaluator scratch space.
-- **Writes only inside the agent's own `state_dir`**. `HOME`, `TMPDIR` and
-  `XDG_*` point inside it during agent calls, so library caches stay private
-  and cannot leak memory into a later run.
+  current and default run directories, the world sources, the repository's
+  `.git`, every workspace (use the ToolBox), other agents' lanes, and
+  evaluator scratch space.
+- **Writes only inside the agent's own `state_dir`**. `HOME`, `TMPDIR`, `PWD`
+  and `XDG_*` point inside it during agent calls, so library caches stay
+  private and cannot leak memory into a later run. `sys.argv` is reduced to
+  the program name, so the harness command line, which names the scenario,
+  is not visible.
 - **No process creation**, covering `subprocess`, `os.system`, `fork`,
   `posix_spawn` and `multiprocessing` spawn/forkserver.
 

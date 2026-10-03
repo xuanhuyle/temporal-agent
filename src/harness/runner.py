@@ -264,6 +264,7 @@ def run(
         scenario.base_dir / "runs",
         DEFAULT_RUNS_ROOT,
         scenario.base_dir / "world",
+        scenario.base_dir / ".git",
     ]
     agent_specs = [{"name": a.name, **_describe_guarded(a, denied_base)} for a in agents]
     if scenario.status != "frozen":

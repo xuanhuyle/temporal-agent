@@ -283,6 +283,7 @@ class HomeCacheAgent(_TestAgent):
 
     kind = "homecache"
     seen_before: list[int] = []
+    escape_path: Path | None = None
 
     def setup(self, context):
         super().setup(context)
@@ -296,18 +297,19 @@ class HomeCacheAgent(_TestAgent):
         with open(self.db, "a") as fh:
             fh.write(event.event_id + "\n")
         try:
-            Path("/tmp/tab-escape-attempt.txt").write_text("x")
+            HomeCacheAgent.escape_path.write_text("x")  # outside the lane: must be refused
         except PermissionError:
             pass
         return AgentResponse()
 
 
-def test_memory_cannot_persist_outside_the_run(mini_scenario, runs_dir):
+def test_memory_cannot_persist_outside_the_run(mini_scenario, runs_dir, tmp_path):
     HomeCacheAgent.seen_before = []
+    HomeCacheAgent.escape_path = tmp_path / "escape-attempt.txt"
     first = run(mini_scenario, [HomeCacheAgent("h")], RunConfig(runs_dir=runs_dir / "1", **NO_HYGIENE))
     run(mini_scenario, [HomeCacheAgent("h")], RunConfig(runs_dir=runs_dir / "2", **NO_HYGIENE))
     assert HomeCacheAgent.seen_before == [0, 0]  # no lookahead from a previous run
-    assert not Path("/tmp/tab-escape-attempt.txt").exists()
+    assert not HomeCacheAgent.escape_path.exists()
     kept = first.run_dir / "final_state" / "h" / "state" / ".home" / ".cache" / "ragmem" / "events.txt"
     assert kept.read_text().split() == ["evt-0001", "evt-0002", "evt-0003"]  # preserved with the run
 
@@ -565,3 +567,64 @@ def test_agents_receive_the_contestant_view_object(mini_scenario, runs_dir):
         assert type(ev) is AgentEvent
         assert set(vars(ev)) == {f.name for f in dataclasses.fields(AgentEvent)}
         assert not hasattr(ev, "world_changes")
+
+
+def test_agents_do_not_see_the_harness_command_line_or_repository_history(mini_scenario, runs_dir, monkeypatch):
+    import sys
+
+    monkeypatch.setattr(sys, "argv", ["harness", "run", "--scenario", str(mini_scenario.manifest_path)])
+    (mini_scenario.base_dir / ".git").mkdir()
+    (mini_scenario.base_dir / ".git" / "HEAD").write_text("ref: refs/heads/main\n")
+    seen = {}
+
+    class Looker(_TestAgent):
+        kind = "looker"
+
+        def on_event(self, event, tools):
+            if event.seq == 1:
+                seen["argv"] = list(sys.argv)
+                seen["pwd"] = os.environ.get("PWD")
+                try:
+                    open(mini_scenario.base_dir / ".git" / "HEAD").read()
+                    seen["git"] = "read"
+                except PermissionError:
+                    seen["git"] = "denied"
+            return AgentResponse()
+
+    agent = Looker("l")
+    run(mini_scenario, [agent], RunConfig(runs_dir=runs_dir, **NO_HYGIENE))
+    assert seen["argv"] == ["harness"]
+    assert seen["pwd"] == str(agent.context.state_dir)
+    assert seen["git"] == "denied"
+    assert sys.argv[-1] == str(mini_scenario.manifest_path)  # restored after the call
+
+
+def test_preexisting_threads_are_guarded_during_a_run(mini_scenario, runs_dir):
+    """A worker thread started before the run (e.g. a library's pool) gets the most restrictive policy."""
+    go, done = threading.Event(), threading.Event()
+    outcome = {}
+    labels = mini_scenario.ground_truth_dir / "labels.json"
+
+    def worker():
+        go.wait(30)
+        try:
+            outcome["read"] = MINI_CANARY in open(labels).read()
+        except PermissionError:
+            outcome["read"] = "denied"
+        done.set()
+
+    pool_thread = threading.Thread(target=worker, daemon=True)
+    pool_thread.start()  # outside any run: not attributed to an agent
+
+    class UsesPool(_TestAgent):
+        kind = "pooluser"
+
+        def on_event(self, event, tools):
+            if event.seq == 1:
+                go.set()
+                done.wait(30)
+            return AgentResponse()
+
+    run(mini_scenario, [UsesPool("u")], RunConfig(runs_dir=runs_dir, **NO_HYGIENE))
+    pool_thread.join(5)
+    assert outcome == {"read": "denied"}
