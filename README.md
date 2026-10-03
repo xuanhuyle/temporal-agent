@@ -21,6 +21,21 @@ The temporal-agency research program is stopped, but the repository now contains
 
 It asks whether a checkpoint created under an earlier runtime, policy, authority and dependency state is still safe to execute now. See [docs/resume-gate-v0.md](docs/resume-gate-v0.md).
 
+For LangGraph, the current default is automatic capture:
+
+```python
+from resume_gate import GuardedLangGraph, JsonDirectoryManifestStore
+
+guarded = GuardedLangGraph.auto(
+    compiled_graph,
+    store=JsonDirectoryManifestStore(".resume-gate"),
+)
+```
+
+With no manifest callbacks, Resume Gate fingerprints graph topology, state schema,
+LangGraph version and registered `ToolNode` tools at pause and resume. One optional
+`context_provider` can add live policy, approvals or external dependencies.
+
 This is intentionally separate from the Tesseract thesis. It is a product wedge around safe resumption, not a claim of novel temporal cognition.
 
 ## Core question
