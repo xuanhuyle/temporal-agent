@@ -26,9 +26,21 @@ CONTESTANT_MODULE_ROOTS = [
     REPO_ROOT / "src" / "harness" / "workspace.py",
     REPO_ROOT / "src" / "harness" / "canonical.py",
     REPO_ROOT / "src" / "harness" / "agents",
+    REPO_ROOT / "src" / "harness" / "errors.py",
+    REPO_ROOT / "src" / "harness" / "llm.py",
+    REPO_ROOT / "src" / "harness" / "tool_specs.py",
+    REPO_ROOT / "src" / "harness" / "wire.py",
+    REPO_ROOT / "src" / "harness" / "tripwire.py",
+    REPO_ROOT / "src" / "harness" / "worker.py",
+    REPO_ROOT / "src" / "contestant_runtime",
     REPO_ROOT / "src" / "baseline",
     REPO_ROOT / "src" / "tesseract",
 ]
+# What contestant packages may import besides the standard library and each other (protocol v0.2).
+CONTESTANT_API = ("harness.agent", "harness.errors", "harness.llm", "harness.tool_specs")
+CONTESTANT_PACKAGES = ("contestant_runtime", "baseline", "tesseract")
+# Modules copied into a contestant process: standard library and each other only.
+BUNDLE_MODULES = ("agent", "errors", "llm", "tool_specs", "wire", "tripwire", "worker")
 BIG = StepBudget(max_tool_calls_per_event=100_000)
 FORBIDDEN_IMPORTS = ("evaluation", "harness.runner", "harness.scenario", "harness.events", "harness.cli",
                      "harness.replay", "harness.world")
@@ -113,7 +125,8 @@ def test_agent_context_and_events_carry_no_ground_truth(mini_scenario, runs_dir)
     result = run(mini_scenario, [agent], RunConfig(runs_dir=runs_dir))
     ctx = agent.contexts[0]
     assert {f.name for f in dataclasses.fields(AgentContext)} == {
-        "agent_name", "seed", "state_dir", "budget", "model", "instructions", "instructions_version"}
+        "agent_name", "seed", "state_dir", "budget", "model", "instructions", "instructions_version",
+        "restart_count"}
     rendered = repr(ctx)
     for forbidden in ("ground_truth", "labels.json", str(mini_scenario.base_dir), "scenarios", "mini_v1"):
         assert forbidden not in rendered
@@ -149,6 +162,49 @@ def test_contestant_facing_modules_never_import_evaluator_code():
         for name in _imports(f):
             assert not any(name == m or name.startswith(m + ".") for m in FORBIDDEN_IMPORTS), f"{f}: imports {name}"
         assert "ground_truth" not in text, f"{f} mentions ground_truth"
+
+
+def _stdlib(name: str) -> bool:
+    import sys
+
+    return name.split(".")[0] in sys.stdlib_module_names or name == "__future__"
+
+
+def test_contestant_packages_import_only_the_contestant_api():
+    files = [f for pkg in CONTESTANT_PACKAGES for f in sorted((REPO_ROOT / "src" / pkg).rglob("*.py"))]
+    assert files, "no contestant packages found"
+    for f in files:
+        for name in _imports(f):
+            ok = _stdlib(name) or name in CONTESTANT_API or name.split(".")[0] in CONTESTANT_PACKAGES
+            assert ok, f"{f.relative_to(REPO_ROOT)} imports {name}"
+
+
+def _runtime_nodes(tree: ast.AST):
+    """All nodes except those under ``if TYPE_CHECKING:`` (never executed)."""
+    stack = [tree]
+    while stack:
+        node = stack.pop()
+        yield node
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, ast.If) and isinstance(child.test, ast.Name) and child.test.id == "TYPE_CHECKING":
+                stack.extend(child.orelse)
+                continue
+            stack.append(child)
+
+
+def test_contestant_process_bundle_modules_import_only_each_other():
+    allowed = {f"harness.{m}" for m in BUNDLE_MODULES} | {"harness"}
+    for m in BUNDLE_MODULES:
+        f = REPO_ROOT / "src" / "harness" / f"{m}.py"
+        assert f.is_file(), f
+        tree = ast.parse(f.read_text())
+        for node in _runtime_nodes(tree):
+            if isinstance(node, (ast.Import, ast.ImportFrom)):
+                names = [a.name for a in node.names] if isinstance(node, ast.Import) else [node.module or ""]
+                for name in names:
+                    if getattr(node, "level", 0):
+                        continue
+                    assert _stdlib(name) or name in allowed, f"{f.name} imports {name}"
 
 
 def test_ground_truth_reader_is_unique():

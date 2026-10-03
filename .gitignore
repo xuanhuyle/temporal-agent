@@ -8,3 +8,6 @@ dist/
 # them; archive the ones you report on.
 runs/*
 !runs/README.md
+
+# Agent worktrees created by tooling
+.claude/worktrees/

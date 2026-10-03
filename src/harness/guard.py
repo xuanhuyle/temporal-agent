@@ -14,7 +14,17 @@ process operation made by *agent code*:
   agents' private state, and evaluator scratch space;
 - agent code may *write* only inside its own private state directory
   (``HOME``, ``TMPDIR`` and ``XDG_*`` point inside it during agent calls), so
-  memory cannot persist across runs and contaminate a later run;
+  memory cannot persist across runs and contaminate a later run. The one
+  exception is the import system's bytecode cache (a ``__pycache__``
+  directory and what is beneath it), and only under roots fixed when the run
+  is armed: this interpreter's ``sysconfig`` stdlib/platstdlib/purelib/platlib
+  directories, the directories on ``sys.path`` at that moment (the harness
+  imports modules lazily during agent calls) and ``sys.pycache_prefix`` if
+  set. A ``__pycache__`` anywhere else (``/tmp/x/__pycache__``, a lane
+  directory, a directory an agent later adds to ``sys.path``) is refused like
+  any other write. The empty ``sys.path`` entry (the current directory, which
+  agent calls change) is never a root, nor is ``/``, the temp directory or
+  an ancestor of it (agent lanes live in the temp directory);
 - agent code may not start processes (``subprocess``, ``os.system``, ``fork``,
   ``posix_spawn``, ``multiprocessing`` spawn/forkserver via ``fork_exec``).
 
@@ -34,6 +44,8 @@ from __future__ import annotations
 import _posixsubprocess  # type: ignore[import-not-found]
 import os
 import sys
+import sysconfig
+import tempfile
 import threading
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -109,6 +121,9 @@ def _within(path: str, root: str) -> bool:
 class _RunPolicy:
     harness_ident: int
     denied: tuple[str, ...]
+    # Roots under which import-system bytecode caches may be written (fixed at arm time).
+    bytecode_roots: tuple[str, ...] = ()
+    pycache_prefix: str | None = None
     states: dict[str, str] = field(default_factory=dict)
     violations: dict[str, list[str]] = field(default_factory=dict)
 
@@ -133,8 +148,31 @@ def _resolve(raw: object) -> str | None:
         return None
 
 
-def _is_bytecode_cache(path: str) -> bool:
-    return path.endswith((".pyc", ".pyc.tmp")) or f"{os.sep}__pycache__" in path
+def _bytecode_roots() -> tuple[tuple[str, ...], str | None]:
+    """Where the import system may legitimately write bytecode during a run: decided once, at arm time."""
+    roots: set[str] = set()
+    paths = sysconfig.get_paths()
+    candidates = [paths.get(k) for k in ("stdlib", "platstdlib", "purelib", "platlib")]
+    # '' (and non-string entries) are skipped: '' means the current directory, which agent calls change.
+    candidates += [entry for entry in sys.path if isinstance(entry, str)]
+    temp = os.path.realpath(tempfile.gettempdir())
+    for entry in candidates:
+        if entry and os.path.isdir(entry):
+            root = os.path.realpath(entry)
+            if not _within(temp, root):  # never '/', the temp directory itself or an ancestor (lanes live there)
+                roots.add(root)
+    prefix = getattr(sys, "pycache_prefix", None)
+    return tuple(sorted(roots)), (os.path.realpath(prefix) if prefix else None)
+
+
+def _is_bytecode_cache(policy: _RunPolicy, path: str) -> bool:
+    """A ``__pycache__`` directory, or a path beneath one, under a bytecode root fixed when the run was armed."""
+    if policy.pycache_prefix is not None and _within(path, policy.pycache_prefix):
+        return True
+    for root in policy.bytecode_roots:
+        if _within(path, root) and "__pycache__" in path[len(root):].split(os.sep):
+            return True
+    return False
 
 
 def _current_lane(policy: _RunPolicy) -> str | None:
@@ -163,7 +201,7 @@ def _check_path(policy: _RunPolicy, lane: str, event: str, raw: object, write: b
     if any(_within(path, d) for d in policy.denied):
         policy.record(lane, event)
         raise GuardViolation(f"{event}: direct access to a protected path is not allowed; use the ToolBox")
-    if write and not _is_bytecode_cache(path):
+    if write and not _is_bytecode_cache(policy, path):
         policy.record(lane, event)
         raise GuardViolation(f"{event}: agents may only write inside their private state directory")
 
@@ -227,8 +265,12 @@ def armed(denied: Sequence[Path]) -> Iterator[_RunPolicy]:
     install()
     if _policy is not None:
         raise RuntimeError("a guarded run is already in progress in this process")
+    bytecode_roots, pycache_prefix = _bytecode_roots()
     _policy = _RunPolicy(
-        harness_ident=threading.get_ident(), denied=tuple(sorted({os.path.realpath(p) for p in denied}))
+        harness_ident=threading.get_ident(),
+        denied=tuple(sorted({os.path.realpath(p) for p in denied})),
+        bytecode_roots=bytecode_roots,
+        pycache_prefix=pycache_prefix,
     )
     try:
         yield _policy

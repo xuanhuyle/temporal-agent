@@ -94,6 +94,103 @@ def test_guard_blocks_direct_access_but_allows_private_state(mini_scenario, runs
     assert (mini_scenario.ground_truth_dir / "labels.json").read_text()  # guard disarmed outside agent calls
 
 
+class BytecodeEscapeAgent(_TestAgent):
+    """Tries to keep state in bytecode-cache-shaped paths outside its private state directory."""
+
+    kind = "bytecode-escape"
+
+    def __init__(self, name: str, elsewhere: Path) -> None:
+        super().__init__(name)
+        self.elsewhere = elsewhere
+        self.outcomes: dict[str, str] = {}
+
+    def _try(self, label, fn):
+        try:
+            fn()
+            self.outcomes[label] = "allowed"
+        except PermissionError:
+            self.outcomes[label] = "denied"
+
+    def on_event(self, event, tools):
+        if event.seq != 1:
+            return AgentResponse()
+        lane = self.context.state_dir.parent
+        sibling = Path(f"{lane}/../other/__pycache__")
+        self._try("tmp_pycache_file", lambda: (self.elsewhere / "__pycache__" / "x.cpython-311.pyc").write_bytes(b"m"))
+        self._try("tmp_pycache_mkdir", lambda: os.makedirs(self.elsewhere / "pkg" / "__pycache__"))
+        self._try("tmp_bare_pyc", lambda: (self.elsewhere / "memory.pyc").write_bytes(b"m"))
+        self._try("lane_sibling_pyc", lambda: open(f"{sibling}/y.pyc", "wb").close())
+        self._try("lane_sibling_mkdir", lambda: os.mkdir(f"{lane}/../other/__pycache__/sub"))
+        self._try("lane_pycache_mkdir", lambda: os.mkdir(lane / "__pycache__"))
+        self._try("workspace_pycache", lambda: os.mkdir(Path(tools._ws.root) / "__pycache__"))
+        self._try("own_state_pycache", lambda: (self.context.state_dir / "__pycache__").mkdir())
+        return AgentResponse(actions=[NoteAction("probed")])
+
+
+def test_guard_refuses_bytecode_cache_writes_outside_armed_roots(mini_scenario, runs_dir, tmp_path, monkeypatch):
+    """__pycache__/*.pyc paths are not a way out of the private state directory (in-process agents)."""
+    systmp = tmp_path / "systmp"  # lanes are created here, so "<lane>/../other" stays inside tmp_path
+    (systmp / "other" / "__pycache__").mkdir(parents=True)
+    monkeypatch.setattr(tempfile, "tempdir", str(systmp))
+    elsewhere = tmp_path / "elsewhere"
+    (elsewhere / "__pycache__").mkdir(parents=True)
+    agent = BytecodeEscapeAgent("bc", elsewhere)
+    result = run(mini_scenario, [agent], RunConfig(runs_dir=runs_dir, hygiene=False))
+    assert agent.outcomes == {
+        "tmp_pycache_file": "denied",
+        "tmp_pycache_mkdir": "denied",
+        "tmp_bare_pyc": "denied",
+        "lane_sibling_pyc": "denied",
+        "lane_sibling_mkdir": "denied",
+        "lane_pycache_mkdir": "denied",
+        "workspace_pycache": "denied",
+        "own_state_pycache": "allowed",
+    }
+    assert sorted(p.name for p in elsewhere.rglob("*")) == ["__pycache__"]
+    assert sorted(p.relative_to(systmp).as_posix() for p in (systmp / "other").rglob("*")) == ["other/__pycache__"]
+    response = next(r for r in read_jsonl(result.run_dir / "trace.jsonl")
+                    if r["type"] == "agent_response" and r["seq"] == 1)
+    assert len(response["guard_violations"]) == 7, response["guard_violations"]
+
+
+def test_guard_bytecode_roots_are_fixed_at_arm_time(tmp_path, monkeypatch):
+    """The import system may cache bytecode under sys.path directories present when the run was armed
+    (the harness imports lazily during agent calls), but not under a directory added to sys.path later."""
+    import importlib
+    import sys
+    import sysconfig
+
+    from harness import guard
+
+    early, late, state = tmp_path / "early", tmp_path / "late", tmp_path / "state"
+    for d, mod in ((early, "tab_bc_early_mod"), (late, "tab_bc_late_mod")):
+        d.mkdir()
+        (d / f"{mod}.py").write_text("VALUE = 7\n")
+    state.mkdir()
+    monkeypatch.setattr(sys, "path", [str(early), *sys.path])
+    monkeypatch.setattr(sys, "dont_write_bytecode", False)
+    for mod in ("tab_bc_early_mod", "tab_bc_late_mod"):
+        monkeypatch.delitem(sys.modules, mod, raising=False)
+    with guard.armed([tmp_path / "denied"]) as policy:
+        assert os.path.realpath(sysconfig.get_paths()["stdlib"]) in policy.bytecode_roots
+        assert str(early.resolve()) in policy.bytecode_roots
+        assert os.path.realpath(tempfile.gettempdir()) not in policy.bytecode_roots
+        assert "/" not in policy.bytecode_roots
+        guard.register_lane("bc", state)
+        sys.path.insert(0, str(late))
+        importlib.invalidate_caches()
+        with guard.agent_call("bc", state, guard.lane_env(state)) as collected:
+            assert importlib.import_module("tab_bc_early_mod").VALUE == 7
+            assert importlib.import_module("tab_bc_late_mod").VALUE == 7  # import works; caching is refused
+            with pytest.raises(guard.GuardViolation):
+                open(early / "__pycache__" / ".." / ".." / "late" / "__pycache__" / "forced.pyc", "wb")
+            with pytest.raises(guard.GuardViolation):
+                open(early / "not_a_cache.pyc", "wb")  # under a root, but not in a __pycache__ directory
+    assert any(p.suffix == ".pyc" for p in (early / "__pycache__").iterdir())
+    assert not (late / "__pycache__").exists() and not (early / "not_a_cache.pyc").exists()
+    assert collected and all(v in ("os.mkdir", "open", "os.rename") for v in collected), collected
+
+
 # ------------------------------------------------------- unforgeable checks
 FORGERIES = {
     "root_pytest_shadow": {"pytest.py": "import sys\nsys.exit(0)\n"},

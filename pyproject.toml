@@ -14,6 +14,8 @@ tab-bench = "harness.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
+# Real-model runs (provider "anthropic"); the harness core and contestants are stdlib-only.
+anthropic = ["anthropic>=0.70"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

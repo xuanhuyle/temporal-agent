@@ -2,6 +2,12 @@
 
 Status: **Protocol v0.1 — freeze before contestant implementation**
 
+> **Current protocol: v0.2** = this frozen v0.1 text + amendments A1–A4 in
+> [`docs/protocol-amendments.md`](docs/protocol-amendments.md): shared read-only
+> world history, controlled command execution, harness-metered model access, and
+> a contestant process boundary. They were recorded before any contestant was
+> implemented. The text below is unchanged.
+
 ## 1. Hypothesis
 
 A long-lived agent operating in a changing environment benefits from an explicit temporal-causal state space when later information changes the significance of earlier decisions.

@@ -36,7 +36,12 @@ def test_run_writes_all_outputs(mini_scenario, runs_dir):
     assert len(read_jsonl(result.run_dir / "events.jsonl")) == 3
     actions = read_jsonl(result.run_dir / "actions.jsonl")
     assert [(a["seq"], a["agent"]) for a in actions] == [(1, "dummy"), (2, "dummy"), (3, "dummy")]
-    assert all(set(a["usage"]) == {"model_input_tokens", "model_output_tokens", "retrieval_tokens", "model_calls", "cost_usd"} for a in actions)
+    # Protocol v0.2 (A3): "usage" is the harness meter; what the agent says about itself is "reported_usage".
+    from harness.agent import USAGE_FIELDS
+    from harness.tools import METER_KEYS
+
+    assert all(set(a["usage"]) == set(METER_KEYS) | {"cost_known", "uncached_cost_known", "tokens_known"} for a in actions)
+    assert all(set(a["reported_usage"]) == set(USAGE_FIELDS) for a in actions)
     trace = read_jsonl(result.run_dir / "trace.jsonl")
     assert [r["idx"] for r in trace] == list(range(len(trace)))
     assert trace[0]["type"] == "run_start" and trace[-1]["type"] == "run_end"
@@ -237,7 +242,10 @@ def test_step_order_depends_on_the_seed():
 def test_usage_and_tool_calls_are_summed_over_steps(mini_scenario, runs_dir):
     result = run(mini_scenario, [RecordingAgent("r")], RunConfig(runs_dir=runs_dir, hygiene=False))
     eff = result.scores["agents"]["r"]["efficiency"]
-    assert eff["model_calls"] == 3 and eff["model_input_tokens"] == 30  # 1 call / 10 tokens per step
+    # The agent reports 1 call / 10 tokens per step. Since protocol v0.2 (A3) self-reports are kept
+    # as reported_usage only; efficiency counts what the harness metered (no model calls here).
+    assert eff["reported_usage"]["model_calls"] == 3 and eff["reported_usage"]["model_input_tokens"] == 30
+    assert eff["model_calls"] == 0 and eff["model_input_tokens"] == 0
     per_step = [a for a in read_jsonl(result.run_dir / "actions.jsonl")]
-    assert all(a["usage"]["model_calls"] == 1 for a in per_step)
+    assert all(a["reported_usage"]["model_calls"] == 1 and a["usage"]["model_calls"] == 0 for a in per_step)
     assert eff["tool_calls"] == sum(len(a["tool_calls"]) for a in per_step) == 3

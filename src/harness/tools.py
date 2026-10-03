@@ -1,114 +1,294 @@
-"""The tool surface given to every contestant, identically.
+"""The tool surface given to every agent, identically (``harness.tool_specs``).
 
 Every call is counted against the per-event budget and reported to the
-harness recorder (which writes it to the replay trace and stores the result
-content-addressed). There is deliberately no command-execution tool in
-Milestone 1: code executed on behalf of an agent could read evaluator files by
-absolute path, and there is no OS sandbox yet.
+harness recorder, which writes it to the replay trace and stores results
+content-addressed. Tool families:
+
+- workspace tools operate on the agent's own isolated workspace;
+- history tools read the shared world timeline (``harness.history``), which
+  holds only states up to the event being processed;
+- ``run_command`` runs ``pytest``/``python`` in the workspace (``harness.commands``);
+- ``model_complete``/``embed`` go to the run's model gateway
+  (``harness.model``), which meters usage. They do not count as tool calls;
+  they have their own call and token budgets.
 
 A ToolBox is valid for one step only; the runner closes it when the agent's
-call returns.
+call returns. Contestants running in a separate process get a proxy with the
+same methods (``harness.worker``); the calls are executed here, in the harness.
 """
 
 from __future__ import annotations
 
 import errno
-from typing import Any, Callable
+import time
+from typing import Any, Callable, Protocol
 
 from harness import guard
 from harness.agent import StepBudget
-from harness.workspace import AccessDenied, ToolError, Workspace
+from harness.canonical import canonical_json
+from harness.errors import AccessDenied, BudgetExceeded, ToolBoxClosed, ToolError
+from harness.llm import EmbeddingResponse, InvalidModelRequest, ModelRequest, ModelResponse
+from harness.tool_specs import COUNTED_FAMILIES, MAX_INT_ARG, TOOL_NAMES, TOOL_SPECS, bind_args, check_arg
 
-__all__ = ["ToolBox", "ToolError", "AccessDenied", "BudgetExceeded", "ToolBoxClosed", "TOOL_NAMES"]
+# Prefix of every error raised by a model provider (harness.model.gateway.PROVIDER_ERROR_PREFIX).
+PROVIDER_ERROR_PREFIX = "model provider error"
+from harness.workspace import Workspace
 
-TOOL_NAMES = ("list_files", "read_file", "write_file", "delete_file", "search")
-
-
-class BudgetExceeded(BaseException):
-    """The per-event tool-call budget is exhausted. Ends the agent's step.
-
-    A ``BaseException`` so that agent code catching ``Exception`` around tool
-    calls cannot accidentally swallow it. Even if it is caught, the step is
-    recorded as ``budget_exceeded``.
-    """
-
-
-class ToolBoxClosed(ToolError):
-    """The step this ToolBox belonged to has ended."""
-
+__all__ = [
+    "ToolBox",
+    "ToolError",
+    "AccessDenied",
+    "BudgetExceeded",
+    "ToolBoxClosed",
+    "TOOL_NAMES",
+    "HistoryService",
+    "CommandService",
+    "ModelService",
+    "empty_meter",
+]
 
 Recorder = Callable[[dict[str, Any]], None]
 
 
+class HistoryService(Protocol):
+    """Read-only world timeline holding only the states revealed so far."""
+
+    def history(self) -> list[dict[str, Any]]: ...
+    def list_at(self, seq: int, prefix: str) -> list[str]: ...
+    def read_at(self, seq: int, path: str) -> str: ...
+    def diff(self, seq_a: int, seq_b: int, path: str | None) -> dict[str, Any]: ...
+
+
+class CommandService(Protocol):
+    """Runs a command in one agent's workspace; returns {exit_code, output, truncated, timed_out, ...}."""
+
+    def run(self, command: str, timeout_s: float) -> dict[str, Any]: ...
+
+
+class ModelService(Protocol):
+    """The run's model gateway. Returns the response plus a metering record."""
+
+    def estimate_input_tokens(self, request: ModelRequest) -> int: ...
+    def complete(
+        self, request: ModelRequest, *, max_output_tokens: int | None, timeout_s: float | None
+    ) -> tuple[ModelResponse, dict[str, Any]]: ...
+    def estimate_embedding_tokens(self, texts: list[str]) -> int: ...
+    def embed(self, texts: list[str], purpose: str, *, timeout_s: float | None) -> tuple[EmbeddingResponse, dict[str, Any]]: ...
+
+
+METER_KEYS = (
+    "tool_calls",
+    "commands",
+    "model_calls",
+    "model_input_tokens",  # every prompt token the provider processed (uncached + cache reads + cache writes)
+    "model_output_tokens",
+    "model_cache_read_tokens",
+    "model_cache_write_tokens",
+    "model_auxiliary_input_tokens",  # the provider's own side calls (e.g. the Claude CLI), reported apart
+    "model_auxiliary_output_tokens",
+    "model_provider_errors",
+    "retrieval_tokens",
+    "embedding_calls",
+    "embedding_tokens",
+    "cost_usd",
+    "uncached_cost_usd",  # cache-neutral list price: every input token at the uncached rate
+    "tool_result_chars",
+    "history_result_chars",
+    "command_output_chars",
+)
+
+
+def empty_meter() -> dict[str, Any]:
+    """A zero meter. ``cost_known``/``tokens_known`` turn false as soon as one call lacks that figure."""
+    m: dict[str, Any] = {k: 0 for k in METER_KEYS}
+    m["cost_usd"] = 0.0
+    m["uncached_cost_usd"] = 0.0
+    m["cost_known"] = True
+    m["uncached_cost_known"] = True
+    m["tokens_known"] = True
+    return m
+
+
 def _recordable(value: Any) -> Any:
-    if value is None or isinstance(value, (str, bool, int)):
+    """Arguments as recorded in the trace: JSON values as-is, anything else by type name."""
+    if value is None or isinstance(value, (str, bool)):
         return value
+    if isinstance(value, int):
+        return value if -MAX_INT_ARG <= value <= MAX_INT_ARG else {"unrecordable_type": "int"}
+    if isinstance(value, float):
+        return value if value == value and value not in (float("inf"), float("-inf")) else {"unrecordable_type": "float"}
+    if isinstance(value, ModelRequest):
+        return value.to_dict()
+    if isinstance(value, (list, tuple, dict)):
+        try:
+            canonical_json(value)
+        except (TypeError, ValueError):
+            return {"unrecordable_type": type(value).__name__}
+        return list(value) if isinstance(value, tuple) else value
     return {"unrecordable_type": type(value).__name__}
 
 
 class ToolBox:
-    def __init__(self, workspace: Workspace, budget: StepBudget, recorder: Recorder) -> None:
+    def __init__(
+        self,
+        workspace: Workspace,
+        budget: StepBudget,
+        recorder: Recorder,
+        *,
+        history: HistoryService | None = None,
+        commands: CommandService | None = None,
+        model: ModelService | None = None,
+        deadline: float | None = None,
+        time_limits: Callable[[int], float | None] | None = None,
+    ) -> None:
         self._ws = workspace
         self._budget = budget
         self._record = recorder
-        self._calls = 0
+        self._history = history
+        self._commands = commands
+        self._model = model
+        self._deadline = deadline
+        # Replay only: the time limit each call had in the original run, by call index (see runner/replay).
+        self._time_limits = time_limits
+        self._index = 0  # index of the next recorded call (matches the trace's call_index)
+        self._limit: float | None = None  # effective time limit of the call in progress, if it has one
+        self._meter = empty_meter()
+        # Budget counters: metered tokens, or the estimate when a backend cannot report usage.
+        self._spent_in = 0
+        self._spent_out = 0
         self._exhausted = False
         self._closed = False
 
+    # ---------------------------------------------------------------- status
     @property
     def calls_made(self) -> int:
-        return self._calls
+        return self._meter["tool_calls"]
 
     @property
     def calls_remaining(self) -> int:
-        return max(0, self._budget.max_tool_calls_per_event - self._calls)
+        return max(0, self._budget.max_tool_calls_per_event - self._meter["tool_calls"])
 
     @property
     def exhausted(self) -> bool:
         """True once a call has been refused for lack of budget."""
         return self._exhausted
 
+    def meter(self) -> dict[str, Any]:
+        """Harness-metered usage of this step so far."""
+        out = dict(self._meter)
+        out["cost_usd"] = round(out["cost_usd"], 8)
+        out["uncached_cost_usd"] = round(out["uncached_cost_usd"], 8)
+        return out
+
+    def budget_remaining(self) -> dict[str, int]:
+        """Remaining per-event budget (not a tool call; not traced)."""
+        b, m = self._budget, self._meter
+        return {
+            "tool_calls": max(0, b.max_tool_calls_per_event - m["tool_calls"]),
+            "commands": max(0, b.max_commands_per_event - m["commands"]),
+            "model_calls": max(0, b.max_model_calls_per_event - m["model_calls"]),
+            "model_input_tokens": max(0, b.max_model_input_tokens_per_event - self._spent_in),
+            "model_output_tokens": max(0, b.max_model_output_tokens_per_event - self._spent_out),
+            "embedding_tokens": max(0, b.max_embedding_tokens_per_event - m["embedding_tokens"]),
+        }
+
     def close(self) -> None:
         self._closed = True
+
+    def _remaining_time(self) -> float | None:
+        """Time left for the call in progress (recorded as its time limit)."""
+        if self._time_limits is not None:
+            recorded = self._time_limits(self._index)
+            if recorded is not None:
+                self._limit = recorded
+                return recorded
+        if self._deadline is None:
+            return None
+        self._limit = round(max(0.0, self._deadline - time.monotonic()), 3)
+        return self._limit
+
+    # ------------------------------------------------------------- dispatch
+    def call(self, tool: str, *args: Any, **kwargs: Any) -> Any:
+        """Invoke a tool by name (used by the contestant-process proxy and by replay)."""
+        if tool not in TOOL_SPECS:
+            raise ToolError(f"unknown tool {tool!r}")
+        return getattr(self, tool)(*args, **kwargs)
+
+    def _emit(self, rec: dict[str, Any]) -> None:
+        if self._limit is not None:
+            rec["time_limit_s"] = self._limit
+        self._limit = None
+        self._index += 1
+        self._record(rec)
+
+    def _refuse(self, tool: str, recorded: dict[str, Any], message: str) -> None:
+        self._exhausted = True
+        self._emit({"tool": tool, "args": recorded, "status": "budget_exceeded"})
+        raise BudgetExceeded(message)
 
     def _invoke(self, tool: str, args: dict[str, Any], fn: Callable[[], Any]) -> Any:
         if self._closed:
             raise ToolBoxClosed(f"{tool}: this ToolBox belongs to a finished step")
+        spec = TOOL_SPECS[tool]
         with guard.bypass():
             recorded = {k: _recordable(v) for k, v in args.items()}
-            if self._calls >= self._budget.max_tool_calls_per_event:
-                self._exhausted = True
-                self._record({"tool": tool, "args": recorded, "status": "budget_exceeded"})
-                raise BudgetExceeded(
-                    f"tool-call budget of {self._budget.max_tool_calls_per_event} per event exhausted"
-                )
-            self._calls += 1
+            b, m = self._budget, self._meter
+            if spec.family in COUNTED_FAMILIES:
+                if m["tool_calls"] >= b.max_tool_calls_per_event:
+                    self._refuse(tool, recorded, f"tool-call budget of {b.max_tool_calls_per_event} per event exhausted")
+                if spec.family == "command" and m["commands"] >= b.max_commands_per_event:
+                    self._refuse(tool, recorded, f"command budget of {b.max_commands_per_event} per event exhausted")
+                m["tool_calls"] += 1
+                if spec.family == "command":
+                    m["commands"] += 1
+            meter_rec: dict[str, Any] | None = None
             try:
-                bad = [k for k, v in args.items() if not isinstance(v, str)]
-                if bad:
-                    raise ToolError(f"{tool}: argument(s) {', '.join(bad)} must be strings")
-                for k, v in args.items():
-                    try:
-                        v.encode("utf-8")
-                    except UnicodeEncodeError:
-                        raise ToolError(f"{tool}: argument {k} is not valid UTF-8 text") from None
+                for a in spec.args:
+                    problem = check_arg(tool, a, args[a.name])
+                    if problem:
+                        raise ToolError(problem)
                 try:
                     result = fn()
-                except ToolError:
+                except (ToolError, BudgetExceeded):
+                    raise
+                except _Refused:
                     raise
                 except Exception as exc:  # noqa: BLE001 - OS-level failures become path-free tool errors
                     code = errno.errorcode.get(getattr(exc, "errno", None) or -1, "")
                     raise ToolError(f"{tool}: {type(exc).__name__}{' ' + code if code else ''}") from None
+                if isinstance(result, _Metered):
+                    meter_rec, result = result.meter, result.value
+            except _Refused as refused:
+                self._refuse(tool, recorded, refused.message)
             except AccessDenied as exc:
-                self._record({"tool": tool, "args": recorded, "status": "denied", "error": str(exc)})
+                self._emit({"tool": tool, "args": recorded, "status": "denied", "error": str(exc)})
                 raise
             except ToolError as exc:
-                self._record({"tool": tool, "args": recorded, "status": "error", "error": str(exc)})
+                rec_err: dict[str, Any] = {"tool": tool, "args": recorded, "status": "error", "error": str(exc)}
+                if spec.family == "model" and str(exc).startswith(PROVIDER_ERROR_PREFIX):
+                    self._meter["model_provider_errors"] += 1
+                    failed_meter = getattr(exc, "meter", None)
+                    if isinstance(failed_meter, dict):
+                        # A failed call still consumed what the provider reports (or an unknown amount).
+                        self._apply_model_meter(failed_meter, self._pending_estimate, self._pending_cap, "")
+                        rec_err["meter"] = failed_meter
+                self._emit(rec_err)
                 raise
-            self._record({"tool": tool, "args": recorded, "status": "ok", "result": result})
+            plain = result.to_dict() if isinstance(result, (ModelResponse, EmbeddingResponse)) else result
+            if spec.family in COUNTED_FAMILIES:
+                chars = len(canonical_json(plain))
+                m["tool_result_chars"] += chars
+                if spec.family == "history":
+                    m["history_result_chars"] += chars
+                elif spec.family == "command":
+                    m["command_output_chars"] += chars
+            rec: dict[str, Any] = {"tool": tool, "args": recorded, "status": "ok", "result": plain}
+            if meter_rec is not None:
+                rec["meter"] = meter_rec
+            self._emit(rec)
             return result
 
-    # ------------------------------------------------------------------ tools
+    # ------------------------------------------------------- workspace tools
     def list_files(self, prefix: str = ".") -> list[str]:
         """Sorted relative paths of files under ``prefix``."""
         return self._invoke("list_files", {"prefix": prefix}, lambda: self._ws.list_files(prefix))
@@ -132,3 +312,155 @@ class ToolBox:
         return self._invoke(
             "search", {"pattern": pattern, "prefix": prefix}, lambda: self._ws.search(pattern, prefix)
         )
+
+    # --------------------------------------------------------- history tools
+    def _hist(self) -> HistoryService:
+        if self._history is None:
+            raise ToolError("history is not available in this run")
+        return self._history
+
+    def history(self) -> list[dict[str, Any]]:
+        """The world timeline so far (states 0..now)."""
+        return self._invoke("history", {}, lambda: self._hist().history())
+
+    def list_at(self, seq: int, prefix: str = ".") -> list[str]:
+        """Files of the world as it was after event ``seq``."""
+        return self._invoke("list_at", {"seq": seq, "prefix": prefix}, lambda: self._hist().list_at(seq, prefix))
+
+    def read_at(self, seq: int, path: str) -> str:
+        """A file as it was after event ``seq``."""
+        return self._invoke("read_at", {"seq": seq, "path": path}, lambda: self._hist().read_at(seq, path))
+
+    def diff(self, seq_a: int, seq_b: int, path: str | None = None) -> dict[str, Any]:
+        """Unified diff between two past world states."""
+        return self._invoke(
+            "diff", {"seq_a": seq_a, "seq_b": seq_b, "path": path}, lambda: self._hist().diff(seq_a, seq_b, path)
+        )
+
+    # --------------------------------------------------------- command tool
+    def run_command(self, command: str, timeout_s: int | None = None) -> dict[str, Any]:
+        """Run ``pytest ...`` or ``python ...`` (no shell) in the workspace."""
+
+        def go() -> dict[str, Any]:
+            if self._commands is None:
+                raise ToolError("run_command is not available in this run")
+            limit = float(self._budget.command_timeout_s)
+            if timeout_s is not None:
+                if timeout_s < 1:
+                    raise ToolError("run_command: timeout_s must be at least 1")
+                limit = min(limit, float(timeout_s))
+            remaining = self._remaining_time()
+            if remaining is not None:
+                limit = min(limit, remaining)
+            if limit <= 0:
+                raise ToolError("run_command: no wall-clock time left in this step")
+            result = dict(self._commands.run(command, limit))
+            # Timing is volatile: keep it out of what the agent sees and out of the result hash.
+            timing = result.pop("wall_clock_ms", None)
+            return _Metered(result, {"wall_clock_ms": timing})
+
+        return self._invoke("run_command", {"command": command, "timeout_s": timeout_s}, go)
+
+    # ----------------------------------------------------------- model tools
+    def model_complete(self, request: ModelRequest | dict[str, Any]) -> ModelResponse:
+        """Send a request to the run's model (harness-metered)."""
+
+        def go() -> Any:
+            if self._model is None:
+                raise ToolError("no model is configured for this run")
+            try:
+                req = request if isinstance(request, ModelRequest) else ModelRequest.from_dict(request)
+            except InvalidModelRequest as exc:
+                raise ToolError(f"model_complete: invalid request: {exc}") from None
+            b, m = self._budget, self._meter
+            if m["model_calls"] >= b.max_model_calls_per_event:
+                raise _Refused(f"model-call budget of {b.max_model_calls_per_event} per event exhausted")
+            remaining_in = b.max_model_input_tokens_per_event - self._spent_in
+            estimate = self._model.estimate_input_tokens(req)
+            if estimate > remaining_in:
+                raise _Refused(f"model input-token budget of {b.max_model_input_tokens_per_event} per event exhausted")
+            remaining_out = b.max_model_output_tokens_per_event - self._spent_out
+            if remaining_out < 1:
+                raise _Refused(f"model output-token budget of {b.max_model_output_tokens_per_event} per event exhausted")
+            cap = remaining_out if req.max_output_tokens is None else min(req.max_output_tokens, remaining_out)
+            m["model_calls"] += 1
+            self._pending_estimate, self._pending_cap = estimate, cap
+            response, meter = self._model.complete(req, max_output_tokens=cap, timeout_s=self._remaining_time())
+            self._apply_model_meter(meter, estimate, cap, response.text)
+            return _Metered(response, meter)
+
+        return self._invoke("model_complete", {"request": request}, go)
+
+    def embed(self, texts: list[str], purpose: str = "") -> EmbeddingResponse:
+        """Embed texts with the run's embedding model (harness-metered)."""
+
+        def go() -> Any:
+            if self._model is None:
+                raise ToolError("no embedding model is configured for this run")
+            items = list(texts)
+            b, m = self._budget, self._meter
+            if m["embedding_tokens"] + self._model.estimate_embedding_tokens(items) > b.max_embedding_tokens_per_event:
+                raise _Refused(f"embedding-token budget of {b.max_embedding_tokens_per_event} per event exhausted")
+            response, meter = self._model.embed(items, purpose, timeout_s=self._remaining_time())
+            m["embedding_calls"] += 1
+            m["embedding_tokens"] += meter.get("input_tokens", 0)
+            self._add_cost(meter)
+            return _Metered(response, meter)
+
+        return self._invoke("embed", {"texts": texts, "purpose": purpose}, go)
+
+    _pending_estimate = 0
+    _pending_cap = 0
+
+    def _apply_model_meter(self, meter: dict[str, Any], estimate: int, cap: int, text: str) -> None:
+        """Add one completion's metering record (successful or failed) to the step's meter and budgets."""
+        m = self._meter
+        used_in = meter.get("total_input_tokens")
+        if used_in is None and meter.get("input_tokens") is not None:
+            used_in = sum(meter.get(k) or 0 for k in ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"))
+        used_out = meter.get("output_tokens")
+        if used_in is None or used_out is None:
+            # The backend could not report usage: never invent numbers, but keep the budget honest with the
+            # deterministic estimate of what was sent and of the text that came back.
+            m["tokens_known"] = False
+            self._spent_in += estimate
+            self._spent_out += min(cap, max(1, -(-len(text.encode("utf-8", "surrogatepass")) // 4))) if text else 0
+        else:
+            m["model_input_tokens"] += used_in
+            m["model_output_tokens"] += used_out
+            self._spent_in += used_in
+            self._spent_out += used_out
+        m["model_cache_read_tokens"] += meter.get("cache_read_input_tokens") or 0
+        m["model_cache_write_tokens"] += meter.get("cache_creation_input_tokens") or 0
+        m["model_auxiliary_input_tokens"] += meter.get("auxiliary_input_tokens") or 0
+        m["model_auxiliary_output_tokens"] += meter.get("auxiliary_output_tokens") or 0
+        m["retrieval_tokens"] += meter.get("retrieval_tokens") or 0
+        self._add_cost(meter)
+        uncached = meter.get("uncached_cost_usd")
+        if uncached is None:
+            m["uncached_cost_known"] = False
+        else:
+            m["uncached_cost_usd"] += float(uncached)
+
+    def _add_cost(self, meter: dict[str, Any]) -> None:
+        cost = meter.get("cost_usd")
+        if cost is None:
+            self._meter["cost_known"] = False
+        else:
+            self._meter["cost_usd"] += float(cost)
+
+
+class _Metered:
+    """A tool result plus the gateway's metering record (internal)."""
+
+    def __init__(self, value: Any, meter: dict[str, Any]) -> None:
+        self.value = value
+        self.meter = meter
+
+
+class _Refused(Exception):
+    """A model/embedding budget refusal raised inside a tool body (internal)."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.message = message

@@ -14,7 +14,7 @@ import os
 import shutil
 import stat
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Mapping
 
 # Directory names and suffixes that are runtime by-products, never world state.
 IGNORED_DIR_NAMES = frozenset({"__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"})
@@ -23,7 +23,7 @@ IGNORED_SUFFIXES = (".pyc", ".pyo")
 # Keys whose values depend on wall-clock time or the host machine. They are
 # recorded for humans but excluded from fingerprints and replay comparison.
 VOLATILE_KEYS = frozenset(
-    {"wall_clock_ms", "started_at", "finished_at", "traceback", "host", "git"}
+    {"wall_clock_ms", "latency_ms", "time_limit_s", "started_at", "finished_at", "traceback", "host", "git"}
 )
 
 
@@ -114,6 +114,17 @@ def tree_hash(root: Path) -> str:
         h.update(rel.encode("utf-8", "surrogateescape"))
         h.update(b"\0")
         h.update(digest.encode("ascii"))
+        h.update(b"\n")
+    return h.hexdigest()
+
+
+def tree_hash_from_files(files: Mapping[str, bytes]) -> str:
+    """``tree_hash`` of a tree made of the given regular files (relative POSIX path -> bytes)."""
+    h = hashlib.sha256()
+    for rel in sorted(files):
+        h.update(rel.encode("utf-8", "surrogateescape"))
+        h.update(b"\0")
+        h.update(sha256_bytes(files[rel]).encode("ascii"))
         h.update(b"\n")
     return h.hexdigest()
 

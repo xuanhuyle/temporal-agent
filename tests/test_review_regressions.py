@@ -402,7 +402,8 @@ def test_evaluator_temp_storage_is_not_leaked_on_early_failure(mini_scenario, tm
 def test_tool_names_match_the_toolbox_surface():
     from harness.tools import TOOL_NAMES, ToolBox
 
-    public = sorted(n for n in vars(ToolBox) if not n.startswith("_") and callable(getattr(ToolBox, n)) and n != "close")
+    helpers = {"close", "call", "meter", "budget_remaining"}  # harness/status helpers, not tools
+    public = sorted(n for n in vars(ToolBox) if not n.startswith("_") and callable(getattr(ToolBox, n)) and n not in helpers)
     assert sorted(TOOL_NAMES) == public
 
 
