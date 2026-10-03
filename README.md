@@ -37,23 +37,50 @@ See [EXPERIMENT.md](EXPERIMENT.md) for the frozen protocol.
 
 ```
 src/
-  baseline/       # checkpoint + RAG contestant
+  baseline/       # checkpoint + RAG contestant (not implemented yet)
   tesseract/      # temporal contestant (import only after protocol freeze)
-  harness/        # event runner and common agent interface
-  evaluation/     # scorer and metrics
+  harness/        # event runner, common agent interface, tools, replay, CLI
+  evaluation/     # ground truth, scorer, remediation checks, oracle, validation
 world/
   seed_repo/      # software world under management
   events/         # chronological event stream
   ground_truth/   # evaluator-only labels
 scenarios/
-  simple/
-  long_history/
-  high_noise/
-  deep_causality/
+  smoke/          # smoke_v1: frozen 10-event machinery check (not held out)
+  simple/ long_history/ high_noise/ deep_causality/   # planned families
 runs/             # generated experiment outputs (not source of truth)
 tests/
 prompts/
 ```
+
+## Quickstart (Milestone 1)
+
+Requirements: Python ≥ 3.11 and `pytest` (the only dependency).
+
+```bash
+pip install pytest                      # or: pip install -e '.[dev]'
+python -m pytest                        # full test suite
+PYTHONPATH=src python -m harness smoke  # run the frozen 10-event smoke scenario with the dummy agent
+```
+
+The smoke command prints the run id and headline scores, and writes
+`runs/<run_id>/` with `metadata.json`, `events.jsonl`, `actions.jsonl`,
+`scores.json`, `trace.jsonl` (plus `evaluation.jsonl`, `blobs/`,
+`final_state/`, `MANIFEST.sha256`).
+
+After `pip install -e .`, `tab-bench` is equivalent to `PYTHONPATH=src python -m harness`.
+
+Other commands (all via `PYTHONPATH=src python -m harness ...`):
+
+| Command | Purpose |
+|---|---|
+| `run --scenario PATH --agent dummy [--agent keyword:kw2] [--seed N]` | run reference agents in lockstep |
+| `replay runs/<run_id>` | re-execute a recorded run and verify it reproduces exactly |
+| `validate [--scenario PATH] [--static-only]` | lint, integrity, canary, world-suite and oracle solvability checks |
+| `freeze --scenario PATH` | validate and freeze a draft scenario (refuses to re-freeze changed content) |
+
+Design and file formats: [docs/milestone-1-design.md](docs/milestone-1-design.md).
+Benchmark changes are logged in [BENCHMARK_CHANGELOG.md](BENCHMARK_CHANGELOG.md).
 
 ## Principle
 
