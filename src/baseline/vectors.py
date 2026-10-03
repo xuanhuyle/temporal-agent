@@ -2,7 +2,8 @@
 
 - Vectors are cached by ``sha256(text)`` in an append-only JSONL file in the
   agent's state directory, so restarts and re-indexing never re-embed a text
-  that was embedded before.
+  that was embedded before. A torn trailing line (crash mid-append) is cut
+  off when the cache is opened, like the event log's.
 - Vector components are rounded to 6 decimals before they are cached and
   normalized, so a vector read back from the cache is bit-identical to a
   freshly received one, and retrieval after a restart ranks identically.
@@ -64,21 +65,30 @@ class EmbeddingCache:
             self._load(path)
 
     def _load(self, path: Path) -> None:
-        with open(path, "r", encoding="utf-8") as fh:
-            for line in fh:
-                try:
-                    rec = json.loads(line)
-                    sha, vec = rec["sha256"], rec["vector"]
-                    if not isinstance(sha, str) or not isinstance(vec, list) or not vec:
-                        continue
-                    vector = _round(vec)
-                except (ValueError, KeyError, TypeError):
-                    continue  # a torn last line after a crash
-                if not all(math.isfinite(x) for x in vector):
+        with open(path, "rb") as fh:
+            data = fh.read()
+        complete = data.rfind(b"\n") + 1  # bytes up to and including the last newline
+        if complete != len(data):
+            # A torn trailing line (crash mid-append): cut it off, so that the next appended record
+            # starts on a line of its own instead of being glued to the fragment and lost.
+            with open(path, "r+b") as fh:
+                fh.truncate(complete)
+                fh.flush()
+                os.fsync(fh.fileno())
+        for raw in data[:complete].splitlines():
+            try:
+                rec = json.loads(raw.decode("utf-8"))
+                sha, vec = rec["sha256"], rec["vector"]
+                if not isinstance(sha, str) or not isinstance(vec, list) or not vec:
                     continue
-                self._vectors.setdefault(sha, vector)
-                if isinstance(rec.get("model"), str):
-                    self.model = rec["model"]
+                vector = _round(vec)
+            except (UnicodeDecodeError, ValueError, KeyError, TypeError):
+                continue  # a damaged line: skipped, the text is embedded again if needed
+            if not all(math.isfinite(x) for x in vector):
+                continue
+            self._vectors.setdefault(sha, vector)
+            if isinstance(rec.get("model"), str):
+                self.model = rec["model"]
 
     def __len__(self) -> int:
         return len(self._vectors)

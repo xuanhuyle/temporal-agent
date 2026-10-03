@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from harness.agent import NoteAction, ReopenAction, StepBudget
+from harness.agent import ModelSettings, NoteAction, ReopenAction, StepBudget
 
 from baseline.agent import BaselineAgent
 from baseline.memory import BaselineMemory, _ingest_priority
@@ -377,6 +377,78 @@ def test_memory_tools(tmp_path):
     only_events = search(mem, tools, "region", kind="event", since_seq=2, until_seq=2)
     assert "[evt-0002" in only_events and "[file" not in only_events and "[evt-0001" not in only_events
     assert search(mem, tools, "region", path="nowhere/") == "no matching memory"
+
+
+def test_memory_search_describes_its_channels_and_seq_filters_accurately():
+    def desc(provider, **kw):
+        mem = BaselineMemory(cfg(**kw))
+        mem.use_model_settings(ModelSettings(embedding_provider=provider))
+        return {t.name: t.description for t in mem.local_tools()}["memory_search"]
+
+    hashed = desc("hash")
+    assert "semantic" not in hashed.replace("not semantic", "")
+    assert "keyword match (BM25)" in hashed and "entity matching" in hashed
+    assert "hashed word and character n-gram vectors (lexical, not semantic)" in hashed
+    assert "since_seq/until_seq" in hashed and "events and notes by their event seq" in hashed
+    assert "repository files by the seq at which their content was indexed" in hashed
+    assert "vector" not in desc("none")  # no embedding model in this run: no vector channel is claimed
+    assert "embedding-vector similarity" in desc("other-provider")
+    assert "BM25" not in desc("hash", retrieval="dense") and "vector" not in desc("hash", retrieval="lexical")
+    unset = BaselineMemory(cfg())  # before settings are known: a neutral description
+    assert "semantic" not in {t.name: t.description for t in unset.local_tools()}["memory_search"]
+
+
+def test_agent_edits_of_an_interrupted_step_are_reread_after_a_restart(tmp_path):
+    state = tmp_path / "s"
+    mem, tools, _ = run_memory(state, cfg(), events=EVENTS[:1])
+    ev = EVENTS[1]
+    tools.new_step()
+    apply_world(tools, ev)
+    mem.record_event(ev)
+    mem.observe_world(ev, tools)
+    # the loop announces each edit before executing it; then the step is cut short (no after_event, no checkpoint)
+    mem.before_workspace_change("write_file", "ledger/region.py")
+    tools.files["ledger/region.py"] = "SECOND_REGION = 'kestrel-north'\n"
+    mem.before_workspace_change("delete_file", "./ledger//core.py")
+    del tools.files["ledger/core.py"]
+    mem.before_workspace_change("write_file", "../outside.py")  # refused by the workspace: not logged
+    log = state / "memory" / "workspace_intents.jsonl"
+    assert [json.loads(line)["path"] for line in log.read_text().splitlines()] == ["ledger/region.py", "ledger/core.py"]
+    with open(log, "a") as fh:
+        fh.write('{"op": "write_file", "pa')  # torn by the crash
+
+    again = open_memory(state, cfg(), restart=True)
+    assert log.read_text().endswith("\n") and len(log.read_text().splitlines()) == 2
+    assert again.pending_paths[:2] == ["ledger/region.py", "ledger/core.py"]
+    assert "ledger/core.py" in again.docs_index  # stale until it is re-read
+    ev3 = make_event(3, "Next")
+    tools.new_step()
+    again.record_event(ev3)
+    again.observe_world(ev3, tools)
+    assert "ledger/core.py" not in again.docs_index
+    assert "kestrel-north" in search(again, tools, "SECOND_REGION")
+    again.checkpoint()
+    # once a checkpoint covers the logged edits, a later restart does not re-read them
+    third = open_memory(state, cfg(), restart=True)
+    assert "ledger/region.py" not in third.pending_paths and "ledger/core.py" not in third.pending_paths
+    assert third.docs_index == again.docs_index
+
+
+def test_completed_steps_leave_no_stale_intents(tmp_path):
+    state = tmp_path / "s"
+    mem, tools, _ = run_memory(state, cfg(), events=EVENTS[:1])
+    ev = EVENTS[1]
+    tools.new_step()
+    mem.record_event(ev)
+    mem.before_workspace_change("write_file", "notes/x.md")
+    tools.files["notes/x.md"] = "x\n"
+    mem.after_event(ev, outcome(ev, writes={"notes/x.md": "x\n"}), tools)
+    mem.checkpoint()
+    again = open_memory(state, cfg(), restart=True)
+    assert "notes/x.md" not in again.pending_paths and "notes/x.md" in again.docs_index
+    none = open_memory(tmp_path / "n", cfg(mode="none"))
+    none.before_workspace_change("write_file", "a.md")
+    assert not (tmp_path / "n" / "memory" / "workspace_intents.jsonl").exists()
 
 
 def test_notes_store_conclusions_and_actions(tmp_path):

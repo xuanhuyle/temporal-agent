@@ -30,7 +30,8 @@ def test_presets_expand_with_shared_defaults():
         cfg = BaselineAgent(config={"preset": name}).describe()["config"]
         assert cfg["top_k"] == top_k and cfg["mode"] == "rag" and cfg["preset"] == name
         assert cfg["retrieval"] == "hybrid" and cfg["query_expansion"] is True and cfg["summary"] == "rolling"
-        assert cfg["max_turns"] == 12 and cfg["observation_chars"] == 8000 and cfg["chunk_chars"] == 1500
+        assert cfg["max_turns"] == 20 and cfg["observation_chars"] == 24000 and cfg["chunk_chars"] == 1500
+        assert cfg["runtime_guidance"] == "maintainer"
         assert cfg["max_per_source"] == 4
     full = BaselineAgent(config={"preset": "full"}).describe()["config"]
     assert full["mode"] == "full" and full["query_expansion"] is False
@@ -58,7 +59,8 @@ def test_describe_reports_the_full_effective_config_and_is_stable():
     assert d["config"]["protocol"] == "tab.llm-protocol/1"
     assert json.dumps(d, sort_keys=True) == json.dumps(BaselineAgent(config={"preset": "k64"}).describe(), sort_keys=True)
     assert resolve_config({"preset": "k64"}) == {k: v for k, v in d["config"].items()
-                                                 if k not in ("protocol", "runtime_guidance_sha256", "memory_system")}
+                                                 if k not in ("protocol", "runtime_guidance_sha256", "memory_system",
+                                                              "runtime_guidance_text", "runtime_tools")}
 
 
 # ============================================================== end to end
@@ -169,6 +171,49 @@ def test_event_context_is_built_from_memory_not_from_the_future(tmp_path):
         for later in EVENTS[i:]:
             assert later.event_id not in text, (ev.event_id, later.event_id)
             assert later.subject not in text
+
+
+def test_edits_of_a_step_that_crashed_are_reindexed_after_the_restart(tmp_path):
+    state = tmp_path / "state"
+    written = "ledger/rates.py"
+
+    def model(req: ModelRequest) -> str:
+        if req.purpose != "loop":
+            return policy(req)
+        first = req.messages[0].content
+        k = sum(m.role == "assistant" for m in req.messages)
+        if first.startswith("<<event seq=1 ") and k == 0:
+            return json.dumps({"tool": "write_file", "args": {"path": written, "content": "PELICAN_RATE = 7\n"}})
+        if first.startswith("<<event seq=1 "):
+            raise RuntimeError("contestant process killed")  # the step is cut short after the write
+        return json.dumps({"final": {"actions": [], "memory": ""}})
+
+    tools = FakeTools(dict(SEED), model=model, embedder=hash_embed, states={0: dict(SEED)})
+    agent = BaselineAgent(name="b", config={"preset": "k8"})
+    agent.setup(make_context(state))
+    agent.on_start(tools)
+    tools.new_step()
+    with pytest.raises(RuntimeError):
+        agent.on_event(EVENTS[0], tools)
+    assert tools.files[written] == "PELICAN_RATE = 7\n" and written not in agent.memory.docs_index
+
+    fresh = BaselineAgent(name="b", config={"preset": "k8"})
+    fresh.setup(make_context(state, restart_count=1))
+    assert fresh.memory.pending_paths[0] == written
+    tools.new_step()
+    apply_world(tools, EVENTS[1])
+    fresh.on_event(EVENTS[1], tools)
+    assert written in fresh.memory.docs_index
+    hits = fresh.memory.retriever.search(["PELICAN_RATE"], k=3)
+    assert hits and hits[0].doc.path == written
+
+
+def test_runtime_guidance_is_a_validated_baseline_config_key():
+    for variant in ("maintainer", "minimal"):
+        d = BaselineAgent(config={"preset": "k8", "runtime_guidance": variant}).describe()["config"]
+        assert d["runtime_guidance"] == variant and d["runtime_guidance_text"].startswith("## How to respond")
+    with pytest.raises(ValueError):
+        BaselineAgent(config={"runtime_guidance": "eager"})
 
 
 # ============================================================ import hygiene
