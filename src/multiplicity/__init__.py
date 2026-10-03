@@ -1,5 +1,6 @@
 """Temporal Multiplicity Kernel."""
 
+from .capability import BranchHandle, CallableBackend, CognitiveBackend, TemporalMultiplicity
 from .kernel import (
     Branch,
     BranchRun,
@@ -13,6 +14,9 @@ from .state import AgentState, Fact, Mutation
 
 __all__ = [
     "AgentState",
+    "BranchHandle",
+    "CallableBackend",
+    "CognitiveBackend",
     "Branch",
     "BranchRun",
     "Comparison",
@@ -22,5 +26,6 @@ __all__ = [
     "RunResult",
     "ScriptedRunner",
     "Snapshot",
+    "TemporalMultiplicity",
     "TemporalMultiplicityKernel",
 ]
