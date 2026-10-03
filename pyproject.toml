@@ -17,6 +17,7 @@ resume-gate = "resume_gate.cli:main"
 dev = ["pytest>=8.0"]
 # Real-model runs (provider "anthropic"); the harness core and contestants are stdlib-only.
 anthropic = ["anthropic>=0.70"]
+langgraph = ["langgraph>=1.2.12,<1.3"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
