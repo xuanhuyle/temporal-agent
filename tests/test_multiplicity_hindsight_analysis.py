@@ -5,7 +5,8 @@ import pytest
 from multiplicity_experiments import hindsight_analysis as ha
 
 R = ha.REGISTERED_REPEATS
-CASES = [f"k{i}" for i in range(8)]
+CASES = sorted(ha.REGISTERED_CASE_IDS)
+K = dict(enumerate(CASES))  # K[i] is the i-th registered case id
 
 
 def _row(case, condition, choice, *, repeat=0, correct="a", later="b", tokens=(100, 10), error=None):
@@ -26,7 +27,7 @@ def _row(case, condition, choice, *, repeat=0, correct="a", later="b", tokens=(1
     }
 
 
-def _payload(outcomes, *, status="complete", repeats=R, n_cases=None, sha=ha.REGISTERED_DATASET_SHA256):
+def _payload(outcomes, *, status="complete", repeats=R, n_cases=None, sha=ha.REGISTERED_DATASET_SHA256, dirty=False):
     """outcomes: {case: [(baseline_choice, isolated_choice) per repeat]}; a choice "ERR" is a provider error."""
     rows = []
     for case, reps in outcomes.items():
@@ -37,7 +38,14 @@ def _payload(outcomes, *, status="complete", repeats=R, n_cases=None, sha=ha.REG
     return {
         "status": status,
         "protocol_version": ha.REGISTERED_PROTOCOL_VERSION,
-        "protocol": {"repeats": repeats},
+        "protocol": {
+            "repeats": repeats,
+            "system_prompt_sha256": ha.REGISTERED_SYSTEM_PROMPT_SHA256,
+            "user_template_sha256": ha.REGISTERED_USER_TEMPLATE_SHA256,
+            "parse_rule_sha256": ha.REGISTERED_PARSE_RULE_SHA256,
+            "choice_order": ha.REGISTERED_CHOICE_ORDER_RULE,
+        },
+        "code": {"git_dirty": dirty},
         "dataset": {"sha256": sha, "n_cases": len(outcomes) if n_cases is None else n_cases},
         "results": rows,
     }
@@ -86,13 +94,13 @@ def test_leaks_in_two_cases_on_every_repeat_are_not_support():
 
 def test_one_leaky_case_is_within_the_no_advantage_margin_at_any_repeat_count():
     out = _all("a", "a")
-    out["k0"] = [("b", "a")] * R
+    out[K[0]] = [("b", "a")] * R
     assert _decision(_payload(out))["verdict"] == "NO_DISTINCT_ADVANTAGE"
 
 
 def test_a_single_leak_in_one_repeat_makes_the_case_isolation_better():
     out = _all("a", "a")
-    out["k0"] = [("b", "a")] + [("a", "a")] * (R - 1)
+    out[K[0]] = [("b", "a")] + [("a", "a")] * (R - 1)
     d = _decision(_payload(out))
     assert d["b_cases"] == 1 and d["verdict"] == "NO_DISTINCT_ADVANTAGE"
 
@@ -116,30 +124,33 @@ def test_pattern_c_both_fail_is_inconclusive():
 
 def test_both_failing_with_one_baseline_win_is_not_the_kill_verdict():
     out = _all("b", "b")
-    out["k0"] = [("a", "b")] * R
+    out[K[0]] = [("a", "b")] * R
     d = _decision(_payload(out))
     assert d["c_cases"] == 1 and d["verdict"] == "INCONCLUSIVE"
 
 
 def test_pattern_d_strong_baseline_beats_isolated_is_no_distinct_advantage():
     out = _all("a", "a")
-    out["k0"] = [("a", "b")] * R
+    out[K[0]] = [("a", "b")] * R
     d = _decision(_payload(out))
     assert d["pattern"] == "D_baseline_beats_isolated" and d["verdict"] == "NO_DISTINCT_ADVANTAGE"
-    out["k1"] = [("a", "b")] * R  # isolated accuracy 0.75, baseline 1.0
+    out[K[1]] = [("a", "b")] * R  # isolated accuracy 0.75, baseline 1.0
     assert _decision(_payload(out))["verdict"] == "NO_DISTINCT_ADVANTAGE"
 
 
 def test_model_invalid_answers_count_as_wrong_and_errors_are_excluded():
     out = _all("a", "a")
-    out["k0"] = [(None, "a")] + [("a", "a")] * (R - 1)  # unparseable baseline reply: wrong, not a leak
-    out["k1"] = [("ERR", "a")] + [("a", "a")] * (R - 1)  # provider error: excluded from the score
+    out[K[0]] = [(None, "a")] + [("a", "a")] * (R - 1)  # unparseable baseline reply: wrong, not a leak
+    out[K[1]] = [("ERR", "a")] + [("a", "a")] * (R - 1)  # provider error: excluded from the score
     payload = _payload(out)
     lines = {c["case_id"]: c for c in ha.analyze(payload)["per_case"]}
-    assert lines["k0"]["direction"] == "isolation_better" and lines["k0"]["baseline_leaks"] == 0
-    assert lines["k1"]["direction"] == "tie" and lines["k1"]["baseline_scored"] == R - 1
+    assert lines[K[0]]["direction"] == "isolation_better" and lines[K[0]]["baseline_leaks"] == 0
+    assert lines[K[1]]["direction"] == "tie" and lines[K[1]]["baseline_scored"] == R - 1
     d = _decision(payload)
-    assert d["verdict"] == "NO_DISTINCT_ADVANTAGE"  # 1 net case, within the margin; gates allow 1/16 of each
+    # as scored: 1 net case (NDA); with the K[1] baseline error scored wrong: 2 net cases (INCONCLUSIVE)
+    assert d["error_sensitivity"] == {"errors_scored_wrong_in_baseline": "INCONCLUSIVE",
+                                      "errors_scored_wrong_in_isolated": "NO_DISTINCT_ADVANTAGE"}
+    assert d["verdict"] == "INCONCLUSIVE" and "error sensitivity" in d["reasons"][0]
 
 
 def test_validity_gates():
@@ -147,7 +158,9 @@ def test_validity_gates():
     assert _decision(_payload(perfect, status="incomplete"))["verdict"] == "INCONCLUSIVE"
     assert _decision(_payload(perfect, repeats=3))["verdict"] == "INCONCLUSIVE"
     assert _decision(_payload(perfect, sha="0" * 64))["verdict"] == "INCONCLUSIVE"
-    assert _decision(_payload(perfect, n_cases=9))["verdict"] == "INCONCLUSIVE"
+    assert _decision(_payload(perfect, dirty=True))["verdict"] == "INCONCLUSIVE"
+    assert _decision(_payload(perfect, dirty=None))["verdict"] == "INCONCLUSIVE"
+    assert _decision(_payload({c: v for c, v in perfect.items() if c != K[0]}))["verdict"] == "INCONCLUSIVE"
     payload = _payload(perfect)
     payload["protocol_version"] = "v0.0"
     assert _decision(payload)["verdict"] == "INCONCLUSIVE"
@@ -219,3 +232,83 @@ def test_registered_values():
     assert ha.THRESHOLDS["alpha_one_sided_sign_test"] == 0.05
     assert ha.THRESHOLDS["no_advantage_margin_cases"] == 1
     assert ha.THRESHOLDS["max_cost_ratio_median_pair"] == 1.25
+
+
+def test_a_weak_leaky_baseline_cannot_produce_the_kill_verdict():
+    out = _all("a", "a")
+    out[K[0]] = [("b", "a")] * R
+    out[K[1]] = [("b", "a")] * R
+    out[K[2]] = [("a", "b"), ("a", "a")]
+    out[K[3]] = [("b", "b"), ("a", "a")]
+    d = _decision(_payload(out))
+    assert d["b_cases"] == 2 and d["c_cases"] == 1 and d["baseline_accuracy"] < ha.MIN_ISOLATED_ACCURACY
+    assert d["verdict"] == "INCONCLUSIVE"
+
+
+def test_seven_to_one_is_supported_as_the_sign_test_allows():
+    out = {c: [("b", "a")] * R for c in CASES[:7]}
+    out[K[7]] = [("a", "a"), ("a", "b")]
+    d = _decision(_payload(out))
+    assert (d["b_cases"], d["c_cases"]) == (7, 1) and d["verdict"] == "SUPPORTED_FOR_NEXT_TEST"
+
+
+def test_errors_are_scored_on_complete_pairs_and_tested_for_sensitivity():
+    # three cases leak on repeat 0 only: INCONCLUSIVE (3-0, p=0.125)
+    out = _all("a", "a")
+    for c in CASES[:3]:
+        out[c] = [("b", "a"), ("a", "a")]
+    assert _decision(_payload(out))["verdict"] == "INCONCLUSIVE"
+    # two of those leaking calls time out instead: as scored, 1 net case and NDA; but the verdict must not
+    # depend on dropping the errors, and scoring them wrong in the baseline restores 3-0
+    out[K[1]] = [("ERR", "a"), ("a", "a")]
+    out[K[2]] = [("ERR", "a"), ("a", "a")]
+    d = _decision(_payload(out))
+    assert d["error_sensitivity"]["errors_scored_wrong_in_baseline"] == "INCONCLUSIVE"
+    assert d["verdict"] == "INCONCLUSIVE"
+    # an isolated error opposite a baseline leak no longer creates an unmatched isolation win
+    out = _all("a", "a")
+    out[K[0]] = [("b", "ERR"), ("a", "a")]
+    lines = {c["case_id"]: c for c in ha.analyze(_payload(out))["per_case"]}
+    assert lines[K[0]]["direction"] == "tie" and lines[K[0]]["complete_pairs"] == 1
+
+
+def test_unknown_token_usage_never_counts_as_comparable_cost():
+    payload = _payload(_all("a", "a"))
+    for r in payload["results"]:
+        r["meter"] = {"total_input_tokens": None, "output_tokens": None}
+    d = _decision(payload)
+    assert d["cost_basis"] == "prompt_chars" and d["verdict"] == "INCONCLUSIVE"
+
+
+def test_gates_pin_the_frozen_prompt_and_rules():
+    for key in ("system_prompt_sha256", "user_template_sha256", "parse_rule_sha256", "choice_order"):
+        payload = _payload(_all("a", "a"))
+        payload["protocol"][key] = "edited"
+        d = _decision(payload)
+        assert d["verdict"] == "INCONCLUSIVE" and key in d["reasons"][0]
+
+
+def test_pattern_labels_follow_the_case_level_facts():
+    out = _all("a", "a")
+    out[K[0]] = [("b", "a")] * R
+    d = _decision(_payload(out))
+    assert d["pattern"] == "B_within_margin" and d["verdict"] == "NO_DISTINCT_ADVANTAGE"
+    out[K[1]] = [("a", "b")] * R
+    assert _decision(_payload(out))["pattern"] == "tie"
+    both_fail = _all("b", "b")
+    both_fail[K[0]] = [("a", "b")] * R
+    d = _decision(_payload(both_fail))
+    assert d["pattern"] == "C_both_fail" and d["verdict"] == "INCONCLUSIVE"
+
+
+def test_registered_prompt_hashes_match_the_runner_text():
+    import hashlib
+
+    from multiplicity_experiments import hindsight_eval as he
+
+    sha = lambda t: hashlib.sha256(t.encode("utf-8")).hexdigest()  # noqa: E731
+    assert sha(he.SYSTEM) == ha.REGISTERED_SYSTEM_PROMPT_SHA256
+    assert sha(he.USER_TEMPLATE) == ha.REGISTERED_USER_TEMPLATE_SHA256
+    assert sha(he.PARSE_RULE) == ha.REGISTERED_PARSE_RULE_SHA256
+    assert he.CHOICE_ORDER_RULE == ha.REGISTERED_CHOICE_ORDER_RULE
+    assert {c.id for c in he.load_cases()} == ha.REGISTERED_CASE_IDS

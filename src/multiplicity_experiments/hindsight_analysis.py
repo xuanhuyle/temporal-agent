@@ -11,9 +11,11 @@ seen is a new protocol version, and the earlier analysis is kept.
 
 Row classes:
 
-- an *error* row has ``error`` set: no model reply was obtained (timeout,
-  provider failure). It says nothing about reasoning, so it is excluded from
-  the scores and limited by its own validity gate;
+- an *error* row has ``error`` set: no scorable model reply was obtained
+  (timeout, over-length reply, provider failure). Some of these may depend on
+  the condition (a long deliberation), so they are excluded from the scores,
+  limited by their own validity gate, and the verdict must survive re-scoring
+  them as wrong in each condition in turn (sensitivity rule below);
 - a *model-invalid* row has a reply but no listed choice could be parsed. It
   counts as wrong (and not as a hindsight leak), exactly as in the accuracy
   metric;
@@ -22,34 +24,42 @@ Row classes:
 
 Unit of analysis: the **case**. Repeats of one case resend the same prompt to
 the same model and are not independent, so for each case and condition the
-score is the mean correctness over its non-error rows. A case is
-*isolation-better* if its isolated score is higher, *baseline-better* if lower,
-otherwise a *tie*. Pair-level (case x repeat) McNemar counts are reported as
-descriptive statistics only.
+score is the mean correctness over the case's *complete pairs* (repeats where
+neither condition's row is an error; this keeps the choice-order
+counterbalance matched). A case is *isolation-better* if its isolated score is
+higher, *baseline-better* if lower, otherwise a *tie*. Pair-level
+(case x repeat) McNemar counts are reported as descriptive statistics only.
 
 Verdict (exactly one of three), applied in this order:
 
 1. ``INCONCLUSIVE`` if a validity gate fails: the run is not complete; the
-   dataset, protocol version or repeat count is not the registered one; an
-   error rate or a model-invalid rate above ``MAX_ERROR_RATE`` /
-   ``MAX_MODEL_INVALID_RATE`` in either condition; or a registered case with no
-   scored answer in a condition.
+   protocol version, system prompt, user template, choice-order or parse rule,
+   dataset, case set or repeat count is not the registered one; the source
+   tree was not clean (``git_dirty`` must be false); an error rate or a
+   model-invalid rate above ``MAX_ERROR_RATE`` / ``MAX_MODEL_INVALID_RATE`` in
+   either condition; or a registered case without a complete pair.
 2. ``SUPPORTED_FOR_NEXT_TEST`` if isolation wins across cases: exact one-sided
    sign test p <= ``ALPHA`` on (isolation-better, baseline-better) cases (with
-   8 cases this needs at least 5 isolation-better cases and none the other
-   way); in at least half of the isolation-better cases most baseline errors
-   are hindsight leaks; and isolated accuracy >= ``MIN_ISOLATED_ACCURACY``.
-3. ``NO_DISTINCT_ADVANTAGE`` if the baseline matches or beats isolation:
-   (isolation-better cases) - (baseline-better cases) <= ``NO_ADVANTAGE_MARGIN``,
-   at comparable cost (median per-pair token ratio baseline/isolated <=
-   ``MAX_COST_RATIO``), and either isolated accuracy >= ``MIN_ISOLATED_ACCURACY``
-   (the task is solvable without hindsight and the baseline matches it) or
-   baseline-better cases outnumber isolation-better ones with baseline
-   accuracy >= ``MIN_ISOLATED_ACCURACY`` (a strong baseline beats isolation).
-4. ``INCONCLUSIVE`` otherwise (a non-significant isolation edge, both
-   conditions failing, cost not comparable or unknown).
+   8 cases this is met by 5-0, 6-0, 7-0, 7-1 or 8-0); in at least half of the
+   isolation-better cases most baseline errors are hindsight leaks; and
+   isolated accuracy >= ``MIN_ISOLATED_ACCURACY``.
+3. ``NO_DISTINCT_ADVANTAGE`` if a *strong* baseline (accuracy >=
+   ``MIN_ISOLATED_ACCURACY``) matches or beats isolation: (isolation-better
+   cases) - (baseline-better cases) <= ``NO_ADVANTAGE_MARGIN``, cost comparable
+   (median per-pair *reported-token* ratio baseline/isolated <=
+   ``MAX_COST_RATIO``; unknown token usage is not comparable), and either
+   isolated accuracy >= ``MIN_ISOLATED_ACCURACY`` (the task is solvable without
+   hindsight and the baseline matches it) or baseline-better cases outnumber
+   isolation-better ones (the baseline beats isolation).
+4. ``INCONCLUSIVE`` otherwise (a non-significant isolation edge, a weak
+   baseline, both conditions failing, cost not comparable or unknown).
 
-Accuracy in the gates and rules is correct / non-error rows.
+Sensitivity rule: if any error rows exist, a verdict other than
+``INCONCLUSIVE`` stands only if the same verdict results when the error rows
+are re-scored as wrong answers in the baseline only, and again in the
+isolated condition only. Otherwise the verdict is ``INCONCLUSIVE``.
+
+Accuracy in the gates and rules is correct / scored rows (complete pairs).
 """
 
 from __future__ import annotations
@@ -66,10 +76,14 @@ from typing import Any, Iterable, Mapping
 CONDITIONS = ("baseline", "isolated")
 VERDICTS = ("SUPPORTED_FOR_NEXT_TEST", "NO_DISTINCT_ADVANTAGE", "INCONCLUSIVE")
 
-# Registered design (protocol v0.1).
+# Registered design (protocol v0.1). hindsight_eval imports these; tests check the prompt hashes match its text.
 REGISTERED_PROTOCOL_VERSION = "v0.1"
 REGISTERED_DATASET_SHA256 = "e435fa60ebaa8ce719fec2056c149c0de5ed1f01980f4f1c9343671907591973"
 REGISTERED_REPEATS = 2
+REGISTERED_SYSTEM_PROMPT_SHA256 = "9275528a47f4fa4ae2ed936295bc08b5c3c2ddb7dceb8e4c52dd9f0f6aa47c26"
+REGISTERED_USER_TEMPLATE_SHA256 = "10bd61a30a525f7ea24ec6b8dcb8fd461d74a211233243adacaaa792b5780253"
+REGISTERED_CHOICE_ORDER_RULE = "sorted on even repeats, reverse-sorted on odd repeats; identical in both conditions of a pair"
+REGISTERED_PARSE_RULE_SHA256 = "9cd05d4bfd58c003efddd59d3cffb34bcc586475353740dc8f564e5dc62dc971"
 
 # Pre-registered thresholds (protocol v0.1). Do not tune after seeing results.
 MAX_ERROR_RATE = 0.125
@@ -78,7 +92,7 @@ MIN_ISOLATED_ACCURACY = 0.85
 ALPHA = 0.05
 NO_ADVANTAGE_MARGIN = 1
 MAX_COST_RATIO = 1.25
-CEILING_ACCURACY = 0.95  # descriptive flag only; never changes the verdict
+CEILING_ACCURACY = 1.0  # descriptive flag ("both conditions perfect on scored rows"); never changes the verdict
 
 THRESHOLDS = {
     "unit_of_analysis": "case (repeats averaged)",
@@ -90,6 +104,9 @@ THRESHOLDS = {
     "max_cost_ratio_median_pair": MAX_COST_RATIO,
     "registered_repeats": REGISTERED_REPEATS,
     "registered_dataset_sha256": REGISTERED_DATASET_SHA256,
+    "registered_system_prompt_sha256": REGISTERED_SYSTEM_PROMPT_SHA256,
+    "registered_user_template_sha256": REGISTERED_USER_TEMPLATE_SHA256,
+    "error_sensitivity_rule": "verdict must be unchanged with error rows scored wrong in each condition in turn",
 }
 
 # Descriptive strata of the registered dataset (never used by the verdict).
@@ -258,24 +275,28 @@ def pairs(rows: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
 
 
 def per_case(rows: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
-    """One line per case with each condition's score over its non-error rows, and the case direction."""
+    """One line per case: each condition's score over the case's complete pairs, and the case direction."""
     cases: dict[str, dict[str, Any]] = {}
     for r in rows:
         c = cases.setdefault(r["case_id"], {
             "case_id": r["case_id"],
             "correct_at_cutoff": r.get("correct_at_cutoff"),
             "later_answer": r.get("later_answer"),
-            "baseline": [], "isolated": [],
+            "baseline": {}, "isolated": {},
         })
-        c[r["condition"]].append(r)
+        c[r["condition"]][int(r.get("repeat", 0))] = r
     out = []
     for cid in sorted(cases):
         c = cases[cid]
+        repeats = sorted(set(c["baseline"]) | set(c["isolated"]))
+        complete = [k for k in repeats
+                    if k in c["baseline"] and k in c["isolated"]
+                    and not is_error(c["baseline"][k]) and not is_error(c["isolated"][k])]
         line: dict[str, Any] = {"case_id": cid, "correct_at_cutoff": c["correct_at_cutoff"],
-                                "later_answer": c["later_answer"]}
+                                "later_answer": c["later_answer"], "complete_pairs": len(complete)}
         for cond in CONDITIONS:
-            rs = sorted(c[cond], key=lambda r: int(r.get("repeat", 0)))
-            scored = [r for r in rs if not is_error(r)]
+            rs = [c[cond][k] for k in repeats if k in c[cond]]
+            scored = [c[cond][k] for k in complete]
             line[f"{cond}_choices"] = ["ERROR" if is_error(r) else r.get("choice") for r in rs]
             line[f"{cond}_n"] = len(rs)
             line[f"{cond}_scored"] = len(scored)
@@ -316,30 +337,83 @@ def strata(case_lines: list[Mapping[str, Any]]) -> dict[str, Any]:
 
 def pattern_of(*, b_cases: int, c_cases: int, leak_cases: int, iso_acc: float | None, base_acc: float | None,
                all_perfect: bool, scored_cases: int) -> str:
-    """The run-level pattern named in the experiment brief, from the same case-level facts as the verdict."""
+    """The run-level pattern named in the experiment brief, from the same case-level facts as the verdict.
+
+    The pattern is descriptive. The verdict for each pattern is set by :func:`decide` (see the results document's
+    pattern table): it also depends on significance, baseline strength and cost.
+    """
     if scored_cases == 0:
         return "none_no_scored_cases"
-    if c_cases > b_cases:
-        return "D_baseline_beats_isolated"
-    if b_cases > c_cases:
-        return "B_isolated_beats_baseline" if 2 * leak_cases >= b_cases else "mixed_isolated_ahead_without_leaks"
     if iso_acc is not None and base_acc is not None and iso_acc < MIN_ISOLATED_ACCURACY and base_acc < MIN_ISOLATED_ACCURACY:
         return "C_both_fail"
+    if c_cases > b_cases:
+        return "D_baseline_beats_isolated"
+    if b_cases - c_cases > NO_ADVANTAGE_MARGIN:
+        return "B_isolated_beats_baseline" if 2 * leak_cases >= b_cases else "mixed_isolated_ahead_without_leaks"
+    if b_cases > c_cases:
+        return "B_within_margin"
     if all_perfect:
         return "A_both_correct"
-    return "tie_with_shared_errors"
+    return "tie"
 
 
 # ---------------------------------------------------------------------- verdict
+REGISTERED_CASE_IDS = frozenset(i for groups in STRATA["post_cutoff_content"].values() for i in groups)
+
+
 def _scored_accuracy(case_lines: list[Mapping[str, Any]], cond: str) -> float | None:
     scored = sum(c[f"{cond}_scored"] for c in case_lines)
     return sum(c[f"{cond}_correct"] for c in case_lines) / scored if scored else None
 
 
-def decide(payload: Mapping[str, Any], summary: Mapping[str, Any], case_lines: list[Mapping[str, Any]],
-           pair_list: list[Mapping[str, Any]], cost: Mapping[str, Any]) -> dict[str, Any]:
-    """Apply the pre-registered verdict rule. Returns the verdict, the reasons that decided it, and the facts."""
-    reasons: list[str] = []
+def _gate(payload: Mapping[str, Any], summary: Mapping[str, Any], case_lines: list[Mapping[str, Any]],
+          pair_counts: Mapping[str, int]) -> list[str]:
+    gate: list[str] = []
+    if payload.get("status") != "complete":
+        gate.append(f"run status is {payload.get('status')!r}, not 'complete'")
+    if payload.get("protocol_version") != REGISTERED_PROTOCOL_VERSION:
+        gate.append(f"protocol version {payload.get('protocol_version')!r} is not {REGISTERED_PROTOCOL_VERSION!r}")
+    protocol = payload.get("protocol") or {}
+    for key, registered in (("system_prompt_sha256", REGISTERED_SYSTEM_PROMPT_SHA256),
+                            ("user_template_sha256", REGISTERED_USER_TEMPLATE_SHA256),
+                            ("parse_rule_sha256", REGISTERED_PARSE_RULE_SHA256),
+                            ("choice_order", REGISTERED_CHOICE_ORDER_RULE)):
+        if protocol.get(key) != registered:
+            gate.append(f"protocol {key} is not the registered one")
+    if (payload.get("code") or {}).get("git_dirty") is not False:
+        gate.append("source tree not verified clean (code.git_dirty must be false)")
+    dataset = payload.get("dataset") or {}
+    if dataset.get("sha256") != REGISTERED_DATASET_SHA256:
+        gate.append("dataset is not the registered one (sha256 differs)")
+    repeats = protocol.get("repeats")
+    if repeats != REGISTERED_REPEATS:
+        gate.append(f"repeats {repeats!r} is not the registered {REGISTERED_REPEATS}")
+    ids = {c["case_id"] for c in case_lines}
+    if ids != REGISTERED_CASE_IDS:
+        gate.append(f"case set differs from the registered {len(REGISTERED_CASE_IDS)} cases")
+    unscored = [c["case_id"] for c in case_lines if c["direction"] == "unscored"]
+    if unscored:
+        gate.append(f"{len(unscored)} case(s) without a complete pair")
+    for cond in CONDITIONS:
+        s = summary.get(cond) or {}
+        n = s.get("n") or 0
+        if n == 0:
+            gate.append(f"no {cond} answers")
+            continue
+        expected = len(REGISTERED_CASE_IDS) * REGISTERED_REPEATS
+        if n != expected:
+            gate.append(f"{cond} has {n} rows, expected {expected}")
+        if (s.get("errors") or 0) / n > MAX_ERROR_RATE:
+            gate.append(f"{cond} error rate {(s.get('errors') or 0) / n:.3f} > {MAX_ERROR_RATE}")
+        if (s.get("model_invalid_answers") or 0) / n > MAX_MODEL_INVALID_RATE:
+            gate.append(f"{cond} model-invalid rate {(s.get('model_invalid_answers') or 0) / n:.3f} > {MAX_MODEL_INVALID_RATE}")
+    if pair_counts.get("incomplete"):
+        gate.append(f"{pair_counts['incomplete']} unpaired answers")
+    return gate
+
+
+def _rule(case_lines: list[Mapping[str, Any]], cost: Mapping[str, Any]) -> tuple[str, list[str], dict[str, Any]]:
+    """The verdict rule proper (after the gates): returns (verdict, reasons, case-level facts)."""
     scored = [c for c in case_lines if c["direction"] != "unscored"]
     b_cases = sum(1 for c in scored if c["direction"] == "isolation_better")
     c_cases = sum(1 for c in scored if c["direction"] == "baseline_better")
@@ -348,10 +422,6 @@ def decide(payload: Mapping[str, Any], summary: Mapping[str, Any], case_lines: l
     iso_acc, base_acc = _scored_accuracy(case_lines, "isolated"), _scored_accuracy(case_lines, "baseline")
     all_perfect = bool(scored) and all(c["baseline_score"] == 1.0 and c["isolated_score"] == 1.0 for c in scored)
     ratio = cost.get("ratio")
-    pair_counts: dict[str, int] = defaultdict(int)
-    for p in pair_list:
-        pair_counts[p["category"]] += 1
-    pb, pc = pair_counts["baseline_wrong_isolated_correct"], pair_counts["baseline_correct_isolated_wrong"]
     facts = {
         "cases": len(case_lines),
         "scored_cases": len(scored),
@@ -369,43 +439,8 @@ def decide(payload: Mapping[str, Any], summary: Mapping[str, Any], case_lines: l
                     and iso_acc >= CEILING_ACCURACY and base_acc >= CEILING_ACCURACY),
         "pattern": pattern_of(b_cases=b_cases, c_cases=c_cases, leak_cases=leak_cases, iso_acc=iso_acc,
                               base_acc=base_acc, all_perfect=all_perfect, scored_cases=len(scored)),
-        "pair_categories": dict(sorted(pair_counts.items())),
-        "pair_mcnemar_descriptive": mcnemar_exact(pb, pc),
-        "thresholds": dict(THRESHOLDS),
     }
-
-    gate: list[str] = []
-    if payload.get("status") != "complete":
-        gate.append(f"run status is {payload.get('status')!r}, not 'complete'")
-    if payload.get("protocol_version") != REGISTERED_PROTOCOL_VERSION:
-        gate.append(f"protocol version {payload.get('protocol_version')!r} is not {REGISTERED_PROTOCOL_VERSION!r}")
-    dataset = payload.get("dataset") or {}
-    if dataset.get("sha256") != REGISTERED_DATASET_SHA256:
-        gate.append("dataset is not the registered one (sha256 differs)")
-    repeats = (payload.get("protocol") or {}).get("repeats")
-    if repeats != REGISTERED_REPEATS:
-        gate.append(f"repeats {repeats!r} is not the registered {REGISTERED_REPEATS}")
-    n_cases = dataset.get("n_cases")
-    if n_cases is not None and len(scored) != n_cases:
-        gate.append(f"{n_cases - len(scored)} registered case(s) without a scored answer in both conditions")
-    for cond in CONDITIONS:
-        s = summary.get(cond) or {}
-        n = s.get("n") or 0
-        if n == 0:
-            gate.append(f"no {cond} answers")
-            continue
-        if expected := (n_cases or 0) * (repeats or 0):
-            if n != expected:
-                gate.append(f"{cond} has {n} rows, expected {expected}")
-        if (s.get("errors") or 0) / n > MAX_ERROR_RATE:
-            gate.append(f"{cond} error rate {(s.get('errors') or 0) / n:.3f} > {MAX_ERROR_RATE}")
-        if (s.get("model_invalid_answers") or 0) / n > MAX_MODEL_INVALID_RATE:
-            gate.append(f"{cond} model-invalid rate {(s.get('model_invalid_answers') or 0) / n:.3f} > {MAX_MODEL_INVALID_RATE}")
-    if pair_counts.get("incomplete"):
-        gate.append(f"{pair_counts['incomplete']} unpaired answers")
-    if gate:
-        return {"verdict": "INCONCLUSIVE", "reasons": ["validity gate failed: " + "; ".join(gate)], **facts}
-
+    reasons: list[str] = []
     p = test["p_one_sided_isolated_better"]
     isolation_works = iso_acc is not None and iso_acc >= MIN_ISOLATED_ACCURACY
     strong_baseline = base_acc is not None and base_acc >= MIN_ISOLATED_ACCURACY
@@ -415,34 +450,85 @@ def decide(payload: Mapping[str, Any], summary: Mapping[str, Any], case_lines: l
             f"(one-sided exact sign test p={p:.4f}); baseline errors are mostly hindsight leaks in {leak_cases} "
             f"of those cases; isolated accuracy {iso_acc:.3f}"
         )
-        return {"verdict": "SUPPORTED_FOR_NEXT_TEST", "reasons": reasons, **facts}
+        return "SUPPORTED_FOR_NEXT_TEST", reasons, facts
 
-    comparable_cost = ratio is not None and ratio <= MAX_COST_RATIO
-    if b_cases - c_cases <= NO_ADVANTAGE_MARGIN and comparable_cost and (
-        isolation_works or (c_cases > b_cases and strong_baseline)
-    ):
+    comparable_cost = cost.get("basis") == "reported_tokens" and ratio is not None and ratio <= MAX_COST_RATIO
+    if (b_cases - c_cases <= NO_ADVANTAGE_MARGIN and comparable_cost and strong_baseline
+            and (isolation_works or c_cases > b_cases)):
         if c_cases > b_cases:
             reasons.append(f"a strong baseline (accuracy {base_acc:.3f}) is better than isolation in {c_cases} "
-                           f"case(s) and worse in {b_cases}")
+                           f"case(s) and worse in {b_cases}; isolated accuracy {iso_acc:.3f}")
+            dr = set(STRATA["post_cutoff_content"]["decision_recorded"])
+            if all(c["case_id"] in dr for c in scored if c["direction"] == "baseline_better"):
+                reasons.append("note: every baseline-better case records the decision taken in its post-cutoff "
+                               "events, which only the baseline sees (threat 11.2; descriptive)")
         else:
-            reasons.append(f"baseline matches isolation: isolation better in {b_cases} case(s), baseline better in "
-                           f"{c_cases}, net {b_cases - c_cases} <= margin {NO_ADVANTAGE_MARGIN}; isolated accuracy "
-                           f"{iso_acc:.3f}, baseline accuracy {base_acc:.3f}")
-        reasons.append(f"cost comparable: median pair ratio baseline/isolated {ratio:.3f} <= {MAX_COST_RATIO} "
-                       f"({cost.get('basis')})")
+            reasons.append(f"a strong baseline matches isolation: isolation better in {b_cases} case(s), baseline "
+                           f"better in {c_cases}, net {b_cases - c_cases} <= margin {NO_ADVANTAGE_MARGIN}; isolated "
+                           f"accuracy {iso_acc:.3f}, baseline accuracy {base_acc:.3f}")
+        reasons.append(f"cost comparable: median pair token ratio baseline/isolated {ratio:.3f} <= {MAX_COST_RATIO}")
         if facts["ceiling"]:
-            reasons.append("both conditions are at ceiling on these items (descriptive flag)")
-        return {"verdict": "NO_DISTINCT_ADVANTAGE", "reasons": reasons, **facts}
+            reasons.append("both conditions are perfect on these items (ceiling; descriptive flag)")
+        return "NO_DISTINCT_ADVANTAGE", reasons, facts
 
     if b_cases - c_cases > NO_ADVANTAGE_MARGIN:
         reasons.append(f"isolation ahead in {b_cases} vs {c_cases} cases, but the support criteria are not met "
                        f"(sign test p={p:.4f}, leak cases {leak_cases}, isolated accuracy {iso_acc})")
+    if not strong_baseline:
+        reasons.append(f"baseline accuracy {base_acc} < {MIN_ISOLATED_ACCURACY}: not a strong baseline, so a match "
+                       "cannot be claimed")
     if not isolation_works and not (c_cases > b_cases and strong_baseline):
         reasons.append(f"isolated accuracy {iso_acc} < {MIN_ISOLATED_ACCURACY} and no strong baseline beats it: "
-                       "the comparison is not informative (both conditions fail or the isolated condition fails)")
+                       "the comparison is not informative")
     if not comparable_cost:
-        reasons.append(f"cost not established as comparable (median pair ratio {ratio}, basis {cost.get('basis')})")
-    return {"verdict": "INCONCLUSIVE", "reasons": reasons, **facts}
+        reasons.append(f"cost not established as comparable (median pair ratio {ratio}, basis {cost.get('basis')}; "
+                       "reported token usage is required)")
+    return "INCONCLUSIVE", reasons, facts
+
+
+def _rescore_errors(rows: list[Mapping[str, Any]], condition: str) -> list[dict[str, Any]]:
+    """Copy of the rows with the given condition's error rows scored as wrong, non-leak answers."""
+    out = []
+    for r in rows:
+        r = dict(r)
+        if r["condition"] == condition and is_error(r):
+            r.update(error=None, choice="<error scored wrong>", correct=False, hindsight_leak=False)
+        out.append(r)
+    return out
+
+
+def decide(payload: Mapping[str, Any], summary: Mapping[str, Any], case_lines: list[Mapping[str, Any]],
+           pair_list: list[Mapping[str, Any]], cost: Mapping[str, Any]) -> dict[str, Any]:
+    """Apply the pre-registered verdict rule. Returns the verdict, the reasons that decided it, and the facts."""
+    pair_counts: dict[str, int] = defaultdict(int)
+    for p in pair_list:
+        pair_counts[p["category"]] += 1
+    pb, pc = pair_counts["baseline_wrong_isolated_correct"], pair_counts["baseline_correct_isolated_wrong"]
+    verdict, reasons, facts = _rule(case_lines, cost)
+    facts.update({
+        "pair_categories": dict(sorted(pair_counts.items())),
+        "pair_mcnemar_descriptive": mcnemar_exact(pb, pc),
+        "thresholds": dict(THRESHOLDS),
+        "error_sensitivity": None,
+    })
+    gate = _gate(payload, summary, case_lines, pair_counts)
+    if gate:
+        return {"verdict": "INCONCLUSIVE", "reasons": ["validity gate failed: " + "; ".join(gate)], **facts}
+
+    rows = list(payload.get("results") or [])
+    if verdict != "INCONCLUSIVE" and any(is_error(r) for r in rows):
+        alt = {}
+        for cond in CONDITIONS:
+            rescored = _rescore_errors(rows, cond)
+            alt[cond] = _rule(per_case(rescored), cost_ratio(rescored))[0]
+        facts["error_sensitivity"] = {f"errors_scored_wrong_in_{k}": v for k, v in alt.items()}
+        if any(v != verdict for v in alt.values()):
+            return {"verdict": "INCONCLUSIVE",
+                    "reasons": [f"error sensitivity: the rule gives {verdict} as scored, but "
+                                + ", ".join(f"{v} with {k} errors scored wrong" for k, v in alt.items())
+                                + "; the verdict depends on how errors are treated"],
+                    **facts}
+    return {"verdict": verdict, "reasons": reasons, **facts}
 
 
 def analyze(payload: Mapping[str, Any]) -> dict[str, Any]:

@@ -318,6 +318,8 @@ def test_cli_writes_a_self_contained_result(tmp_path, monkeypatch):
     cases = load_cases()
     gateway = _Gateway(SpyService(cases))
     monkeypatch.setattr(he, "create_gateway", lambda settings, environ=None: gateway)
+    real_code_info = he.code_info
+    monkeypatch.setattr(he, "code_info", lambda: {**real_code_info(), "git_dirty": False})  # independent of the checkout
     out = tmp_path / "r.json"
     code = he.main(["--provider", "anthropic", "--model", "m", "--output", str(out)], environ={})
     assert code == 0 and gateway.closed
@@ -422,3 +424,64 @@ def test_all_cases_have_post_cutoff_hindsight_pressure():
         assert case.correct_at_cutoff in case.choices
         assert case.later_answer in case.choices
         assert len(set(case.choices)) == len(case.choices)
+
+
+def test_isolated_input_must_equal_the_full_input_minus_the_post_cutoff_lines(monkeypatch):
+    case = load_cases()[0]
+    real = he.render_prompt
+
+    def extra_line_in_the_fork(case_, state, repeat=0):
+        text = real(case_, state, repeat)
+        return text + "\nNote: something" if state.seq == case_.cutoff else text
+
+    monkeypatch.setattr(he, "render_prompt", extra_line_in_the_fork)
+    with pytest.raises(ExperimentInvalid):
+        he.evaluate_one(SpyService([case]), case, "isolated")
+
+
+def test_no_retry_once_the_run_is_already_stopping():
+    case = load_cases()[0]
+
+    class Overloaded(SpyService):
+        def complete(self, request, *, max_output_tokens, timeout_s):
+            self.requests.append((request, max_output_tokens))
+            raise ProviderError("model provider error: claude-cli: provider temporarily unavailable (status 529)")
+
+    service = Overloaded([case])
+    row = he.evaluate_one(service, case, "isolated", sleep=lambda s: None, should_stop=lambda: "3 consecutive")
+    assert row.error and len(service.requests) == 1 and len(row.attempts) == 1
+
+
+def test_over_length_failure_is_flagged_as_truncated():
+    case = load_cases()[0]
+
+    class TooLong(SpyService):
+        def complete(self, request, *, max_output_tokens, timeout_s):
+            raise ProviderError("model provider error: claude-cli: reply exceeded CLAUDE_CODE_MAX_OUTPUT_TOKENS")
+
+    row = he.evaluate_one(TooLong([case]), case, "baseline")
+    assert row.truncated and row.error and not row.fatal and len(row.attempts) == 1
+
+
+def test_signal_handlers_keep_an_inherited_ignore(monkeypatch):
+    import signal
+
+    old = signal.signal(signal.SIGHUP, signal.SIG_IGN)
+    try:
+        previous = he._install_signal_handlers()
+        assert signal.getsignal(signal.SIGHUP) is signal.SIG_IGN and signal.SIGHUP not in previous
+        assert signal.getsignal(signal.SIGTERM) is not signal.SIG_DFL
+        he._restore_signal_handlers(previous)
+    finally:
+        signal.signal(signal.SIGHUP, old)
+
+
+def test_result_file_is_world_readable(tmp_path):
+    import stat
+
+    out = tmp_path / "r.json"
+    he._claim(out)
+    he._write_atomic(out, {"x": 1})
+    assert stat.S_IMODE(out.stat().st_mode) == 0o644
+    with pytest.raises(FileExistsError):
+        he._claim(out)

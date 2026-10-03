@@ -69,10 +69,14 @@ DEFAULT_CASES = REPO_ROOT / "experiments" / "multiplicity" / "hindsight_cases.js
 DEFAULT_TIMEOUT_S = 600.0
 PURPOSE = "tmk_hindsight"
 # Retries only when no model reply was received for a transient provider fault (overload, rate limit, 5xx).
-# Timeouts are not retried: long deliberation may depend on the condition, and a retry would resample one side.
+# Timeouts and over-length replies are not retried: long deliberation may depend on the condition, and a retry
+# would resample one side. Retry attempts count toward the gateway's stop after 3 consecutive provider
+# failures, so a fault that exhausts its retries ends the run (status incomplete).
 TRANSIENT_RETRIES = 2
 TRANSIENT_BACKOFF_S = 10.0
-_TRANSIENT = re.compile(r"temporarily unavailable|overloaded|status (?:429|500|502|503|529)\b", re.IGNORECASE)
+_TRANSIENT = re.compile(r"temporarily unavailable|overloaded|status (?:429|500|502|503|529)\b|RateLimitError|"
+                        r"InternalServerError|ServiceUnavailableError", re.IGNORECASE)
+_OVER_LENGTH = re.compile(r"exceeded CLAUDE_CODE_MAX_OUTPUT_TOKENS|output token maximum", re.IGNORECASE)
 # The anthropic provider enforces a per-call cap that includes thinking; the claude-cli provider is left uncapped.
 ANTHROPIC_DEFAULT_MAX_OUTPUT_TOKENS = 16000
 # Non-secret operator settings that change how much the model thinks; recorded so 'effort high' can be checked.
@@ -100,7 +104,7 @@ Timeline:
 Question: {question}
 Choices: {choices}"""
 
-CHOICE_ORDER_RULE = "sorted on even repeats, reverse-sorted on odd repeats; identical in both conditions of a pair"
+CHOICE_ORDER_RULE = hindsight_analysis.REGISTERED_CHOICE_ORDER_RULE
 
 PARSE_RULE = (
     "strict JSON object; else a single fenced ```json block; else the JSON objects embedded in the text, "
@@ -368,6 +372,7 @@ def evaluate_one(
     order_in_pair: int = 0,
     timeout_s: float = DEFAULT_TIMEOUT_S,
     sleep: Callable[[float], None] = time.sleep,
+    should_stop: Callable[[], str | None] | None = None,
 ) -> CaseResult:
     """One scored model call for one case under one condition, through snapshot -> fork -> run."""
     if condition not in CONDITIONS:
@@ -387,6 +392,14 @@ def evaluate_one(
         raise ExperimentInvalid(f"isolation breach: {exposure} post-cutoff event(s) in the isolated input ({case.id})")
     if condition == "baseline" and complete_lines != n_later:
         raise ExperimentInvalid(f"baseline input lacks complete post-cutoff events ({case.id}: {complete_lines}/{n_later})")
+    # The manipulation is the only difference: the isolated input is the full-state input minus the post-cutoff lines.
+    full = request_for_state(case, state_for_case(case), repeat)
+    later_lines = {event_line(int(e["seq"]), str(e["text"])) for e in case.events if int(e["seq"]) > case.cutoff}
+    expected = [ln for ln in full.messages[0].content.splitlines() if ln not in later_lines]
+    if request.system != full.system or request.messages[0].content.splitlines() != (
+        expected if condition == "isolated" else full.messages[0].content.splitlines()
+    ):
+        raise ExperimentInvalid(f"{condition} input differs from the full-state input by more than the cutoff ({case.id})")
 
     prompt = request.messages[0].content
     branch_info = {
@@ -419,12 +432,14 @@ def evaluate_one(
         except ToolError as exc:  # ProviderError is a ToolError; any other ToolError is a configuration fault
             meter = dict(getattr(exc, "meter", None) or {})
             attempts.append({"error": str(exc), "meter": meter})
-            if is_transient(exc) and attempt < TRANSIENT_RETRIES:
+            stopped = should_stop() if should_stop is not None else None
+            if is_transient(exc) and attempt < TRANSIENT_RETRIES and not stopped:
                 sleep(TRANSIENT_BACKOFF_S * (attempt + 1))
                 continue
             return CaseResult(
                 **common,
-                choice=None, confidence=None, parse_mode=None, correct=False, hindsight_leak=False, truncated=False,
+                choice=None, confidence=None, parse_mode=None, correct=False, hindsight_leak=False,
+                truncated=bool(_OVER_LENGTH.search(str(exc))),
                 raw=None, error=str(exc),
                 fatal=isinstance(exc, ProviderUnavailable) or not isinstance(exc, ProviderError),
                 attempts=attempts, meter=meter,
@@ -486,7 +501,7 @@ def run_experiment(
     for repeat, case, order in schedule(cases, repeats):
         for position, condition in enumerate(order):
             row = evaluate_one(service, case, condition, repeat=repeat, order_in_pair=position, timeout_s=timeout_s,
-                               sleep=sleep)
+                               sleep=sleep, should_stop=should_stop)
             run.results.append(row)
             if on_result is not None:
                 on_result(row)
@@ -570,6 +585,7 @@ def protocol_info(repeats: int, timeout_s: float) -> dict[str, Any]:
         "timeout_s": timeout_s,
         "transient_retries": TRANSIENT_RETRIES,
         "parse_rule": PARSE_RULE,
+        "parse_rule_sha256": _sha256_text(PARSE_RULE),
         "verdict_thresholds": dict(hindsight_analysis.THRESHOLDS),
     }
 
@@ -597,6 +613,7 @@ def _claim(path: Path) -> None:
 def _write_atomic(path: Path, payload: Mapping[str, Any]) -> None:
     fd, tmp = tempfile.mkstemp(prefix=path.name + ".", suffix=".partial", dir=path.parent)
     try:
+        os.fchmod(fd, 0o644)
         with os.fdopen(fd, "w", encoding="utf-8") as fh:
             fh.write(json.dumps(payload, indent=2, sort_keys=True) + "\n")
         os.replace(tmp, path)
@@ -631,11 +648,14 @@ def _install_signal_handlers() -> dict[int, Any]:
         raise _Terminated(f"signal {signum}")
 
     for sig in (getattr(signal, "SIGTERM", None), getattr(signal, "SIGHUP", None)):
-        if sig is not None:
-            try:
-                previous[sig] = signal.signal(sig, handler)
-            except (ValueError, OSError):  # not in the main thread, or unsupported
-                pass
+        if sig is None:
+            continue
+        try:
+            if signal.getsignal(sig) is signal.SIG_IGN:  # e.g. started under nohup: keep ignoring it
+                continue
+            previous[sig] = signal.signal(sig, handler)
+        except (ValueError, OSError):  # not in the main thread, or unsupported
+            pass
     return previous
 
 
@@ -724,12 +744,28 @@ def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None
 
     settings = settings_from_args(args)
     output = args.output or default_output(settings, args.repeats)
+    previous_handlers = _install_signal_handlers()
     try:
-        _claim(output)
-    except FileExistsError:
-        print(f"refusing to overwrite existing result file {output}", file=sys.stderr)
-        return 2
+        try:
+            _claim(output)
+        except FileExistsError:
+            print(f"refusing to overwrite existing result file {output}", file=sys.stderr)
+            return 2
+        return _run_claimed(args, settings, output, cases, environ, inside_claude_code, argv)
+    finally:
+        _restore_signal_handlers(previous_handlers)
 
+
+def _run_claimed(
+    args: argparse.Namespace,
+    settings: ModelSettings,
+    output: Path,
+    cases: list[EvalCase],
+    environ: Mapping[str, str],
+    inside_claude_code: bool,
+    argv: list[str] | None,
+) -> int:
+    """Run the experiment into an output file this process has just created exclusively."""
     payload: dict[str, Any] = {
         "experiment": EXPERIMENT_ID,
         "protocol_version": PROTOCOL_VERSION,
@@ -744,8 +780,8 @@ def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None
             "platform": platform.platform(),
             "recorded_env": recorded_env(environ),
         },
-        "code": code_info(),
-        "dataset": dataset_info(args.cases),
+        "code": None,
+        "dataset": None,
         "protocol": protocol_info(args.repeats, args.timeout_s),
         "model": settings.to_dict(),
         "gateway": None,
@@ -763,10 +799,11 @@ def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None
         payload["analysis"] = hindsight_analysis.analyze(payload)
         _write_atomic(output, payload)
 
-    save()
-    previous_handlers = _install_signal_handlers()
     gateway = None
     try:
+        payload["code"] = code_info()
+        payload["dataset"] = dataset_info(args.cases)
+        save()
         gateway = create_gateway(settings, environ=environ)
         describe = gateway.describe()
         payload["gateway"] = describe
@@ -810,7 +847,6 @@ def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None
             if gateway is not None:
                 gateway.close()
         finally:
-            _restore_signal_handlers(previous_handlers)
             payload["finished_at_utc"] = _now()
             save("complete" if payload["stopped_reason"] is None else "incomplete")
 
