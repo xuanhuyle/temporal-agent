@@ -70,9 +70,15 @@ temporal multiplicity as a whole.
 - **Frozen protocol commit:** `a78c0978d862ad3b98ceda9554956d9274264448` on branch
   `research/temporal-multiplicity-kernel-v0`.
 - The run must be made from that commit, or from a later commit that changes
-  only documents or results.
-- The result file records `git_commit`, `git_dirty` and these hashes, which
-  must match:
+  only documents or results (the branch tip, for example, `00fc1f8` or
+  later). So `git_commit` in the result is `a78c097` or such a later commit.
+- The result file records `git_commit`, `git_dirty` and the hashes below.
+  - The verdict gate enforces the prompt and template hashes (with the parse
+    and choice-order rules, the dataset, the case ids, the repeats and a clean
+    tree).
+  - The three file hashes are not gated and must be compared by hand.
+
+The hashes:
 
 | file or text | sha256 |
 |---|---|
@@ -147,7 +153,7 @@ attempted.
 - **Tests:** `PYTHONPATH=src python -m pytest -q tests/test_multiplicity_*.py`
   gives 65 passed. The full suite gives 931 passed. Both CI
   jobs are green.
-- **Isolation, checked on every request before any call.**
+- **Isolation, checked on each request immediately before its call.**
   - The isolated input contains no post-cutoff text and no post-cutoff
     `[seq N]` marker.
   - The baseline input contains every post-cutoff event as its complete line.
@@ -175,11 +181,11 @@ output existed. None is a contestant improvement, and none changes a case.
 |---|---|---|
 | Removed the 128-token output cap | With `--effort high` the Claude CLI fails a reply that exceeds `CLAUDE_CODE_MAX_OUTPUT_TOKENS` (thinking included) instead of truncating it, so v0 would most likely have aborted on the first call | both equally |
 | One shared system prompt carrying the instructions; one user template | v0 gave each condition its own explanatory note, so wording differed as well as information | removes a wording confound |
-| Baseline instruction strengthened | It now states the four points the experiment brief requires (step 4): the question concerns what was justified at the cutoff; later facts may reveal what was actually true; that later truth must not influence the answer; apply the rule in force at the cutoff | baseline (the null), made stronger; isolated receives the same text |
+| Baseline instruction strengthened | It now states the four points the task brief for this iteration requires (its step 4; a test checks them): the question concerns what was justified at the cutoff; later facts may reveal what was actually true; that later truth must not influence the answer; apply the rule in force at the cutoff | baseline (the null), made stronger; isolated receives the same text |
 | Both conditions go through `TemporalMultiplicity.fork` and `.run` | v0 used the kernel only to filter events and called the model outside `run` | none (same input); the manipulation is now literally one parameter |
 | Parser accepts fenced or embedded JSON; ambiguous replies are invalid | v0 counted a well-formed reply wrapped in a code fence as invalid | both equally |
 | Choice order sorted on repeat 0 and reversed on repeat 1, identical within a pair | v0 listed the justified answer first in 8 of 8 cases; sorting alone left it first in 5 of 8 | both equally |
-| Two registered repeats; analysis unit = case; complete-pair scoring; error-sensitivity rule; strong baseline required for the kill verdict; gates pin the prompt, rules, dataset and a clean tree | Repeats of one prompt are not independent, so a pair-level test let 2 leaky cases × 3 repeats reach "supported"; the first draft could also give the kill verdict for a weak, leaking baseline, and let dropped timeouts move the verdict | makes both "supported" and the kill verdict harder to reach by artefact |
+| Two registered repeats; analysis unit = case; complete-pair scoring; error-sensitivity rule; strong baseline required for the kill verdict; gates pin the prompt, rules, dataset and a clean tree | Repeats of one prompt are not independent, so a pair-level test let 2 leaky cases × 3 repeats reach "supported"; earlier drafts could also give the kill verdict for a weak, leaking baseline, and let dropped timeouts move the verdict | makes both "supported" and the kill verdict harder to reach by artefact |
 | Errors recorded per call; transient overloads retried twice (timeouts not retried); fatal faults stop the run; self-contained result file | v0 aborted on any provider error and lost all results | none |
 | Refuse `claude-cli` inside Claude Code | Prevents an illegitimate nested run | none |
 
@@ -267,14 +273,15 @@ model output, and covered by tests. Two adversarial reviews (10 agents, then
 2. **SUPPORTED_FOR_NEXT_TEST** if:
    - the sign test gives p ≤ 0.05; with 8 cases this is met by 5-0, 6-0,
      7-0, 7-1 or 8-0 (isolation-better vs baseline-better cases);
-   - in at least half of the isolation-better cases most baseline errors are
-     hindsight leaks;
+   - in at least half of the isolation-better cases, at least half of the
+     baseline errors are hindsight leaks;
    - isolated accuracy is ≥ 0.85.
 3. **NO_DISTINCT_ADVANTAGE** if a *strong* baseline (accuracy ≥ 0.85) matches
    or beats isolation, meaning all of these hold:
    - (isolation-better cases) − (baseline-better cases) ≤ 1;
-   - the median per-pair *reported-token* ratio baseline/isolated is ≤ 1.25
-     (unknown token usage never counts as comparable);
+   - the median per-pair *reported-token* ratio baseline/isolated is ≤ 1.25,
+     taken over the pairs that report usage; if fewer than half of the pairs
+     report usage, cost is not comparable;
    - either isolated accuracy is ≥ 0.85, or baseline-better cases outnumber
      isolation-better ones.
 4. **INCONCLUSIVE** otherwise, for example a non-significant edge for
@@ -293,9 +300,9 @@ computed from the same case-level facts. The verdict comes from the rule above.
 | label | meaning | verdict the rule gives |
 |---|---|---|
 | `A_both_correct` | both conditions perfect on scored rows (`ceiling` flag) | NO_DISTINCT_ADVANTAGE if cost is comparable; otherwise INCONCLUSIVE |
-| `B_isolated_beats_baseline` | net isolation advantage > 1 case, mostly leaks | SUPPORTED_FOR_NEXT_TEST if criterion 2 holds; otherwise INCONCLUSIVE |
+| `B_isolated_beats_baseline` | net isolation advantage > 1 case, and in at least half of those cases at least half of the baseline errors are leaks | SUPPORTED_FOR_NEXT_TEST if criterion 2 holds; otherwise INCONCLUSIVE |
 | `B_within_margin` | isolation ahead by exactly 1 case | NO_DISTINCT_ADVANTAGE with a strong baseline, a working isolated condition and comparable cost; otherwise INCONCLUSIVE |
-| `mixed_isolated_ahead_without_leaks` | isolation ahead, but baseline errors are mostly not leaks | INCONCLUSIVE |
+| `mixed_isolated_ahead_without_leaks` | isolation ahead by more than 1 case, but the leak criterion fails | INCONCLUSIVE |
 | `C_both_fail` | both accuracies < 0.85 | INCONCLUSIVE |
 | `D_baseline_beats_isolated` | more baseline-better than isolation-better cases | NO_DISTINCT_ADVANTAGE with a strong baseline and comparable cost; otherwise INCONCLUSIVE |
 | `tie` | equal counts, not all perfect | NO_DISTINCT_ADVANTAGE with a strong baseline, a working isolated condition and comparable cost; otherwise INCONCLUSIVE |
@@ -305,8 +312,10 @@ computed from the same case-level facts. The verdict comes from the rule above.
   vs one-sided cases (3);
 - fact revisions (6) vs rule changes (2).
 
-When every baseline-better case is in the decision-recorded stratum, the
-verdict reasons say so (threat 11.2). The verdict itself is unchanged.
+When the verdict is NO_DISTINCT_ADVANTAGE because baseline-better cases
+outnumber isolation-better ones, and every baseline-better case is in the
+decision-recorded stratum, the verdict reasons say so (threat 11.2). The
+verdict itself is unchanged.
 
 ## 7. Aggregate metrics
 
@@ -363,9 +372,9 @@ experiment.
   multiplicity.hindsight_eval` pointed to a module that had moved to
   `multiplicity_experiments`.
 - **Pre-registration flaws found by review:** the first draft of the v0.1
-  verdict rule counted repeats as independent pairs. The second draft could
-  issue the kill verdict for a weak baseline and let dropped timeouts move
-  the verdict. All were fixed before freezing (§5, §6).
+  verdict rule counted repeats as independent pairs. Earlier drafts could
+  also issue the kill verdict for a weak baseline, and let dropped timeouts
+  move the verdict. All were fixed before freezing (§5, §6).
 - **Runner regression found by review:** a SIGHUP handler would have stopped
   a `nohup` run when the terminal closed. An inherited ignore is now kept.
 - **Kernel scope:** `epistemic_cutoff` filters `knowledge` only (§2).
@@ -375,8 +384,9 @@ experiment.
 ## 11. Threats to validity
 
 1. **Low hindsight pressure.**
-   - Six of the eight later events say that they were not knowable at the
-     cutoff, for example "although this was not known at sequence 2".
+   - In six of the eight cases, the final later event (seq 4) says that the
+     information was not known or not available at the cutoff, for example
+     "although this was not known at sequence 2".
    - The two rule-change events mark the change as new.
    - So the baseline is told, case by case, how to discount the later
      information.
@@ -392,14 +402,15 @@ experiment.
    - The justified answer is always the permissive or default option, and
      the later answer is always the restrictive or alarm option.
    - Hindsight and a general caution bias are therefore confounded.
-   - That would inflate any isolation effect, because the risk vocabulary
-     appears only in post-cutoff text.
+   - That would inflate any isolation effect, because evidence that the risk
+     materialised appears only in post-cutoff text.
    - No case has hindsight that clears a past decision.
 4. **Small and homogeneous.**
    - 8 cases, all with cutoff = 2, four events and two choices (two cases
      have three).
-   - On the six binary cases every wrong answer is by definition a "leak", so
-     the leak criterion only discriminates on `incident` and `fraud`.
+   - On the six binary cases every wrong *parsed* answer is by definition a
+     "leak", so there the leak criterion can fail only through model-invalid
+     replies. It discriminates properly only on `incident` and `fraud`.
 5. **Cases not held out.** They were visible while the v0 and v0.1 prompts
    were written. No model has seen them in this pipeline and nothing was
    tuned to model behaviour, but they are development items, not held-out
@@ -428,8 +439,14 @@ experiment.
 - A frontier model at high effort, told explicitly what was knowable, will
   most likely answer every baseline item correctly.
 
-**If the result is A or D,** the verdict is NO_DISTINCT_ADVANTAGE, and the
-kill criterion applies to this candidate benefit as tested.
+**If the result is A or D and the rule gives NO_DISTINCT_ADVANTAGE** (strong
+baseline, comparable cost, sensitivity rule passed), this candidate benefit
+has failed its first test.
+- Strictly, the kill criterion asks for a match across *held-out* cases, and
+  these are development items (§11.5). So this is the kill criterion applied
+  to development items.
+- It is still this iteration's verdict. It must not be explained away, and it
+  must not be answered by building more machinery.
 - Read it as: *on explicit, self-labelled, short hindsight, a strong
   baseline already reasons from what was knowable; mechanically removing the
   later facts adds nothing.*
