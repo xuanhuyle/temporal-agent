@@ -12,10 +12,28 @@ record*, which the ToolBox sums into the step's meter and writes to the trace:
 
 ``model_complete``::
 
-    {"provider", "model", "input_tokens", "output_tokens",
+    {"provider", "model", "usage_available", "input_tokens", "output_tokens",
      "cache_read_input_tokens", "cache_creation_input_tokens",
-     "retrieval_tokens", "cost_usd", "stop_reason", "purpose",
-     "request_sha256", "max_output_tokens", "latency_ms"}
+     "total_input_tokens", "auxiliary_input_tokens", "auxiliary_output_tokens",
+     "retrieval_tokens", "cost_usd", "cost_basis", "stop_reason", "purpose",
+     "request_sha256", "max_output_tokens", "latency_ms", ["provider_meta"]}
+
+- ``input_tokens`` is the provider's uncached input count and the cache
+  fields are its cache reads/writes; ``total_input_tokens`` is their sum,
+  i.e. every prompt token processed. Budgets and efficiency use the total.
+- If a backend cannot report usage (``usage_available: false``) every token
+  field is ``null``: the gateway never invents numbers. Budgets then fall
+  back to the deterministic estimate, and the run is marked as having
+  incomplete usage.
+- ``cost_basis`` says where ``cost_usd`` comes from: ``price_table`` (token
+  counts times the list prices in :mod:`harness.model.pricing`),
+  ``provider_reported`` (a figure the provider or CLI reported for the call),
+  or ``null`` when the call is unpriced (then ``cost_usd`` is ``null``).
+- ``auxiliary_*`` count tokens a provider spent on its own side calls (the
+  Claude CLI makes small auxiliary model calls); they are reported apart from
+  the contestant's call.
+- ``provider_meta`` holds provider-specific, JSON-only details (for the
+  Claude CLI: CLI version, per-model usage, thinking tokens, turn count).
 
 ``embed``::
 
@@ -40,7 +58,7 @@ import hashlib
 import math
 import os
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Mapping, Protocol, Sequence, runtime_checkable
 
 from harness.agent import ModelSettings
@@ -61,6 +79,7 @@ __all__ = [
     "request_sha256",
     "texts_sha256",
     "PROVIDER_ERROR_PREFIX",
+    "ProviderUnavailable",
     "DEFAULT_MAX_OUTPUT_TOKENS",
     "DEFAULT_EMBEDDING_DIMS",
     "COMPLETION_PROVIDERS",
@@ -68,10 +87,19 @@ __all__ = [
 ]
 
 PROVIDER_ERROR_PREFIX = "model provider error"
+# How each provider is reached (part of the run description, so it is in the fingerprint).
+PROVIDER_TRANSPORTS = {
+    "fake": "harness-local deterministic test double (machinery checks only; outputs are not model outputs)",
+    "anthropic": "Anthropic Messages API via the official SDK (credentials from the harness environment)",
+    "claude-cli": (
+        "Claude Code CLI in non-interactive mode (claude -p --output-format json) with the operator's existing "
+        "Claude login; tools, MCP servers and customizations disabled; the CLI adds its own context to every request"
+    ),
+}
 DEFAULT_MAX_OUTPUT_TOKENS = 4096
 DEFAULT_EMBEDDING_DIMS = 384
 MAX_EMBEDDING_DIMS = 65536
-COMPLETION_PROVIDERS = ("none", "fake", "anthropic")
+COMPLETION_PROVIDERS = ("none", "fake", "anthropic", "claude-cli")
 EMBEDDING_PROVIDERS = ("none", "hash")
 # Model ids of the harness-local backends (fixed; settings may only repeat them).
 FAKE_MODEL_ID = "fake-v1"
@@ -79,9 +107,26 @@ HASH_EMBEDDING_MODEL_ID = "hash-ngram-v1"
 
 
 # ------------------------------------------------------------------ raw types
+class ProviderUnavailable(ToolError):
+    """The provider cannot serve this run any more (not logged in, usage limit, CLI missing or broken).
+
+    Raised by a backend instead of an ordinary provider error. The agent sees
+    it as a tool error like any other, and the gateway records it in
+    ``fatal_error``, which the runner checks after every agent call: a run
+    whose model became unavailable is stopped and marked failed rather than
+    continued with degraded, incomparable steps.
+    """
+
+
 @dataclass(frozen=True)
 class RawCompletion:
-    """What a completion backend returns: text plus the provider's (or estimator's) usage."""
+    """What a completion backend returns: text plus the provider's (or estimator's) usage.
+
+    ``usage_available=False`` means the backend could not obtain token counts;
+    the count fields must then be 0 and are reported as ``null``.
+    ``reported_cost_usd`` is a cost figure the provider itself reported for the
+    call (used instead of the price table). ``meta`` is JSON-only.
+    """
 
     text: str
     stop_reason: str
@@ -90,6 +135,11 @@ class RawCompletion:
     output_tokens: int
     cache_read_input_tokens: int = 0
     cache_creation_input_tokens: int = 0
+    usage_available: bool = True
+    reported_cost_usd: float | None = None
+    auxiliary_input_tokens: int = 0
+    auxiliary_output_tokens: int = 0
+    meta: Mapping[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -138,6 +188,16 @@ def _is_count(v: Any) -> bool:
     return isinstance(v, int) and not isinstance(v, bool) and v >= 0
 
 
+def _is_json(v: Any) -> bool:
+    if not isinstance(v, Mapping):
+        return False
+    try:
+        canonical_json(dict(v))
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
 def _malformed(what: str) -> ToolError:
     return ToolError(f"{PROVIDER_ERROR_PREFIX}: malformed {what} from the backend")
 
@@ -161,6 +221,8 @@ class ModelGateway:
         self._backend = backend
         self._embedder = embedder
         self.pricing = pricing if pricing is not None else Pricing()
+        # Set when a backend reports that the provider can no longer serve the run.
+        self.fatal_error: str | None = None
 
     # ------------------------------------------------------------ description
     @property
@@ -203,6 +265,7 @@ class ModelGateway:
         return {
             "provider": s.provider,
             "model": self.completion_model,
+            "transport": PROVIDER_TRANSPORTS.get(s.provider),
             "settings": s.to_dict(),
             "effective_max_output_tokens": s.max_output_tokens or DEFAULT_MAX_OUTPUT_TOKENS,
             "embedding_provider": s.embedding_provider,
@@ -211,6 +274,15 @@ class ModelGateway:
             "embedding_kind": embedding_kind,
             "pricing": self.pricing.describe([self.completion_model, self.embedding_model]),
         }
+
+    def runtime_info(self) -> dict[str, Any]:
+        """Facts about the live backend (e.g. the Claude CLI version) for run metadata.
+
+        Not part of :meth:`describe` (and so not of the run fingerprint),
+        because it is read from the machine, not from the settings.
+        """
+        info = getattr(self._backend, "runtime_info", None)
+        return dict(info()) if callable(info) else {}
 
     def lane(self, name: str) -> "LaneModelService":
         """The ModelService for one agent lane (use the lane's trace name: replay is keyed by it)."""
@@ -236,47 +308,70 @@ class ModelGateway:
         started = time.monotonic()
         try:
             raw = self._backend.complete(request, self.settings, max_output_tokens=cap, timeout_s=timeout_s, lane=lane)
+        except ProviderUnavailable as exc:
+            self.fatal_error = self.fatal_error or str(exc)
+            raise
         except ToolError:
             raise
         except Exception as exc:  # noqa: BLE001 - provider faults are reported by class only
             raise _provider_failure(exc) from None
         latency_ms = round((time.monotonic() - started) * 1000.0, 3)
+        counts = ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens",
+                  "auxiliary_input_tokens", "auxiliary_output_tokens")
         if not (
             isinstance(raw, RawCompletion)
             and isinstance(raw.text, str)
             and isinstance(raw.stop_reason, str)
             and isinstance(raw.model, str)
             and raw.model
-            and all(
-                _is_count(getattr(raw, f))
-                for f in ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")
-            )
+            and isinstance(raw.usage_available, bool)
+            and all(_is_count(getattr(raw, f)) for f in counts)
+            and (raw.usage_available or all(getattr(raw, f) == 0 for f in counts[:4]))
+            and (raw.reported_cost_usd is None or (
+                isinstance(raw.reported_cost_usd, (int, float)) and not isinstance(raw.reported_cost_usd, bool)
+                and math.isfinite(raw.reported_cost_usd) and raw.reported_cost_usd >= 0))
+            and _is_json(raw.meta)
         ):
             raise _malformed("completion")
+        known = raw.usage_available
+        total_in = raw.input_tokens + raw.cache_read_input_tokens + raw.cache_creation_input_tokens
         total_chars = request.total_chars()
-        retrieval_tokens = round(raw.input_tokens * request.retrieval_chars / total_chars) if total_chars else 0
-        cost = self.pricing.cost(
-            raw.model,
-            input_tokens=raw.input_tokens,
-            output_tokens=raw.output_tokens,
-            cache_read_input_tokens=raw.cache_read_input_tokens,
-            cache_creation_input_tokens=raw.cache_creation_input_tokens,
-        )
-        meter = {
+        retrieval_tokens = round(total_in * request.retrieval_chars / total_chars) if total_chars else 0
+        if raw.reported_cost_usd is not None:
+            cost, basis = round(float(raw.reported_cost_usd), 8), "provider_reported"
+        elif known:
+            cost = self.pricing.cost(
+                raw.model,
+                input_tokens=raw.input_tokens,
+                output_tokens=raw.output_tokens,
+                cache_read_input_tokens=raw.cache_read_input_tokens,
+                cache_creation_input_tokens=raw.cache_creation_input_tokens,
+            )
+            basis = "price_table" if cost is not None else None
+        else:
+            cost, basis = None, None
+        meter: dict[str, Any] = {
             "provider": self.settings.provider,
             "model": raw.model,
-            "input_tokens": raw.input_tokens,
-            "output_tokens": raw.output_tokens,
-            "cache_read_input_tokens": raw.cache_read_input_tokens,
-            "cache_creation_input_tokens": raw.cache_creation_input_tokens,
-            "retrieval_tokens": retrieval_tokens,
+            "usage_available": known,
+            "input_tokens": raw.input_tokens if known else None,
+            "output_tokens": raw.output_tokens if known else None,
+            "cache_read_input_tokens": raw.cache_read_input_tokens if known else None,
+            "cache_creation_input_tokens": raw.cache_creation_input_tokens if known else None,
+            "total_input_tokens": total_in if known else None,
+            "auxiliary_input_tokens": raw.auxiliary_input_tokens,
+            "auxiliary_output_tokens": raw.auxiliary_output_tokens,
+            "retrieval_tokens": retrieval_tokens if known else None,
             "cost_usd": cost,
+            "cost_basis": basis,
             "stop_reason": raw.stop_reason,
             "purpose": request.purpose,
             "request_sha256": digest,
             "max_output_tokens": cap,
             "latency_ms": latency_ms,
         }
+        if raw.meta:
+            meter["provider_meta"] = dict(raw.meta)
         response = ModelResponse(
             text=raw.text,
             stop_reason=raw.stop_reason,
@@ -366,8 +461,10 @@ def _check_settings(settings: ModelSettings) -> None:
         raise ValueError(
             f"unknown embedding provider {s.embedding_provider!r}; expected one of {', '.join(EMBEDDING_PROVIDERS)}"
         )
-    if s.provider == "anthropic" and not (isinstance(s.name, str) and s.name):
-        raise ValueError("model provider 'anthropic' requires a model name")
+    if s.provider in ("anthropic", "claude-cli") and not (isinstance(s.name, str) and s.name):
+        raise ValueError(f"model provider {s.provider!r} requires a model name")
+    if s.provider == "claude-cli" and s.temperature is not None:
+        raise ValueError("model provider 'claude-cli' cannot set a temperature (the Claude CLI has no such option)")
     if s.provider == "fake" and s.name not in (None, FAKE_MODEL_ID):
         raise ValueError(f"model provider 'fake' serves only {FAKE_MODEL_ID!r}")
     if s.embedding_provider == "hash" and s.embedding_model not in (None, HASH_EMBEDDING_MODEL_ID):
@@ -420,6 +517,10 @@ def create_gateway(
         from harness.model.anthropic_backend import AnthropicBackend
 
         backend = AnthropicBackend()
+    elif settings.provider == "claude-cli":
+        from harness.model.claude_cli import ClaudeCliBackend
+
+        backend = ClaudeCliBackend(environ=environ)
     if settings.embedding_provider == "hash":
         from harness.model.embeddings import HashEmbeddingBackend
 

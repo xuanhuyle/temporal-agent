@@ -130,9 +130,9 @@ class _Lane:
 
     def add_meter(self, meter: dict[str, Any]) -> None:
         for k, v in meter.items():
-            if k == "cost_known":
-                self.usage["cost_known"] = bool(self.usage.get("cost_known", True) and v)
-            elif isinstance(v, (int, float)) and not isinstance(v, bool):
+            if isinstance(v, bool):  # cost_known / tokens_known: false once any step lacked the figure
+                self.usage[k] = bool(self.usage.get(k, True) and v)
+            elif isinstance(v, (int, float)):
                 self.usage[k] = self.usage.get(k, 0) + v
 
     def add_reported(self, usage: dict[str, Any]) -> None:

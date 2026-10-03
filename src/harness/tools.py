@@ -29,6 +29,9 @@ from harness.canonical import canonical_json
 from harness.errors import AccessDenied, BudgetExceeded, ToolBoxClosed, ToolError
 from harness.llm import EmbeddingResponse, InvalidModelRequest, ModelRequest, ModelResponse
 from harness.tool_specs import COUNTED_FAMILIES, TOOL_NAMES, TOOL_SPECS, bind_args, check_arg
+
+# Prefix of every error raised by a model provider (harness.model.gateway.PROVIDER_ERROR_PREFIX).
+PROVIDER_ERROR_PREFIX = "model provider error"
 from harness.workspace import Workspace
 
 __all__ = [
@@ -77,10 +80,13 @@ METER_KEYS = (
     "tool_calls",
     "commands",
     "model_calls",
-    "model_input_tokens",
+    "model_input_tokens",  # every prompt token the provider processed (uncached + cache reads + cache writes)
     "model_output_tokens",
     "model_cache_read_tokens",
     "model_cache_write_tokens",
+    "model_auxiliary_input_tokens",  # the provider's own side calls (e.g. the Claude CLI), reported apart
+    "model_auxiliary_output_tokens",
+    "model_provider_errors",
     "retrieval_tokens",
     "embedding_calls",
     "embedding_tokens",
@@ -92,9 +98,11 @@ METER_KEYS = (
 
 
 def empty_meter() -> dict[str, Any]:
+    """A zero meter. ``cost_known``/``tokens_known`` turn false as soon as one call lacks that figure."""
     m: dict[str, Any] = {k: 0 for k in METER_KEYS}
     m["cost_usd"] = 0.0
     m["cost_known"] = True
+    m["tokens_known"] = True
     return m
 
 
@@ -135,6 +143,9 @@ class ToolBox:
         self._model = model
         self._deadline = deadline
         self._meter = empty_meter()
+        # Budget counters: metered tokens, or the estimate when a backend cannot report usage.
+        self._spent_in = 0
+        self._spent_out = 0
         self._exhausted = False
         self._closed = False
 
@@ -165,8 +176,8 @@ class ToolBox:
             "tool_calls": max(0, b.max_tool_calls_per_event - m["tool_calls"]),
             "commands": max(0, b.max_commands_per_event - m["commands"]),
             "model_calls": max(0, b.max_model_calls_per_event - m["model_calls"]),
-            "model_input_tokens": max(0, b.max_model_input_tokens_per_event - m["model_input_tokens"]),
-            "model_output_tokens": max(0, b.max_model_output_tokens_per_event - m["model_output_tokens"]),
+            "model_input_tokens": max(0, b.max_model_input_tokens_per_event - self._spent_in),
+            "model_output_tokens": max(0, b.max_model_output_tokens_per_event - self._spent_out),
             "embedding_tokens": max(0, b.max_embedding_tokens_per_event - m["embedding_tokens"]),
         }
 
@@ -228,6 +239,8 @@ class ToolBox:
                 self._record({"tool": tool, "args": recorded, "status": "denied", "error": str(exc)})
                 raise
             except ToolError as exc:
+                if spec.family == "model" and str(exc).startswith(PROVIDER_ERROR_PREFIX):
+                    self._meter["model_provider_errors"] += 1
                 self._record({"tool": tool, "args": recorded, "status": "error", "error": str(exc)})
                 raise
             plain = result.to_dict() if isinstance(result, (ModelResponse, EmbeddingResponse)) else result
@@ -331,20 +344,36 @@ class ToolBox:
             b, m = self._budget, self._meter
             if m["model_calls"] >= b.max_model_calls_per_event:
                 raise _Refused(f"model-call budget of {b.max_model_calls_per_event} per event exhausted")
-            remaining_in = b.max_model_input_tokens_per_event - m["model_input_tokens"]
-            if self._model.estimate_input_tokens(req) > remaining_in:
+            remaining_in = b.max_model_input_tokens_per_event - self._spent_in
+            estimate = self._model.estimate_input_tokens(req)
+            if estimate > remaining_in:
                 raise _Refused(f"model input-token budget of {b.max_model_input_tokens_per_event} per event exhausted")
-            remaining_out = b.max_model_output_tokens_per_event - m["model_output_tokens"]
+            remaining_out = b.max_model_output_tokens_per_event - self._spent_out
             if remaining_out < 1:
                 raise _Refused(f"model output-token budget of {b.max_model_output_tokens_per_event} per event exhausted")
             cap = remaining_out if req.max_output_tokens is None else min(req.max_output_tokens, remaining_out)
             m["model_calls"] += 1
             response, meter = self._model.complete(req, max_output_tokens=cap, timeout_s=self._remaining_time())
-            m["model_input_tokens"] += meter.get("input_tokens", 0)
-            m["model_output_tokens"] += meter.get("output_tokens", 0)
-            m["model_cache_read_tokens"] += meter.get("cache_read_input_tokens", 0)
-            m["model_cache_write_tokens"] += meter.get("cache_creation_input_tokens", 0)
-            m["retrieval_tokens"] += meter.get("retrieval_tokens", 0)
+            used_in = meter.get("total_input_tokens")
+            if used_in is None and meter.get("input_tokens") is not None:
+                used_in = sum(meter.get(k) or 0 for k in
+                              ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"))
+            used_out = meter.get("output_tokens")
+            if used_in is None or used_out is None:
+                # The backend could not report usage: never invent numbers, but keep the budget honest.
+                m["tokens_known"] = False
+                self._spent_in += estimate
+                self._spent_out += cap
+            else:
+                m["model_input_tokens"] += used_in
+                m["model_output_tokens"] += used_out
+                self._spent_in += used_in
+                self._spent_out += used_out
+            m["model_cache_read_tokens"] += meter.get("cache_read_input_tokens") or 0
+            m["model_cache_write_tokens"] += meter.get("cache_creation_input_tokens") or 0
+            m["model_auxiliary_input_tokens"] += meter.get("auxiliary_input_tokens") or 0
+            m["model_auxiliary_output_tokens"] += meter.get("auxiliary_output_tokens") or 0
+            m["retrieval_tokens"] += meter.get("retrieval_tokens") or 0
             self._add_cost(meter)
             return _Metered(response, meter)
 

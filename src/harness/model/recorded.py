@@ -13,7 +13,11 @@ order the original run made them):
     {"lane": str, "tool": "model_complete", "request_sha256": hex,
      "text": str, "stop_reason": str, "model": str,
      "input_tokens": int, "output_tokens": int,
-     "cache_read_input_tokens": int, "cache_creation_input_tokens": int}
+     "cache_read_input_tokens": int, "cache_creation_input_tokens": int,
+     # optional (defaults in brackets):
+     "usage_available": bool [true], "reported_cost_usd": float|null [null],
+     "auxiliary_input_tokens": int [0], "auxiliary_output_tokens": int [0],
+     "meta": {...} [{}]}
 
 ``embed``, answered::
 
@@ -66,6 +70,14 @@ _COMPLETION_FIELDS = (
     "cache_creation_input_tokens",
 )
 _EMBEDDING_FIELDS = ("vectors", "model", "input_tokens")
+# Completion fields that older recordings may lack, with the value they had then.
+_OPTIONAL_COMPLETION_FIELDS: dict[str, Any] = {
+    "usage_available": True,
+    "reported_cost_usd": None,
+    "auxiliary_input_tokens": 0,
+    "auxiliary_output_tokens": 0,
+    "meta": {},
+}
 
 
 def _validate(call: Any, index: int) -> dict[str, Any]:
@@ -129,7 +141,8 @@ class RecordedBackend:
         lane: str,
     ) -> RawCompletion:
         rec = self._next(lane, "model_complete", request_sha256(request))
-        return RawCompletion(**{f: rec[f] for f in _COMPLETION_FIELDS})
+        optional = {f: rec.get(f, default) for f, default in _OPTIONAL_COMPLETION_FIELDS.items()}
+        return RawCompletion(**{f: rec[f] for f in _COMPLETION_FIELDS}, **optional)
 
     def embed(self, texts: list[str], settings: ModelSettings, *, timeout_s: float | None, lane: str) -> RawEmbedding:
         rec = self._next(lane, "embed", texts_sha256(texts))
@@ -160,6 +173,14 @@ def recorded_call_from_trace(record: Mapping[str, Any], result: Any = None) -> d
         out: dict[str, Any] = {"lane": lane, "tool": tool, _HASH_KEY[tool]: meter[_HASH_KEY[tool]]}
         fields = _COMPLETION_FIELDS if tool == "model_complete" else _EMBEDDING_FIELDS
         out.update({f: result[f] for f in fields})
+        if tool == "model_complete":
+            # What the meter shows beyond the response: usage availability, a
+            # provider-reported cost, auxiliary usage and provider details.
+            out["usage_available"] = bool(meter.get("usage_available", True))
+            out["reported_cost_usd"] = meter.get("cost_usd") if meter.get("cost_basis") == "provider_reported" else None
+            out["auxiliary_input_tokens"] = meter.get("auxiliary_input_tokens", 0)
+            out["auxiliary_output_tokens"] = meter.get("auxiliary_output_tokens", 0)
+            out["meta"] = dict(meter.get("provider_meta") or {})
         return out
     error = record.get("error")
     if status != "error" or not isinstance(error, str) or not error.startswith(PROVIDER_ERROR_PREFIX):
