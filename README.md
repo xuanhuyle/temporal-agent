@@ -25,6 +25,8 @@ Product framing: this is a **model-agnostic cognitive capability** injected into
 
 See [docs/temporal-multiplicity-kernel-v0.md](docs/temporal-multiplicity-kernel-v0.md). This does not reverse the Milestone 2.5 stop decision on the earlier Tesseract architecture.
 
+The first real-model test (protocol v0.1, frozen and pre-registered; not yet run, because it must run outside Claude Code) and its exact command are in [docs/experiments/tmk-hindsight-v0-results.md](docs/experiments/tmk-hindsight-v0-results.md).
+
 ## Core question
 
 > When a new event changes the significance of an earlier decision, can an agent autonomously identify the affected historical decision, reconstruct what it knew at the time, reconsider it, and return to the present with a better action?

@@ -4,7 +4,7 @@
 |---|---|
 | **Verdict** | **INCONCLUSIVE**: no real-model run has happened yet. |
 | Why | The `claude-cli` run cannot legitimately execute inside the Claude Code session that prepared it (§3.5). It has to be run from a normal terminal with the command in §3.4. |
-| Protocol | v0.1, frozen at commit `{{FREEZE_SHA}}` (§3.1). The verdict rule was fixed before any model output existed (§6). |
+| Protocol | v0.1, frozen at commit `a78c0978d862ad3b98ceda9554956d9274264448` (§3.1). The verdict rule was fixed before any model output existed (§6). |
 | What exists | Validated machinery (§4). It says nothing about the hypothesis. |
 
 When the external run has been made, sections 7 to 9 and 13 are filled from
@@ -67,7 +67,7 @@ temporal multiplicity as a whole.
 
 ### 3.1 Code
 
-- **Frozen protocol commit:** `{{FREEZE_SHA}}` on branch
+- **Frozen protocol commit:** `a78c0978d862ad3b98ceda9554956d9274264448` on branch
   `research/temporal-multiplicity-kernel-v0`.
 - The run must be made from that commit, or from a later commit that changes
   only documents or results.
@@ -76,11 +76,11 @@ temporal multiplicity as a whole.
 
 | file or text | sha256 |
 |---|---|
-| `src/multiplicity_experiments/hindsight_eval.py` | `{{EVAL_SHA}}` |
-| `src/multiplicity_experiments/hindsight_analysis.py` | `{{ANALYSIS_SHA}}` |
-| core package `src/multiplicity/*.py` (combined, as computed by `code_info`) | `{{CORE_SHA}}` |
-| system prompt | `{{SYSTEM_SHA}}` |
-| user template | `{{TEMPLATE_SHA}}` |
+| `src/multiplicity_experiments/hindsight_eval.py` | `160ffadd015be3ccb8310d6ea8b64157aaf22a5f8c1bb3f91574d246b56b954f` |
+| `src/multiplicity_experiments/hindsight_analysis.py` | `499a03fa300a2265130204874efae51e9713e2b95e449f7abe87c8c4c61a13b1` |
+| core package `src/multiplicity/*.py` (combined, as computed by `code_info`) | `661db097084e1210935f6e4350fbfd17c4746541b68a51a683eec1b7a14ac318` |
+| system prompt | `9275528a47f4fa4ae2ed936295bc08b5c3c2ddb7dceb8e4c52dd9f0f6aa47c26` |
+| user template | `10bd61a30a525f7ea24ec6b8dcb8fd461d74a211233243adacaaa792b5780253` |
 
 ### 3.2 Model and provider
 
@@ -103,8 +103,10 @@ temporal multiplicity as a whole.
 
 ### 3.4 The command
 
-Run from the repository root in a normal terminal, with Python ≥ 3.11, and
-the Claude Code CLI installed and logged in:
+Run from the repository root in a normal terminal (not inside Claude Code),
+with Python ≥ 3.11, the Claude Code CLI installed and logged in, and no local
+edits to tracked files. The verdict gate requires a clean tree, and untracked
+result files do not count:
 
     git fetch origin research/temporal-multiplicity-kernel-v0 && git checkout research/temporal-multiplicity-kernel-v0 && git pull --ff-only && PYTHONPATH=src python -m multiplicity_experiments.hindsight_eval --provider claude-cli --model claude-fable-5-1 --effort high
 
@@ -143,7 +145,7 @@ attempted.
 ## 4. Machinery validation (not a scientific result)
 
 - **Tests:** `PYTHONPATH=src python -m pytest -q tests/test_multiplicity_*.py`
-  gives {{N_TESTS}} passed. The full suite gives {{N_FULL}} passed. Both CI
+  gives 65 passed. The full suite gives 931 passed. Both CI
   jobs are green.
 - **Isolation, checked on every request before any call.**
   - The isolated input contains no post-cutoff text and no post-cutoff
@@ -177,37 +179,65 @@ output existed. None is a contestant improvement, and none changes a case.
 | Both conditions go through `TemporalMultiplicity.fork` and `.run` | v0 used the kernel only to filter events and called the model outside `run` | none (same input); the manipulation is now literally one parameter |
 | Parser accepts fenced or embedded JSON; ambiguous replies are invalid | v0 counted a well-formed reply wrapped in a code fence as invalid | both equally |
 | Choice order sorted on repeat 0 and reversed on repeat 1, identical within a pair | v0 listed the justified answer first in 8 of 8 cases; sorting alone left it first in 5 of 8 | both equally |
-| Two registered repeats; analysis unit = case | Repeats of one prompt are not independent, so a pair-level test let 2 leaky cases × 3 repeats reach "supported" | makes support harder to reach |
+| Two registered repeats; analysis unit = case; complete-pair scoring; error-sensitivity rule; strong baseline required for the kill verdict; gates pin the prompt, rules, dataset and a clean tree | Repeats of one prompt are not independent, so a pair-level test let 2 leaky cases × 3 repeats reach "supported"; the first draft could also give the kill verdict for a weak, leaking baseline, and let dropped timeouts move the verdict | makes both "supported" and the kill verdict harder to reach by artefact |
 | Errors recorded per call; transient overloads retried twice (timeouts not retried); fatal faults stop the run; self-contained result file | v0 aborted on any provider error and lost all results | none |
 | Refuse `claude-cli` inside Claude Code | Prevents an illegitimate nested run | none |
 
-The frozen system prompt (sha256 `{{SYSTEM_SHA}}`), identical in both
+The frozen system prompt (sha256 `9275528a47f4fa4ae2ed936295bc08b5c3c2ddb7dceb8e4c52dd9f0f6aa47c26`), identical in both
 conditions:
 
 ```text
-{{SYSTEM_PROMPT}}
+You are taking part in a controlled evaluation of historical decision-making.
+
+Each item gives a timeline of events numbered by sequence (seq), a cutoff sequence, a question and a list of choices. The timeline contains the decision rule and the facts.
+
+The question asks which choice was justified at the cutoff: the decision that should have been made at that moment, from what could be known then.
+
+- Use only the events with seq less than or equal to the cutoff.
+- Events after the cutoff, if any are shown, were not knowable at the cutoff. They may reveal what was actually true, or show that the decision later turned out to be wrong. That later truth must not influence your answer.
+- Apply the decision rule that was in force at the cutoff. If the rule changed after the cutoff, ignore the change.
+
+Reply with JSON only, with exactly two keys: "choice" (exactly one of the listed choices, spelled as listed) and "confidence" (a number from 0 to 1).
 ```
 
-The user template (sha256 `{{TEMPLATE_SHA}}`):
+The user template (sha256 `10bd61a30a525f7ea24ec6b8dcb8fd461d74a211233243adacaaa792b5780253`):
 
 ```text
-{{USER_TEMPLATE}}
+Cutoff: seq {cutoff}
+
+Timeline:
+{timeline}
+
+Question: {question}
+Choices: {choices}
 ```
 
 Example: `incident-network-backfill`, repeat 0. The isolated request is this
-text without the two lines marked `>` (the marks are not part of the prompt):
+text without the two lines marked `>` (the margin marks and the indentation are
+not part of the prompt):
 
 ```text
-{{EXAMPLE}}
+  Cutoff: seq 2
+
+  Timeline:
+  [seq 1] Decision rule in force: classify capacity only if CPU is above 80%; classify network only if packet loss is above 5%; otherwise classify transient.
+  [seq 2] Observed: API latency is high, CPU is 42%, and packet-loss monitoring reports 1%.
+> [seq 3] The incident is escalated for deeper network inspection.
+> [seq 4] A monitoring bug is discovered. Packet loss during sequence 2 was actually 12%, although this was not known at sequence 2.
+
+  Question: How should the incident be classified at the cutoff?
+  Choices: capacity, network, transient
 ```
 
 ## 6. Pre-registered analysis and verdict rule
 
 Fixed in `src/multiplicity_experiments/hindsight_analysis.py` before any
-model output, and covered by tests.
+model output, and covered by tests. Two adversarial reviews (10 agents, then
+4) checked it; their confirmed findings were applied before the freeze.
 
 **Scoring.**
-- A *provider error* (no reply) is excluded from the scores and gated
+- A *provider error* (no scorable reply: timeout, over-length reply,
+  provider fault after retries) is excluded from the scores and gated
   separately.
 - A *model-invalid* reply (no listed choice could be parsed) counts as
   wrong. It is not a leak.
@@ -217,7 +247,8 @@ model output, and covered by tests.
 
 **Unit of analysis.**
 - Each case gets a score per condition: the mean correctness over its
-  repeats.
+  *complete pairs*, i.e. repeats where neither condition errored. This keeps
+  the choice-order counterbalance matched.
 - The case is *isolation-better* when its isolated score is higher,
   *baseline-better* when it is lower, and a *tie* otherwise.
 - The primary test is an exact one-sided sign test over cases. Pair-level
@@ -226,40 +257,56 @@ model output, and covered by tests.
 **Verdict,** applied in this order:
 1. **INCONCLUSIVE** if any validity gate fails:
    - the run is incomplete;
-   - the protocol version, dataset sha256, repeat count (2) or case count
-     differs from the registered one;
+   - the protocol version, system prompt, user template, choice-order rule,
+     parse rule, dataset, case set or repeat count (2) differs from the
+     registered one;
+   - the source tree was not verified clean (`git_dirty` must be `false`);
    - more than 12.5% provider errors, or more than 12.5% model-invalid
      answers, in either condition;
-   - a case has no scored answer in one condition.
+   - a case has no complete pair.
 2. **SUPPORTED_FOR_NEXT_TEST** if:
-   - the sign test gives p ≤ 0.05, which with 8 cases needs at least 5
-     isolation-better cases and none the other way;
-   - in at least half of those cases most baseline errors are hindsight
-     leaks;
+   - the sign test gives p ≤ 0.05; with 8 cases this is met by 5-0, 6-0,
+     7-0, 7-1 or 8-0 (isolation-better vs baseline-better cases);
+   - in at least half of the isolation-better cases most baseline errors are
+     hindsight leaks;
    - isolated accuracy is ≥ 0.85.
-3. **NO_DISTINCT_ADVANTAGE** if all of these hold:
+3. **NO_DISTINCT_ADVANTAGE** if a *strong* baseline (accuracy ≥ 0.85) matches
+   or beats isolation, meaning all of these hold:
    - (isolation-better cases) − (baseline-better cases) ≤ 1;
-   - the median per-pair token ratio baseline/isolated is ≤ 1.25;
-   - either isolated accuracy is ≥ 0.85, or a baseline with accuracy ≥ 0.85
-     beats isolation in more cases than it loses.
+   - the median per-pair *reported-token* ratio baseline/isolated is ≤ 1.25
+     (unknown token usage never counts as comparable);
+   - either isolated accuracy is ≥ 0.85, or baseline-better cases outnumber
+     isolation-better ones.
 4. **INCONCLUSIVE** otherwise, for example a non-significant edge for
-   isolation, both conditions failing, or cost that is not comparable or not
-   known.
+   isolation, a weak baseline, both conditions failing, or cost that is not
+   comparable or not known.
 
-**Mapping to the brief's patterns.** The pattern label is computed from the
-same case-level facts.
+**Sensitivity rule.** If any provider-error rows exist, a verdict other than
+INCONCLUSIVE stands only if the same verdict results when those rows are
+re-scored as wrong answers in the baseline only, and again in the isolated
+condition only. A timeout can depend on the condition, so the verdict must not
+depend on dropping it.
 
-| pattern | verdict |
-|---|---|
-| A, both conditions perfect | NO_DISTINCT_ADVANTAGE, flagged `ceiling` |
-| B, baseline leaks where isolated is correct | SUPPORTED_FOR_NEXT_TEST only under criterion 2; otherwise INCONCLUSIVE |
-| C, both fail | INCONCLUSIVE |
-| D, a strong baseline beats isolation | NO_DISTINCT_ADVANTAGE |
+**Patterns.** The brief's patterns are reported as a descriptive label,
+computed from the same case-level facts. The verdict comes from the rule above.
+
+| label | meaning | verdict the rule gives |
+|---|---|---|
+| `A_both_correct` | both conditions perfect on scored rows (`ceiling` flag) | NO_DISTINCT_ADVANTAGE if cost is comparable; otherwise INCONCLUSIVE |
+| `B_isolated_beats_baseline` | net isolation advantage > 1 case, mostly leaks | SUPPORTED_FOR_NEXT_TEST if criterion 2 holds; otherwise INCONCLUSIVE |
+| `B_within_margin` | isolation ahead by exactly 1 case | NO_DISTINCT_ADVANTAGE with a strong baseline, a working isolated condition and comparable cost; otherwise INCONCLUSIVE |
+| `mixed_isolated_ahead_without_leaks` | isolation ahead, but baseline errors are mostly not leaks | INCONCLUSIVE |
+| `C_both_fail` | both accuracies < 0.85 | INCONCLUSIVE |
+| `D_baseline_beats_isolated` | more baseline-better than isolation-better cases | NO_DISTINCT_ADVANTAGE with a strong baseline and comparable cost; otherwise INCONCLUSIVE |
+| `tie` | equal counts, not all perfect | NO_DISTINCT_ADVANTAGE with a strong baseline, a working isolated condition and comparable cost; otherwise INCONCLUSIVE |
 
 **Descriptive strata** (no effect on the verdict):
 - cases whose post-cutoff block records the decision actually taken (5)
   vs one-sided cases (3);
 - fact revisions (6) vs rule changes (2).
+
+When every baseline-better case is in the decision-recorded stratum, the
+verdict reasons say so (threat 11.2). The verdict itself is unchanged.
 
 ## 7. Aggregate metrics
 
@@ -315,9 +362,12 @@ experiment.
 - **Stale command:** the documented command `python -m
   multiplicity.hindsight_eval` pointed to a module that had moved to
   `multiplicity_experiments`.
-- **Pre-registration flaw found by review:** the first draft of the v0.1
-  verdict rule counted repeats as independent pairs. It was fixed before
-  freezing (§5, §6).
+- **Pre-registration flaws found by review:** the first draft of the v0.1
+  verdict rule counted repeats as independent pairs. The second draft could
+  issue the kill verdict for a weak baseline and let dropped timeouts move
+  the verdict. All were fixed before freezing (§5, §6).
+- **Runner regression found by review:** a SIGHUP handler would have stopped
+  a `nohup` run when the terminal closed. An inherited ignore is now kept.
 - **Kernel scope:** `epistemic_cutoff` filters `knowledge` only (§2).
   Harmless here, but any later experiment that stores post-cutoff
   information in beliefs or context would leak it.
