@@ -1,8 +1,16 @@
 """Command-line entry point.
 
     python -m harness smoke                       # smoke scenario, dummy agent, writes runs/<run_id>/
-    python -m harness smoke-baseline              # smoke scenario, every baseline preset, fake model (machinery check)
-    python -m harness smoke-baseline --model-provider anthropic --model claude-opus-5-5
+
+    # Machinery check (CI): every baseline preset driven by the deterministic fake model.
+    # Proves the harness works; its scores say nothing about baseline quality.
+    python -m harness smoke-baseline-fake
+
+    # Real model run through the Claude Code CLI and the operator's existing Claude login
+    # (e.g. a Max subscription; no API key). Run it from a normal terminal, not from inside Claude Code.
+    python -m harness claude-cli-check --model claude-opus-5-5          # one tiny call: CLI, login, model
+    python -m harness smoke-baseline-claude --model claude-opus-5-5 --effort high
+
     python -m harness run --scenario PATH --agent dummy [--agent baseline-k32] [--model-provider fake] ...
     python -m harness replay runs/<run_id>
     python -m harness report runs/<run_id> [--markdown]
@@ -11,8 +19,9 @@
 
 The model configuration belongs to the run (protocol amendment A3): every
 agent in a run gets the same provider, model and settings. Credentials are
-read by the provider backend from the harness environment (for ``anthropic``:
-``ANTHROPIC_API_KEY``) and are never passed to contestants.
+read by the provider backend from the harness environment (``anthropic``:
+``ANTHROPIC_API_KEY``; ``claude-cli``: the Claude CLI's own login) and are
+never passed to contestants.
 """
 
 from __future__ import annotations
@@ -57,6 +66,9 @@ def _headline(scores: dict[str, Any]) -> dict[str, Any]:
 
 
 def model_settings_from_args(args: argparse.Namespace) -> ModelSettings:
+    fixed = getattr(args, "model_provider_fixed", None)
+    if fixed is not None and args.model_provider != fixed:
+        raise SystemExit(f"this command always uses --model-provider {fixed}")
     provider = args.model_provider
     if provider == "none":
         return ModelSettings()
@@ -77,16 +89,55 @@ def model_settings_from_args(args: argparse.Namespace) -> ModelSettings:
     )
 
 
+def _budget_from_args(args: argparse.Namespace, scenario: Any) -> StepBudget | None:
+    overrides: dict[str, int] = {}
+    if args.max_tool_calls is not None:
+        overrides["max_tool_calls_per_event"] = args.max_tool_calls
+    if getattr(args, "wall_clock_s", None) is not None:
+        overrides["wall_clock_s_per_event"] = args.wall_clock_s
+    if not overrides:
+        return None
+    return StepBudget(**{**scenario.budgets, **overrides})
+
+
+def _preflight(model: ModelSettings) -> int:
+    """One tiny call through the Claude CLI before a long run (login, model, CLI flags)."""
+    from harness.model.claude_cli import ClaudeCliBackend
+    from harness.model.gateway import ProviderUnavailable
+    from harness.errors import ToolError
+
+    backend = ClaudeCliBackend()
+    try:
+        info = backend.check(model)
+    except (ProviderUnavailable, ToolError) as exc:
+        print(json.dumps({"preflight": "failed", "error": str(exc)}, indent=2))
+        return 1
+    finally:
+        backend.close()
+    print(json.dumps({"preflight": info}, indent=2))
+    return 0
+
+
 def _execute(args: argparse.Namespace, agent_specs: list[str]) -> int:
     scenario = load_scenario(Path(args.scenario))
     agents = [create_agent(spec) for spec in agent_specs]
     model = model_settings_from_args(args)
     if model.provider == "none" and any(is_process_agent(a) for a in agents):
         raise SystemExit(
-            "model-backed contestants need a model: pass --model-provider fake (deterministic machinery check) "
-            "or --model-provider anthropic --model MODEL_ID"
+            "model-backed contestants need a model: use smoke-baseline-fake (deterministic machinery check), "
+            "or --model-provider claude-cli --model MODEL_ID (your Claude login), "
+            "or --model-provider anthropic --model MODEL_ID (API key)"
         )
-    budget = StepBudget(max_tool_calls_per_event=args.max_tool_calls) if args.max_tool_calls is not None else None
+    try:
+        from harness.model import create_gateway
+
+        create_gateway(model).close()  # validate the configuration before anything starts
+    except ValueError as exc:
+        raise SystemExit(f"invalid model configuration: {exc}") from None
+    if model.provider == "claude-cli" and not getattr(args, "skip_preflight", False):
+        if _preflight(model) != 0:
+            raise SystemExit("Claude CLI preflight failed; nothing was run")
+    budget = _budget_from_args(args, scenario)
     config = RunConfig(
         runs_dir=Path(args.runs_dir),
         seed=args.seed,
@@ -95,7 +146,12 @@ def _execute(args: argparse.Namespace, agent_specs: list[str]) -> int:
         run_id=args.run_id,
         allow_draft=args.allow_draft,
     )
-    result = run(scenario, agents, config)
+    try:
+        result = run(scenario, agents, config)
+    except RuntimeError as exc:  # e.g. the model provider became unavailable; outputs are preserved
+        print(json.dumps({"status": "failed", "error": str(exc),
+                          "note": "the run directory, trace and partial outputs are preserved"}, indent=2))
+        return 1
     print(json.dumps({"run_id": result.run_id, "run_dir": str(result.run_dir), "status": result.status,
                       "fingerprint": result.fingerprint, "model": model.to_dict(),
                       "scores": _headline(result.scores) if result.scores else None}, indent=2))
@@ -108,6 +164,10 @@ def _cmd_run(args: argparse.Namespace) -> int:
 
 def _cmd_smoke_baseline(args: argparse.Namespace) -> int:
     return _execute(args, args.agent or list(BASELINE_SMOKE_SET))
+
+
+def _cmd_claude_cli_check(args: argparse.Namespace) -> int:
+    return _preflight(model_settings_from_args(args))
 
 
 def _cmd_replay(args: argparse.Namespace) -> int:
@@ -158,13 +218,15 @@ def build_parser() -> argparse.ArgumentParser:
         sp.add_argument("--run-id", default=None)
         sp.add_argument("--allow-draft", action="store_true")
         m = sp.add_argument_group("model (one configuration for every agent in the run)")
-        m.add_argument("--model-provider", choices=("none", "fake", "anthropic"), default=provider_default)
+        m.add_argument("--model-provider", choices=("none", "fake", "anthropic", "claude-cli"), default=provider_default)
         m.add_argument("--model", default=None, help=f"model id (default {FAKE_MODEL} for the fake provider)")
         m.add_argument("--max-output-tokens", type=int, default=None)
         m.add_argument("--temperature", type=float, default=None)
         m.add_argument("--effort", default=None, choices=("low", "medium", "high", "xhigh", "max"))
         m.add_argument("--prompt-caching", action="store_true")
         m.add_argument("--embedding-provider", choices=("none", "hash"), default="hash")
+        sp.add_argument("--wall-clock-s", type=int, default=None, help="per-event wall-clock budget for contestant processes")
+        sp.add_argument("--skip-preflight", action="store_true", help="claude-cli: skip the one-call check before the run")
 
     rp_run = sub.add_parser("run", help="run agents through a scenario")
     add_run_args(rp_run, None, "none")
@@ -172,9 +234,21 @@ def build_parser() -> argparse.ArgumentParser:
     rp_smoke = sub.add_parser("smoke", help="run the 10-event smoke scenario")
     add_run_args(rp_smoke, str(SMOKE_MANIFEST), "none")
     rp_smoke.set_defaults(func=_cmd_run)
-    rp_base = sub.add_parser("smoke-baseline", help="run the baseline presets on the smoke scenario")
-    add_run_args(rp_base, str(SMOKE_MANIFEST), "fake")
-    rp_base.set_defaults(func=_cmd_smoke_baseline)
+    rp_fake = sub.add_parser(
+        "smoke-baseline-fake",
+        help="machinery check: baseline presets on smoke_v1 with the deterministic fake model (scores are meaningless)",
+    )
+    add_run_args(rp_fake, str(SMOKE_MANIFEST), "fake")
+    rp_fake.set_defaults(func=_cmd_smoke_baseline, model_provider_fixed="fake")
+    rp_claude = sub.add_parser(
+        "smoke-baseline-claude",
+        help="real model run: baseline presets on smoke_v1 through the Claude CLI and your existing Claude login",
+    )
+    add_run_args(rp_claude, str(SMOKE_MANIFEST), "claude-cli")
+    rp_claude.set_defaults(func=_cmd_smoke_baseline, model_provider_fixed="claude-cli")
+    rp_check = sub.add_parser("claude-cli-check", help="one tiny call through the Claude CLI (login, model, flags)")
+    add_run_args(rp_check, str(SMOKE_MANIFEST), "claude-cli")
+    rp_check.set_defaults(func=_cmd_claude_cli_check, model_provider_fixed="claude-cli")
 
     rp = sub.add_parser("replay", help="replay a recorded run and verify it reproduces")
     rp.add_argument("run_dir")
