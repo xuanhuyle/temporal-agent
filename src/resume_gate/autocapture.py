@@ -28,16 +28,49 @@ def _package_version(name: str) -> str | None:
         return None
 
 
+def _type_shape(value: Any) -> dict[str, Any]:
+    """Return a stable-enough structural description without Pydantic.
+
+    This is the fallback for graph schemas that LangGraph can execute but whose
+    JSON-schema generation is unavailable (for example typing.TypedDict on
+    Python 3.11).
+    """
+
+    annotations = getattr(value, "__annotations__", {}) or {}
+    return {
+        "annotations": {
+            str(key): str(annotation)
+            for key, annotation in sorted(annotations.items(), key=lambda item: str(item[0]))
+        },
+        "required": sorted(str(key) for key in (getattr(value, "__required_keys__", ()) or ())),
+        "optional": sorted(str(key) for key in (getattr(value, "__optional_keys__", ()) or ())),
+        "total": getattr(value, "__total__", None),
+    }
+
+
+def _json_schema_or_shape(graph: Any, method_name: str, schema_attr: str) -> Any:
+    method = getattr(graph, method_name, None)
+    if callable(method):
+        try:
+            return {"json_schema": method()}
+        except Exception:
+            pass
+    builder = getattr(graph, "builder", None)
+    return {
+        "type_shape": _type_shape(getattr(builder, schema_attr, None)),
+    }
+
+
 def _schema_fingerprint(graph: Any) -> str:
-    input_schema = graph.get_input_jsonschema()
-    output_schema = graph.get_output_jsonschema()
+    builder = getattr(graph, "builder", None)
     channels = []
     for name in getattr(graph, "channels", {}) or {}:
         if not str(name).startswith(("branch:", "join:", "__")):
             channels.append(str(name))
     payload = {
-        "input": input_schema,
-        "output": output_schema,
+        "input": _json_schema_or_shape(graph, "get_input_jsonschema", "input_schema"),
+        "output": _json_schema_or_shape(graph, "get_output_jsonschema", "output_schema"),
+        "state": _type_shape(getattr(builder, "state_schema", None)),
         "state_channels": sorted(channels),
     }
     return f"sha256:{_digest(payload)}"
