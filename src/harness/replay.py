@@ -2,9 +2,14 @@
 
 A :class:`ReplayAgent` re-issues each recorded tool call (including failed and
 denied ones) and returns the recorded actions and usage, reproducing recorded
-agent failures. The replay is written to a *new* run directory and compared
-record-by-record with the original (volatile keys excluded). Private agent
-state (``state_tree``) is not reproducible by replay and is excluded.
+agent failures and timeouts. The replay is written to a *new* run directory and
+compared record-by-record with the original (volatile keys excluded). Private
+agent state (``state_tree``) is not reproducible by replay and is excluded.
+
+Workspace, history and command calls are re-executed for real (so their
+results are verified). Model and embedding calls are re-issued too, but the
+run's gateway serves the *recorded* responses instead of calling a provider,
+after checking that each request is byte-identical to the recorded one.
 """
 
 from __future__ import annotations
@@ -14,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from harness.agent import (
+    USAGE_FIELDS,
     Agent,
     AgentEvent,
     AgentResponse,
@@ -22,6 +28,7 @@ from harness.agent import (
     Usage,
     action_from_dict,
 )
+from harness.process import StepTimeout
 from harness.runner import RunConfig, RunResult, run, write_manifest
 from harness.scenario import ScenarioError, load_scenario
 from harness.tools import BudgetExceeded, ToolBox
@@ -72,8 +79,11 @@ def _recreate_invalid_response(error: str) -> Any:
 class ReplayAgent(Agent):
     kind = "replay"
 
-    def __init__(self, name: str, description: dict[str, Any], records: list[dict[str, Any]]) -> None:
+    def __init__(
+        self, name: str, description: dict[str, Any], records: list[dict[str, Any]], blobs_dir: Path | None = None
+    ) -> None:
         super().__init__(name)
+        self._blobs_dir = blobs_dir
         self._description = {k: v for k, v in description.items() if k != "name"}
         self._setup: dict[str, Any] | None = None
         self._start: dict[str, Any] | None = None
@@ -103,16 +113,25 @@ class ReplayAgent(Agent):
         if self._setup and self._setup["status"] != "ok":
             raise _recreate_exception(self._setup["error"])
 
+    def _arg(self, value: Any) -> Any:
+        if isinstance(value, dict) and set(value) == {"blob"}:
+            if self._blobs_dir is None:
+                raise ReplayError("recorded argument is stored as a blob but no blob directory was given")
+            return load_blob(self._blobs_dir, value["blob"])
+        return _reconstruct_arg(value)
+
     def _replay_calls(self, seq: int, rec: dict[str, Any] | None, tools: ToolBox) -> None:
-        """Re-issue every recorded call of a step, then reproduce a budget overrun if one ended it."""
+        """Re-issue every recorded call of a step, then reproduce a budget overrun or timeout that ended it."""
         for call in self._calls.get(seq, []):
             fn = getattr(tools, call["tool"])
             try:
-                fn(**{k: _reconstruct_arg(v) for k, v in call["args"].items()})
+                fn(**{k: self._arg(v) for k, v in call["args"].items()})
             except (ToolError, BudgetExceeded):
                 pass
         if rec and rec["status"] == "budget_exceeded" and rec["error"] != SWALLOWED_BUDGET:
             raise BudgetExceeded(rec["error"])
+        if rec and rec["status"] == "timeout":
+            raise StepTimeout(rec["error"])
 
     def on_start(self, tools: ToolBox) -> None:
         self._replay_calls(0, self._start, tools)
@@ -132,10 +151,50 @@ class ReplayAgent(Agent):
             raise _recreate_exception(resp["error"])
         if resp["status"] == "invalid_response":
             return _recreate_invalid_response(resp["error"])  # type: ignore[return-value]
+        reported = resp.get("reported_usage", resp["usage"])  # Milestone-1 traces have only "usage"
         return AgentResponse(
             actions=[action_from_dict(a) for a in resp["actions"]],
-            usage=Usage(**resp["usage"]),
+            usage=Usage(**{k: reported[k] for k in USAGE_FIELDS if k in reported}),
         )
+
+
+def load_blob(blobs_dir: Path, digest: str) -> Any:
+    if not isinstance(digest, str) or len(digest) != 64 or not all(c in "0123456789abcdef" for c in digest):
+        raise ReplayError(f"invalid blob reference {digest!r}")
+    return json.loads((Path(blobs_dir) / f"{digest}.json").read_text(encoding="utf-8"))
+
+
+def recorded_model_calls(records: list[dict[str, Any]], blobs_dir: Path) -> tuple[dict[str, Any], ...]:
+    """Model and embedding calls of a run that reached the gateway's backend, in trace order.
+
+    Each item: ``{lane, tool, status, args, result, meter, error}`` with blob
+    references resolved. Calls refused by the ToolBox (budget, invalid request)
+    never reached a backend; they carry no ``meter`` and are left out.
+    """
+    out = []
+    for rec in records:
+        if rec.get("type") != "tool_call" or rec.get("tool") not in ("model_complete", "embed"):
+            continue
+        if rec.get("status") == "ok":
+            result = load_blob(blobs_dir, rec["result_sha256"])
+        elif rec.get("status") == "error" and str(rec.get("error", "")).startswith(("model provider error", "replay:")):
+            result = None
+        else:
+            continue
+        args = {
+            k: (load_blob(blobs_dir, v["blob"]) if isinstance(v, dict) and set(v) == {"blob"} else v)
+            for k, v in rec["args"].items()
+        }
+        out.append({
+            "lane": rec["agent"],
+            "tool": rec["tool"],
+            "status": rec["status"],
+            "args": args,
+            "result": result,
+            "meter": rec.get("meter"),
+            "error": rec.get("error"),
+        })
+    return tuple(out)
 
 
 def compare_runs(original: Path, replayed: Path) -> list[dict[str, Any]]:
@@ -167,7 +226,8 @@ def replay_run(run_dir: Path, *, runs_dir: Path | None = None, scenario_path: Pa
         raise ScenarioError("scenario content differs from the one the run used; replay would not be faithful")
 
     records = read_jsonl(run_dir / "trace.jsonl")
-    agents = [ReplayAgent(spec["name"], spec, records) for spec in meta["agents"]]
+    blobs_dir = run_dir / "blobs"
+    agents = [ReplayAgent(spec["name"], spec, records, blobs_dir) for spec in meta["agents"]]
     cfg = meta["config"]
     config = RunConfig(
         runs_dir=Path(runs_dir) if runs_dir else run_dir.parent,
@@ -176,6 +236,7 @@ def replay_run(run_dir: Path, *, runs_dir: Path | None = None, scenario_path: Pa
         model=ModelSettings(**cfg["model"]),
         allow_draft=cfg["allow_draft"],
         hygiene=cfg.get("hygiene", True),
+        recorded_model_calls=recorded_model_calls(records, blobs_dir),
     )
     result = run(scenario, agents, config, replay_of=meta["run_id"])
     mismatches = compare_runs(run_dir, result.run_dir)

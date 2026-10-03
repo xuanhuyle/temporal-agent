@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip && python -m pip install "pytest>=8.0"
+
+      - name: Test suite
+        run: python -m pytest -q
+
+      - name: Smoke run (reference agents)
+        run: PYTHONPATH=src python -m harness smoke --runs-dir "$RUNNER_TEMP/runs"
+
+      - name: Baseline smoke run (fake model, machinery check) and replay
+        run: |
+          PYTHONPATH=src python -m harness smoke-baseline --runs-dir "$RUNNER_TEMP/runs" > "$RUNNER_TEMP/smoke-baseline.json"
+          cat "$RUNNER_TEMP/smoke-baseline.json"
+          RUN_DIR=$(python -c "import json,sys; print(json.load(open(sys.argv[1]))['run_dir'])" "$RUNNER_TEMP/smoke-baseline.json")
+          PYTHONPATH=src python -m harness replay "$RUN_DIR"
+
+      - name: Keep run outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runs
+          path: ${{ runner.temp }}/runs
+          if-no-files-found: ignore
+          retention-days: 30

@@ -190,9 +190,16 @@ def action_from_dict(d: dict[str, Any]) -> Action:
 
 
 # ---------------------------------------------------------------------- usage
+USAGE_FIELDS = ("model_input_tokens", "model_output_tokens", "retrieval_tokens", "model_calls", "cost_usd")
+
+
 @dataclass(frozen=True)
 class Usage:
-    """Inference accounting reported by the agent (placeholders for non-LLM agents)."""
+    """Inference accounting *reported by the agent itself*.
+
+    Since protocol v0.2 (amendment A3) efficiency is computed from harness-metered
+    usage; this self-report is recorded as ``reported_usage`` for reference only.
+    """
 
     model_input_tokens: int = 0
     model_output_tokens: int = 0

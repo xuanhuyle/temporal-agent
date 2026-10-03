@@ -310,7 +310,10 @@ class ToolBox:
                 limit = min(limit, remaining)
             if limit <= 0:
                 raise ToolError("run_command: no wall-clock time left in this step")
-            return self._commands.run(command, limit)
+            result = dict(self._commands.run(command, limit))
+            # Timing is volatile: keep it out of what the agent sees and out of the result hash.
+            timing = result.pop("wall_clock_ms", None)
+            return _Metered(result, {"wall_clock_ms": timing})
 
         return self._invoke("run_command", {"command": command, "timeout_s": timeout_s}, go)
 
