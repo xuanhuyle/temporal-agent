@@ -113,7 +113,8 @@ def test_agent_context_and_events_carry_no_ground_truth(mini_scenario, runs_dir)
     result = run(mini_scenario, [agent], RunConfig(runs_dir=runs_dir))
     ctx = agent.contexts[0]
     assert {f.name for f in dataclasses.fields(AgentContext)} == {
-        "agent_name", "seed", "state_dir", "budget", "model", "instructions", "instructions_version"}
+        "agent_name", "seed", "state_dir", "budget", "model", "instructions", "instructions_version",
+        "restart_count"}
     rendered = repr(ctx)
     for forbidden in ("ground_truth", "labels.json", str(mini_scenario.base_dir), "scenarios", "mini_v1"):
         assert forbidden not in rendered

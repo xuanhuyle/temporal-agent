@@ -222,14 +222,36 @@ class AgentResponse:
 # -------------------------------------------------------------------- context
 @dataclass(frozen=True)
 class StepBudget:
-    """Per-event budget applied identically to every contestant."""
+    """Per-event budget applied identically to every contestant.
+
+    A scenario manifest may fix any of these; the rest come from the harness
+    defaults below and are recorded in the run configuration (protocol
+    amendment A4). Step 0 (``on_start``) gets the same budget as an event.
+
+    - ``max_tool_calls_per_event``: workspace, history and command tool calls.
+    - ``max_commands_per_event``: ``run_command`` calls (also tool calls).
+    - ``command_timeout_s``: ceiling for a single command.
+    - ``max_model_calls_per_event``: ``model_complete`` calls.
+    - ``max_model_input_tokens_per_event`` / ``max_model_output_tokens_per_event``:
+      harness-metered model tokens.
+    - ``max_embedding_tokens_per_event``: harness-metered embedding input tokens.
+    - ``wall_clock_s_per_event``: enforced for contestants in a separate process.
+    """
 
     max_tool_calls_per_event: int = 200
+    max_commands_per_event: int = 8
+    command_timeout_s: int = 180
+    max_model_calls_per_event: int = 24
+    max_model_input_tokens_per_event: int = 800_000
+    max_model_output_tokens_per_event: int = 64_000
+    max_embedding_tokens_per_event: int = 2_000_000
+    wall_clock_s_per_event: int = 1800
 
     def __post_init__(self) -> None:
-        n = self.max_tool_calls_per_event
-        if isinstance(n, bool) or not isinstance(n, int) or n < 1:
-            raise ValueError("max_tool_calls_per_event must be a positive integer")
+        for name in self.__dataclass_fields__:
+            n = getattr(self, name)
+            if isinstance(n, bool) or not isinstance(n, int) or n < 1:
+                raise ValueError(f"{name} must be a positive integer")
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -237,11 +259,24 @@ class StepBudget:
 
 @dataclass(frozen=True)
 class ModelSettings:
-    """Shared foundation-model settings (placeholder until LLM contestants exist)."""
+    """Foundation-model and embedding configuration of a *run* (protocol amendment A3).
 
+    Every agent in a run uses these settings; a contestant cannot choose its
+    own model, temperature or provider. ``provider`` names a harness backend
+    (``none``, ``fake``, ``anthropic``); ``embedding_provider`` likewise
+    (``none``, ``hash``). Credentials are never part of the settings: they
+    are read from the harness environment by the backend.
+    """
+
+    provider: str = "none"
     name: str | None = None
     temperature: float | None = None
     max_output_tokens: int | None = None
+    effort: str | None = None
+    prompt_caching: bool = False
+    embedding_provider: str = "none"
+    embedding_model: str | None = None
+    embedding_dims: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -266,6 +301,7 @@ class AgentContext:
     model: ModelSettings
     instructions: str
     instructions_version: str
+    restart_count: int = 0  # >0 when a contestant process is restarted after a timeout or crash
 
 
 # ---------------------------------------------------------------------- agent

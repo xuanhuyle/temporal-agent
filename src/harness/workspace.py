@@ -20,17 +20,14 @@ from pathlib import Path
 from typing import Iterable
 
 from harness.canonical import IGNORED_DIR_NAMES, IGNORED_SUFFIXES, sha256_bytes
+from harness.errors import AccessDenied, ToolError
+
+__all__ = ["Workspace", "ToolError", "AccessDenied", "validate_relpath"]
 
 MAX_FILE_BYTES = 1_000_000
 MAX_SEARCH_RESULTS = 500
 
 
-class ToolError(Exception):
-    """A recoverable tool failure reported back to the agent."""
-
-
-class AccessDenied(ToolError):
-    """The requested path is outside what this workspace may touch."""
 
 
 def validate_relpath(rel: object, *, allow_root: bool = False) -> tuple[str, ...]:
