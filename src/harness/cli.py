@@ -57,9 +57,12 @@ def _headline(scores: dict[str, Any]) -> dict[str, Any]:
             "present_remediation_success": s["present_remediation_success"]["value"],
             "step_status": s["step_status"],
             "model_calls": eff.get("model_calls"),
-            "model_input_tokens": eff.get("model_input_tokens"),
-            "model_output_tokens": eff.get("model_output_tokens"),
+            # null when any call's usage was unavailable: a partial sum would understate it
+            "model_input_tokens": eff.get("model_input_tokens") if eff.get("tokens_known", True) else None,
+            "model_output_tokens": eff.get("model_output_tokens") if eff.get("tokens_known", True) else None,
             "cost_usd": eff.get("cost_usd") if eff.get("cost_known", True) else None,
+            "uncached_cost_usd": eff.get("uncached_cost_usd") if eff.get("uncached_cost_known", True) else None,
+            "model_provider_errors": eff.get("model_provider_errors"),
             "tool_calls": eff.get("tool_calls"),
         }
     return out
@@ -152,9 +155,16 @@ def _execute(args: argparse.Namespace, agent_specs: list[str]) -> int:
         print(json.dumps({"status": "failed", "error": str(exc),
                           "note": "the run directory, trace and partial outputs are preserved"}, indent=2))
         return 1
-    print(json.dumps({"run_id": result.run_id, "run_dir": str(result.run_dir), "status": result.status,
-                      "fingerprint": result.fingerprint, "model": model.to_dict(),
-                      "scores": _headline(result.scores) if result.scores else None}, indent=2))
+    out: dict[str, Any] = {"run_id": result.run_id, "run_dir": str(result.run_dir), "status": result.status,
+                           "fingerprint": result.fingerprint, "model": model.to_dict()}
+    if model.provider == "fake":
+        out["note"] = ("FAKE MODEL: machinery check only. The deterministic test double chose every tool call and "
+                       "reopen by hashing; these scores say nothing about baseline quality.")
+    if model.embedding_provider == "hash":
+        out["embedding_note"] = ("Dense retrieval used lexical hash embeddings (hash-ngram-v1), not a neural "
+                                 "semantic embedding (see docs/protocol-amendments.md D1).")
+    out["scores"] = _headline(result.scores) if result.scores else None
+    print(json.dumps(out, indent=2))
     return 0 if result.status == "completed" else 1
 
 

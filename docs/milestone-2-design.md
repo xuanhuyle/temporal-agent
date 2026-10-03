@@ -45,7 +45,7 @@ Harness side (benchmark infrastructure, runs in the harness process):
 | `harness/tool_specs.py` | declarative tool table (names, families, argument types) |
 | `harness/history.py` | `WorldHistory`: the revealed world timeline (A1) |
 | `harness/commands.py` | `CommandRunner`: `run_command` (A2) |
-| `harness/model/` | `ModelGateway` and backends: fake, anthropic, hash embeddings, recorded (A3) |
+| `harness/model/` | `ModelGateway` and backends: fake, claude-cli, anthropic, hash embeddings, recorded (A3) |
 | `harness/process.py` | `ProcessAgent`: harness-side proxy for a contestant process (A4) |
 | `harness/runner.py`, `replay.py`, `cli.py` | integration |
 
@@ -122,8 +122,8 @@ class CommandRunner:
 ```
 
 **Grammar** (`shlex.split`, no shell, so `|`, `>`, `;`, `$()` are just arguments):
-- `pytest ARGS...`, `python -m pytest ARGS...` and `python3 ...` become
-  `pytest -p no:cacheprovider ARGS...`;
+- `pytest ARGS...` and `python -m pytest ARGS...` become
+  `pytest -p no:cacheprovider ARGS...` (`python3` is an alias of `python`);
 - `python -m MODULE ARGS...` (dotted identifier);
 - `python PATH.py ARGS...`, where the path is workspace-relative, validated,
   and an existing file;
@@ -141,8 +141,8 @@ class CommandRunner:
   - sets rlimits (no core files, file-size cap);
   - installs `harness.tripwire` (§5): reads allowed under the workspace, the
     interpreter's stdlib and site-packages and `/usr/share/zoneinfo`; writes
-    allowed under the workspace and the scratch tmp; no network, processes or
-    ctypes;
+    allowed under the workspace and the scratch `tmp` and `home`; no network,
+    processes or ctypes, and no exemption for bytecode caches;
   - sets `sys.argv`, puts the workspace first on `sys.path`, and runs the
     target with `runpy`.
 - The environment is built from scratch: `PATH=/usr/bin:/bin`, `HOME` and
@@ -152,12 +152,17 @@ class CommandRunner:
   credentials, no proxies and no `PYTHONPATH`.
 - On timeout the whole process group gets `SIGKILL`; `timed_out: true` and
   `exit_code: null`. After every command the group is killed anyway, to reap
-  stragglers. The scratch tmp is wiped after each command.
+  stragglers. The scratch `tmp` and `home` are wiped before and after each
+  command.
 - **Output** is decoded as UTF-8 with replacement and normalized for
-  determinism: the absolute workspace path becomes `.`, the scratch path
-  becomes `<tmp>`, and pytest durations become `in <t>s`. Above
-  `max_output_chars` the output is truncated (head and tail kept, marker
-  between).
+  determinism:
+  - the absolute workspace path becomes `.` and the scratch path `<tmp>`;
+  - pytest durations become `in <t>s`;
+  - memory addresses (`0x7f…`) become `0x<addr>`.
+
+  Above `max_output_chars` the normalized output is truncated (head and tail
+  kept, marker between). Normalization happens first, so truncation does not
+  depend on how long the host paths are.
 - Hidden evaluator tests are never in the workspace, and the tripwire
   allowlist does not cover the repository, so commands cannot reach them.
 
@@ -244,8 +249,19 @@ the step's meter and writes it to the trace:
       in order under `=== user ===` / `=== assistant ===` headers, after a
       fixed one-line preamble, because the CLI takes one prompt per call.
   - **Isolation of the call.**
-    - `--tools ""`: the model has no tools, so it cannot read files, run
-      commands or browse.
+    - `--tools ""`: the model has no tools, so it cannot run commands, browse
+      or call file tools.
+    - `CLAUDE_CODE_DISABLE_ATTACHMENTS=1` is always set, and the operator's
+      environment cannot unset it. Without it, the CLI expands `@path`
+      mentions in the prompt by reading those files with the operator's
+      permissions, whatever the tool list or safe mode says. Any text in a
+      request could then pull host files, ground truth included, into the
+      model's context. This was found in the adversarial review and verified
+      with a canary file.
+      The preflight check (`claude-cli-check`, run automatically before
+      `smoke-baseline-claude`) repeats that test: it mentions a canary file
+      outside the CLI's working directory and refuses to start if the
+      canary's secret reaches the model.
     - `--safe-mode`: no CLAUDE.md, hooks, skills, plugins or MCP servers.
     - `--strict-mcp-config`, `--disable-slash-commands`,
       `--no-session-persistence`.
@@ -272,6 +288,20 @@ the step's meter and writes it to the trace:
       not run with degraded conditions that would make them incomparable.
     - Overload, timeout, an over-long reply or a malformed result: an
       ordinary provider error that the agent sees.
+    - Failed calls are metered. If the CLI reported usage for a failed call
+      (it often retries internally before failing), those tokens and that
+      cost are counted. If it could not (a timeout, no JSON), the agent's
+      meter turns `tokens_known`/`cost_known` false instead of claiming the
+      call was free.
+    - **Repeated failures stop the run.** After
+      `MAX_CONSECUTIVE_PROVIDER_ERRORS` (3) consecutive provider failures
+      across all lanes, the run is stopped. A provider that serves some
+      steps and not others would make lanes incomparable.
+    - **One model per run.** The first verified served model is pinned; for a
+      full model id it must match the configured one. A different model on
+      any later call stops the run. An alias such as `opus` is pinned to the
+      full id that first serves it. When the CLI's output does not say which
+      model served the call, the call is marked `model_verified: false`.
   - **Preflight.** `smoke-baseline-claude` first makes one tiny call
     (`claude-cli-check`) and refuses to start if it fails.
   - **Limitations compared with the API.**
@@ -279,15 +309,18 @@ the step's meter and writes it to the trace:
        "Agent SDK" preamble, account reminders, and an environment block with
        the working directory, platform, model identity and **today's real
        date**. That date differs from the scenario's simulated timestamps.
-       Measured at about 1.1k input tokens. It is identical for every
-       contestant and contains nothing from the benchmark, but the prompt is
-       not exactly the harness's.
+       Measured at about 1.1–1.2k input tokens across probe calls (1,138 in
+       the recorded preflight). It is identical for every contestant and
+       contains nothing from the benchmark, but the prompt is not exactly the
+       harness's.
     2. **No temperature control.** A temperature setting is rejected at
        configuration time.
     3. **No per-call output cap.** `CLAUDE_CODE_MAX_OUTPUT_TOKENS` is set
-       only when the run configures `max_output_tokens`, and the CLI then
-       *fails* an over-long reply instead of truncating it. The per-event
-       output budget is enforced after the fact.
+       only when the run configures `max_output_tokens`. The CLI then retries
+       an over-long reply internally for several turns and finally *fails* it
+       instead of truncating it. The tokens spent on those turns are metered
+       (see Failures). The per-event output budget is enforced after the
+       fact, and run records show `max_output_tokens: null`.
     4. **Stop sequences are emulated** by cutting the returned text.
     5. **Internal retries.** The CLI may retry inside one call; the reported
        usage includes the retries.
@@ -296,14 +329,37 @@ the step's meter and writes it to the trace:
        each time.
     7. **Approximate cost.** Cost is a list-price equivalent computed by the
        CLI, not a bill.
+       - Prompt caching is always on (1-hour cache) and is managed by the
+         CLI. `prompt_caching` cannot be set for this provider.
+       - The cache is shared across lanes, across runs within the hour, and
+         with the operator's other CLI use, so `cost_usd` depends on call
+         order and history.
+       - Every metering record therefore also carries `uncached_cost_usd`:
+         every input token priced at the uncached rate. Use it, and the token
+         totals (which include cache reads and writes), for cost comparisons
+         between contestants.
+       - Step 0 runs lanes in the same seeded order as events, so no lane is
+         systematically the one that warms the cache.
+    9. **Operator state.** The CLI runs with the operator's real `HOME` (that
+       is where the login lives). `--no-session-persistence` and safe mode
+       keep transcripts and memory out of it, but the CLI's own bookkeeping
+       files may change. Behaviour-relevant environment variables
+       (`CLAUDE_*`, `ANTHROPIC_*`, `MAX_THINKING*`, ...) are recorded in
+       `metadata.model_runtime.behaviour_env`, with secret values redacted.
     8. **No temperature-0 determinism and no seeds.** Like the API, outputs
        vary between runs; replay uses the recording.
 
     For many repeated controlled runs, exact settings and cleaner metering,
     use the `anthropic` backend later; the protocol does not change.
-- **Pricing.** A small table with a source date covers known model ids. It
-  can be overridden with `TAB_MODEL_PRICING` (JSON). An unknown model gives
-  `cost_usd: null`. CLI-reported costs bypass the table.
+- **Pricing.** A small table with a source date covers known model ids, and
+  a dated id falls back to its undated entry. It can be overridden with
+  `TAB_MODEL_PRICING` (JSON). An unknown model gives `cost_usd: null`.
+  CLI-reported costs bypass the table. A replay uses the prices recorded in
+  the original run, not the replaying shell's environment.
+- **Retrieval tokens** are the contestant-*attributed* share of metered
+  input: the gateway applies the request's self-declared `retrieval_chars` to
+  the harness-measured total. The total is metered; only the split is
+  attributed.
 - **Equality.**
   - The gateway is created once per run from the run's `ModelSettings`.
   - A request cannot name a model, a temperature or a provider.

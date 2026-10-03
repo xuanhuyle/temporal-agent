@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from typing import Any
 
 REQUIRED = object()
+MAX_INT_ARG = 2**63 - 1
 
 
 @dataclass(frozen=True)
@@ -114,7 +115,8 @@ def check_arg(tool: str, arg: ArgSpec, value: Any) -> str | None:
         return True
 
     def is_int(v: Any) -> bool:
-        return isinstance(v, int) and not isinstance(v, bool)
+        # Bounded so that every accepted value can be written to the trace and sent over the wire.
+        return isinstance(v, int) and not isinstance(v, bool) and -MAX_INT_ARG <= v <= MAX_INT_ARG
 
     t = arg.type
     ok = (

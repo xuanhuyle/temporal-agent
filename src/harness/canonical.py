@@ -23,7 +23,7 @@ IGNORED_SUFFIXES = (".pyc", ".pyo")
 # Keys whose values depend on wall-clock time or the host machine. They are
 # recorded for humans but excluded from fingerprints and replay comparison.
 VOLATILE_KEYS = frozenset(
-    {"wall_clock_ms", "latency_ms", "started_at", "finished_at", "traceback", "host", "git"}
+    {"wall_clock_ms", "latency_ms", "time_limit_s", "started_at", "finished_at", "traceback", "host", "git"}
 )
 
 

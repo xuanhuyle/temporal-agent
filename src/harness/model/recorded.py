@@ -52,7 +52,15 @@ from typing import Any, Callable, Iterable, Mapping
 from harness.agent import ModelSettings
 from harness.errors import ToolError
 from harness.llm import InvalidModelRequest, ModelRequest
-from harness.model.gateway import PROVIDER_ERROR_PREFIX, RawCompletion, RawEmbedding, request_sha256, texts_sha256
+from harness.model.gateway import (
+    PROVIDER_ERROR_PREFIX,
+    ProviderError,
+    ProviderUnavailable,
+    RawCompletion,
+    RawEmbedding,
+    request_sha256,
+    texts_sha256,
+)
 
 __all__ = ["RecordedBackend", "recorded_call_from_trace", "recorded_calls_from_trace", "MISMATCH", "EXHAUSTED"]
 
@@ -77,6 +85,7 @@ _OPTIONAL_COMPLETION_FIELDS: dict[str, Any] = {
     "auxiliary_input_tokens": 0,
     "auxiliary_output_tokens": 0,
     "meta": {},
+    "model_verified": True,
 }
 
 
@@ -128,7 +137,14 @@ class RecordedBackend:
             raise ToolError(MISMATCH)
         queue.popleft()
         if "error" in head:
-            raise ToolError(head["error"])
+            failure = head.get("failure")
+            if not isinstance(failure, Mapping):
+                raise ToolError(head["error"])
+            # A provider failure: re-raise it with the usage it consumed, so the replayed meter matches.
+            cls = ProviderUnavailable if failure.get("fatal") else ProviderError
+            usage = failure.get("usage")
+            raise cls(head["error"], usage=None if usage is None else RawCompletion(**usage),
+                      usage_unknown=bool(failure.get("usage_unknown")))
         return head
 
     def complete(
@@ -181,10 +197,12 @@ def recorded_call_from_trace(record: Mapping[str, Any], result: Any = None) -> d
             out["auxiliary_input_tokens"] = meter.get("auxiliary_input_tokens", 0)
             out["auxiliary_output_tokens"] = meter.get("auxiliary_output_tokens", 0)
             out["meta"] = dict(meter.get("provider_meta") or {})
+            out["model_verified"] = meter.get("model_verified", True)
         return out
     error = record.get("error")
     if status != "error" or not isinstance(error, str) or not error.startswith(PROVIDER_ERROR_PREFIX):
         return None
+    failure = _failure_from_meter(record.get("meter"))
     args = record.get("args") or {}
     if tool == "model_complete":
         raw = args.get("request")
@@ -197,7 +215,38 @@ def recorded_call_from_trace(record: Mapping[str, Any], result: Any = None) -> d
         if not isinstance(texts, list):
             return None
         digest = texts_sha256(texts)
-    return {"lane": lane, "tool": tool, _HASH_KEY[tool]: digest, "error": error}
+    out = {"lane": lane, "tool": tool, _HASH_KEY[tool]: digest, "error": error}
+    if failure is not None:
+        out["failure"] = failure
+    return out
+
+
+def _failure_from_meter(meter: Any) -> dict[str, Any] | None:
+    """Usage a failed call consumed, from its metering record (see ProviderError)."""
+    if not isinstance(meter, Mapping) or not meter.get("failed"):
+        return None
+    failure: dict[str, Any] = {"fatal": bool(meter.get("fatal"))}
+    if not meter.get("usage_available", True):
+        failure["usage"] = None
+        failure["usage_unknown"] = True
+        return failure
+    failure["usage_unknown"] = False
+    tokens = ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")
+    if any(not isinstance(meter.get(k), int) for k in tokens):
+        failure["usage"] = None
+        return failure
+    failure["usage"] = {
+        "text": "",
+        "stop_reason": meter.get("stop_reason") or "error",
+        "model": meter.get("model") or "unknown",
+        **{k: meter[k] for k in tokens},
+        "reported_cost_usd": meter.get("cost_usd") if meter.get("cost_basis") == "provider_reported" else None,
+        "auxiliary_input_tokens": meter.get("auxiliary_input_tokens") or 0,
+        "auxiliary_output_tokens": meter.get("auxiliary_output_tokens") or 0,
+        "meta": dict(meter.get("provider_meta") or {}),
+        "model_verified": meter.get("model_verified", True),
+    }
+    return failure
 
 
 def recorded_calls_from_trace(

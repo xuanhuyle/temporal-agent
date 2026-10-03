@@ -183,6 +183,7 @@ def test_gateway_metering_record() -> None:
         "retrieval_tokens": round(3400 * 4 / r.total_chars()),
         "cost_usd": expected_cost,
         "cost_basis": "price_table",
+        "uncached_cost_usd": round((3400 * 4 + 300 * 20) / 1e6, 8),  # cache-neutral: all input at the uncached rate
         "stop_reason": "end_turn",
         "purpose": "loop",
         "request_sha256": hashlib.sha256(canonical_json(r.to_dict()).encode()).hexdigest(),
@@ -740,7 +741,8 @@ def test_anthropic_response_edge_cases() -> None:
     odd = SimpleNamespace(content=None, stop_reason=None, model=None, usage=None)
     raw = AnthropicBackend(anthropic_client(odd)).complete(req("x"), ANTH, max_output_tokens=5, timeout_s=None,
                                                            lane="a")
-    assert raw == RawCompletion("", "unknown", "claude-opus-5-5", 0, 0, 0, 0)
+    # Missing usage is reported as unavailable (never as zero tokens), and the model as unverified.
+    assert raw == RawCompletion("", "unknown", "claude-opus-5-5", 0, 0, 0, 0, usage_available=False, model_verified=False)
     bad = sdk_message(["x"], usage={"input_tokens": -4})
     with pytest.raises(ToolError, match="malformed usage"):
         AnthropicBackend(anthropic_client(bad)).complete(req("x"), ANTH, max_output_tokens=5, timeout_s=None, lane="a")

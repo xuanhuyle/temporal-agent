@@ -270,9 +270,10 @@ class ModelSettings:
 
     Every agent in a run uses these settings; a contestant cannot choose its
     own model, temperature or provider. ``provider`` names a harness backend
-    (``none``, ``fake``, ``anthropic``); ``embedding_provider`` likewise
-    (``none``, ``hash``). Credentials are never part of the settings: they
-    are read from the harness environment by the backend.
+    (``none``, ``fake``, ``anthropic``, ``claude-cli``); ``embedding_provider``
+    likewise (``none``, ``hash``). Credentials are never part of the settings:
+    they are read from the harness environment by the backend (or, for
+    ``claude-cli``, by the Claude CLI's own login).
     """
 
     provider: str = "none"

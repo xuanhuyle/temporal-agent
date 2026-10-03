@@ -79,6 +79,7 @@ __all__ = [
     "request_sha256",
     "texts_sha256",
     "PROVIDER_ERROR_PREFIX",
+    "ProviderError",
     "ProviderUnavailable",
     "DEFAULT_MAX_OUTPUT_TOKENS",
     "DEFAULT_EMBEDDING_DIMS",
@@ -87,13 +88,18 @@ __all__ = [
 ]
 
 PROVIDER_ERROR_PREFIX = "model provider error"
+# Consecutive provider failures (across all lanes) after which the run is stopped: a provider that keeps
+# failing serves some steps and not others, which would make the run's results incomparable.
+MAX_CONSECUTIVE_PROVIDER_ERRORS = 3
+PROVIDERS_WITHOUT_OUTPUT_CAP = ("claude-cli",)
 # How each provider is reached (part of the run description, so it is in the fingerprint).
 PROVIDER_TRANSPORTS = {
     "fake": "harness-local deterministic test double (machinery checks only; outputs are not model outputs)",
     "anthropic": "Anthropic Messages API via the official SDK (credentials from the harness environment)",
     "claude-cli": (
         "Claude Code CLI in non-interactive mode (claude -p --output-format json) with the operator's existing "
-        "Claude login; tools, MCP servers and customizations disabled; the CLI adds its own context to every request"
+        "Claude login; tools, file mentions, MCP servers and customizations disabled; the CLI adds its own context "
+        "to every request; prompt caching is always on and managed by the CLI; no per-call output cap"
     ),
 }
 DEFAULT_MAX_OUTPUT_TOKENS = 4096
@@ -107,7 +113,24 @@ HASH_EMBEDDING_MODEL_ID = "hash-ngram-v1"
 
 
 # ------------------------------------------------------------------ raw types
-class ProviderUnavailable(ToolError):
+class ProviderError(ToolError):
+    """A provider-side failure, optionally with the usage the failed call still consumed.
+
+    ``usage`` holds the token counts (and any provider-reported cost) of the
+    failed call when the provider reported them. ``usage_unknown`` says the
+    call may have consumed tokens that nobody reported (e.g. a timeout). The
+    gateway turns either into a metering record attached as ``meter``, so a
+    failed call is never silently free.
+    """
+
+    def __init__(self, message: str, *, usage: "RawCompletion | None" = None, usage_unknown: bool = False) -> None:
+        super().__init__(message)
+        self.usage = usage
+        self.usage_unknown = usage_unknown
+        self.meter: dict[str, Any] | None = None
+
+
+class ProviderUnavailable(ProviderError):
     """The provider cannot serve this run any more (not logged in, usage limit, CLI missing or broken).
 
     Raised by a backend instead of an ordinary provider error. The agent sees
@@ -140,6 +163,8 @@ class RawCompletion:
     auxiliary_input_tokens: int = 0
     auxiliary_output_tokens: int = 0
     meta: Mapping[str, Any] = field(default_factory=dict)
+    # False when the backend could not tell which model served the call (it then reports the requested name).
+    model_verified: bool = True
 
 
 @dataclass(frozen=True)
@@ -223,6 +248,10 @@ class ModelGateway:
         self.pricing = pricing if pricing is not None else Pricing()
         # Set when a backend reports that the provider can no longer serve the run.
         self.fatal_error: str | None = None
+        self.provider_errors = 0
+        self._consecutive_errors = 0
+        # The model that actually served the first verified call; every later call must match it.
+        self.served_model: str | None = None
 
     # ------------------------------------------------------------ description
     @property
@@ -267,7 +296,11 @@ class ModelGateway:
             "model": self.completion_model,
             "transport": PROVIDER_TRANSPORTS.get(s.provider),
             "settings": s.to_dict(),
-            "effective_max_output_tokens": s.max_output_tokens or DEFAULT_MAX_OUTPUT_TOKENS,
+            "effective_max_output_tokens": (
+                s.max_output_tokens if s.provider == "claude-cli" else (s.max_output_tokens or DEFAULT_MAX_OUTPUT_TOKENS)
+            ),
+            "output_cap_enforced_per_call": s.provider != "claude-cli",
+            "prompt_caching": "always on (CLI-managed)" if s.provider == "claude-cli" else s.prompt_caching,
             "embedding_provider": s.embedding_provider,
             "embedding_model": self.embedding_model,
             "embedding_dims": self.embedding_dims,
@@ -313,15 +346,19 @@ class ModelGateway:
             raise ToolError("model_complete: no wall-clock time left in this step")
         digest = request_sha256(request)
         started = time.monotonic()
+        # The Claude CLI has no per-call output cap; decided by the run's provider so that replays agree.
+        enforces_cap = self.settings.provider not in PROVIDERS_WITHOUT_OUTPUT_CAP
         try:
             raw = self._backend.complete(request, self.settings, max_output_tokens=cap, timeout_s=timeout_s, lane=lane)
-        except ProviderUnavailable as exc:
-            self.fatal_error = self.fatal_error or str(exc)
+        except ProviderError as exc:
+            self._provider_failed(exc, request, digest, cap if enforces_cap else None, started)
             raise
         except ToolError:
             raise
         except Exception as exc:  # noqa: BLE001 - provider faults are reported by class only
-            raise _provider_failure(exc) from None
+            err = ProviderError(str(_provider_failure(exc)), usage_unknown=True)
+            self._provider_failed(err, request, digest, cap if enforces_cap else None, started)
+            raise err from None
         latency_ms = round((time.monotonic() - started) * 1000.0, 3)
         counts = ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens",
                   "auxiliary_input_tokens", "auxiliary_output_tokens")
@@ -338,8 +375,87 @@ class ModelGateway:
                 isinstance(raw.reported_cost_usd, (int, float)) and not isinstance(raw.reported_cost_usd, bool)
                 and math.isfinite(raw.reported_cost_usd) and raw.reported_cost_usd >= 0))
             and _is_json(raw.meta)
+            and isinstance(raw.model_verified, bool)
         ):
             raise _malformed("completion")
+        meter = self._completion_meter(raw, request, digest, cap if enforces_cap else None, latency_ms)
+        self._consecutive_errors = 0
+        mismatch = self._check_served_model(raw)
+        if mismatch is not None:
+            err = ProviderUnavailable(mismatch)
+            err.meter = {**meter, "failed": True, "fatal": True}
+            self.fatal_error = self.fatal_error or mismatch
+            raise err
+        response = ModelResponse(
+            text=raw.text,
+            stop_reason=raw.stop_reason,
+            model=raw.model,
+            input_tokens=raw.input_tokens,
+            output_tokens=raw.output_tokens,
+            cache_read_input_tokens=raw.cache_read_input_tokens,
+            cache_creation_input_tokens=raw.cache_creation_input_tokens,
+        )
+        return response, meter
+
+    def _check_served_model(self, raw: RawCompletion) -> str | None:
+        """Equality of contestants: one model serves the whole run. Returns a fatal message on a mismatch."""
+        if not raw.model_verified:
+            return None
+        if self.served_model is None:
+            name = self.settings.name or ""
+            full_id = "-" in name  # an alias such as "opus" resolves to whatever full id serves it first
+            if full_id and not (raw.model == name or raw.model.startswith(name + "-") or name.startswith(raw.model)):
+                return f"{PROVIDER_ERROR_PREFIX}: the run is configured for {name!r} but {raw.model!r} served the call"
+            self.served_model = raw.model
+            return None
+        if raw.model != self.served_model:
+            return f"{PROVIDER_ERROR_PREFIX}: the serving model changed mid-run ({self.served_model!r} then {raw.model!r})"
+        return None
+
+    def _provider_failed(
+        self, exc: ProviderError, request: ModelRequest, digest: str, cap: int | None, started: float
+    ) -> None:
+        """Meter what a failed call consumed, count the failure, and stop the run if the provider is gone."""
+        latency_ms = round((time.monotonic() - started) * 1000.0, 3)
+        if exc.meter is None:
+            if exc.usage is not None:
+                exc.meter = self._completion_meter(exc.usage, request, digest, cap, latency_ms)
+            else:
+                exc.meter = {
+                    "provider": self.settings.provider,
+                    "model": self.settings.name,
+                    "usage_available": not exc.usage_unknown,
+                    "input_tokens": None if exc.usage_unknown else 0,
+                    "output_tokens": None if exc.usage_unknown else 0,
+                    "cache_read_input_tokens": None if exc.usage_unknown else 0,
+                    "cache_creation_input_tokens": None if exc.usage_unknown else 0,
+                    "total_input_tokens": None if exc.usage_unknown else 0,
+                    "auxiliary_input_tokens": 0,
+                    "auxiliary_output_tokens": 0,
+                    "retrieval_tokens": None if exc.usage_unknown else 0,
+                    "cost_usd": None if exc.usage_unknown else 0.0,
+                    "cost_basis": None,
+                    "uncached_cost_usd": None if exc.usage_unknown else 0.0,
+                    "stop_reason": "error",
+                    "purpose": request.purpose,
+                    "request_sha256": digest,
+                    "max_output_tokens": cap,
+                    "latency_ms": latency_ms,
+                }
+            exc.meter["failed"] = True
+            exc.meter["fatal"] = isinstance(exc, ProviderUnavailable)
+        self.provider_errors += 1
+        self._consecutive_errors += 1
+        if isinstance(exc, ProviderUnavailable):
+            self.fatal_error = self.fatal_error or str(exc)
+        elif self._consecutive_errors >= MAX_CONSECUTIVE_PROVIDER_ERRORS:
+            self.fatal_error = self.fatal_error or (
+                f"{PROVIDER_ERROR_PREFIX}: {self._consecutive_errors} consecutive provider failures (last: {exc})"
+            )
+
+    def _completion_meter(
+        self, raw: RawCompletion, request: ModelRequest, digest: str, cap: int | None, latency_ms: float
+    ) -> dict[str, Any]:
         known = raw.usage_available
         total_in = raw.input_tokens + raw.cache_read_input_tokens + raw.cache_creation_input_tokens
         total_chars = request.total_chars()
@@ -377,18 +493,17 @@ class ModelGateway:
             "max_output_tokens": cap,
             "latency_ms": latency_ms,
         }
+        # A cache-neutral list price (every input token at the uncached rate), comparable across lanes and runs
+        # even though provider-side caching makes cost_usd depend on call order and recent history.
+        uncached = (
+            self.pricing.cost(raw.model, input_tokens=total_in, output_tokens=raw.output_tokens) if known else None
+        )
+        meter["uncached_cost_usd"] = uncached
         if raw.meta:
             meter["provider_meta"] = dict(raw.meta)
-        response = ModelResponse(
-            text=raw.text,
-            stop_reason=raw.stop_reason,
-            model=raw.model,
-            input_tokens=raw.input_tokens,
-            output_tokens=raw.output_tokens,
-            cache_read_input_tokens=raw.cache_read_input_tokens,
-            cache_creation_input_tokens=raw.cache_creation_input_tokens,
-        )
-        return response, meter
+        if not raw.model_verified:
+            meter["model_verified"] = False
+        return meter
 
     # ------------------------------------------------------------- embeddings
     def _embed(
@@ -472,6 +587,8 @@ def _check_settings(settings: ModelSettings) -> None:
         raise ValueError(f"model provider {s.provider!r} requires a model name")
     if s.provider == "claude-cli" and s.temperature is not None:
         raise ValueError("model provider 'claude-cli' cannot set a temperature (the Claude CLI has no such option)")
+    if s.provider == "claude-cli" and s.prompt_caching:
+        raise ValueError("model provider 'claude-cli' manages prompt caching itself (always on); do not set it")
     if s.provider == "fake" and s.name not in (None, FAKE_MODEL_ID):
         raise ValueError(f"model provider 'fake' serves only {FAKE_MODEL_ID!r}")
     if s.embedding_provider == "hash" and s.embedding_model not in (None, HASH_EMBEDDING_MODEL_ID):
@@ -489,16 +606,19 @@ def create_gateway(
     *,
     environ: Mapping[str, str] = os.environ,
     recorded: Any = None,
+    pricing: Pricing | None = None,
 ) -> ModelGateway:
     """Build the run's gateway from its settings.
 
     - ``settings.provider``: ``none`` (no completion backend; calls fail with
-      ``ToolError``), ``fake`` or ``anthropic``.
+      ``ToolError``), ``fake``, ``anthropic`` or ``claude-cli``.
     - ``settings.embedding_provider``: ``none`` or ``hash``.
     - ``recorded``: a :class:`~harness.model.recorded.RecordedBackend` or an
       iterable of recorded calls. It replaces every configured backend (a
       ``none`` provider stays ``none``, so "not configured" errors replay
       verbatim). Pricing still comes from ``environ``.
+    - ``pricing``: use this price table instead of the built-in one plus
+      ``TAB_MODEL_PRICING`` (replay passes the table the original run used).
     - ``environ`` is read only for ``TAB_MODEL_PRICING``. Provider credentials
       are resolved by the provider SDK from the harness process environment;
       the gateway never reads, stores or reports them.
@@ -506,7 +626,7 @@ def create_gateway(
     Raises ``ValueError`` for an invalid configuration.
     """
     _check_settings(settings)
-    pricing = Pricing.from_environ(environ)
+    pricing = pricing if pricing is not None else Pricing.from_environ(environ)
     backend: CompletionBackend | None = None
     embedder: EmbeddingBackend | None = None
     if recorded is not None:

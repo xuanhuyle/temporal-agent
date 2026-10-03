@@ -40,7 +40,7 @@ def test_run_writes_all_outputs(mini_scenario, runs_dir):
     from harness.agent import USAGE_FIELDS
     from harness.tools import METER_KEYS
 
-    assert all(set(a["usage"]) == set(METER_KEYS) | {"cost_known", "tokens_known"} for a in actions)
+    assert all(set(a["usage"]) == set(METER_KEYS) | {"cost_known", "uncached_cost_known", "tokens_known"} for a in actions)
     assert all(set(a["reported_usage"]) == set(USAGE_FIELDS) for a in actions)
     trace = read_jsonl(result.run_dir / "trace.jsonl")
     assert [r["idx"] for r in trace] == list(range(len(trace)))

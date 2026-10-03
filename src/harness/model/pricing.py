@@ -91,9 +91,13 @@ class Pricing:
         return cls(table, source)
 
     def price(self, model: str | None) -> ModelPrice | None:
+        """Price of a model id; a dated id (``<id>-YYYYMMDD``) falls back to its undated entry."""
         if model is None:
             return None
-        return self._table.get(model)
+        if model in self._table:
+            return self._table[model]
+        stems = [k for k in self._table if model.startswith(k + "-")]
+        return self._table[max(stems, key=len)] if stems else None
 
     def cost(
         self,

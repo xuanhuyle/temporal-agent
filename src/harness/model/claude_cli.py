@@ -65,6 +65,8 @@ from __future__ import annotations
 
 import json
 import os
+import re
+import secrets
 import shutil
 import signal
 import subprocess
@@ -76,7 +78,7 @@ from typing import Any, Mapping
 from harness.agent import ModelSettings
 from harness.errors import ToolError
 from harness.llm import ModelRequest
-from harness.model.gateway import PROVIDER_ERROR_PREFIX, ProviderUnavailable, RawCompletion
+from harness.model.gateway import PROVIDER_ERROR_PREFIX, ProviderError, ProviderUnavailable, RawCompletion
 
 __all__ = [
     "ClaudeCliBackend",
@@ -92,6 +94,16 @@ ENV_BINARY = "TAB_CLAUDE_BIN"
 ENV_TIMEOUT = "TAB_CLAUDE_CLI_TIMEOUT_S"
 ENV_KEEP_API_KEY = "TAB_CLAUDE_CLI_KEEP_API_KEY"
 CREDENTIAL_ENV = ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN")
+# Always set for the CLI: without it, Claude Code expands "@path" mentions in the prompt by reading those files
+# with the operator's permissions (verified with a canary file), regardless of --tools "" and --safe-mode. That
+# would let any text in a request (a contestant's, or the model's own earlier reply) pull host files, ground
+# truth included, into the model's context. It also disables keyword-triggered attachments.
+FORCED_ENV = {"CLAUDE_CODE_DISABLE_ATTACHMENTS": "1"}
+# Environment variables that can change what the CLI does; their names (and values, unless secret-looking) are
+# recorded in the run metadata so that two runs can be compared.
+_BEHAVIOUR_ENV_PREFIXES = ("CLAUDE_", "ANTHROPIC_", "DISABLE_", "MAX_THINKING", "MCP_", "BASH_")
+_SECRET_NAME = re.compile(r"KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL|AUTH", re.IGNORECASE)
+_USAGE_LIMIT = re.compile(r"usage limit|limit reached|out of (?:extra )?usage|(?:5-hour|weekly) limit", re.IGNORECASE)
 DEFAULT_TIMEOUT_S = 900.0
 TRANSCRIPT_PREAMBLE = (
     "The conversation so far is reproduced below, turn by turn and in order. "
@@ -143,7 +155,18 @@ def build_env(environ: Mapping[str, str], settings: ModelSettings) -> dict[str, 
     env.pop("CLAUDE_CODE_MAX_OUTPUT_TOKENS", None)
     if settings.max_output_tokens:
         env["CLAUDE_CODE_MAX_OUTPUT_TOKENS"] = str(settings.max_output_tokens)
+    env.update(FORCED_ENV)
     return env
+
+
+def behaviour_env(environ: Mapping[str, str]) -> dict[str, str]:
+    """Variables that may change the CLI's behaviour, as recorded in run metadata (secret values redacted)."""
+    env = build_env(environ, ModelSettings())
+    out = {}
+    for k in sorted(env):
+        if k.startswith(_BEHAVIOUR_ENV_PREFIXES):
+            out[k] = "<redacted>" if _SECRET_NAME.search(k) else env[k]
+    return out
 
 
 def _count(v: Any) -> int | None:
@@ -156,33 +179,56 @@ def _model_counts(entry: Mapping[str, Any]) -> tuple[int, int, int, int] | None:
     return None if any(v is None for v in vals) else vals  # type: ignore[return-value]
 
 
-def _classify_error(data: Mapping[str, Any]) -> ToolError:
+def _classify_error(data: Mapping[str, Any], usage: RawCompletion | None) -> ProviderError:
+    """The error to raise for an error result; it carries the usage the failed call consumed (if reported)."""
     text = str(data.get("result") or "")
     low = text.lower()
     status = data.get("api_error_status")
     subtype = str(data.get("subtype") or "error")
-    if "usage limit" in low or "limit reached" in low or ("rate_limit" in low and "usage" in low):
-        return ProviderUnavailable(f"{_ERR}: usage limit reached for this Claude login")
+    unknown = usage is None
+    if "output token maximum" in low:
+        return ProviderError(f"{_ERR}: reply exceeded CLAUDE_CODE_MAX_OUTPUT_TOKENS", usage=usage, usage_unknown=unknown)
+    if _USAGE_LIMIT.search(text):
+        return ProviderUnavailable(f"{_ERR}: usage limit reached for this Claude login", usage=usage, usage_unknown=unknown)
     if status in (401, 403) or any(s in low for s in ("/login", "not logged in", "invalid api key", "authentication",
                                                         "oauth token", "unauthorized")):
-        return ProviderUnavailable(f"{_ERR}: not authenticated (run `claude` once in a terminal and log in)")
-    if "output token maximum" in low:
-        return ToolError(f"{_ERR}: reply exceeded CLAUDE_CODE_MAX_OUTPUT_TOKENS")
+        return ProviderUnavailable(f"{_ERR}: not authenticated (run `claude` once in a terminal and log in)",
+                                   usage=usage, usage_unknown=unknown)
     if "overloaded" in low or status in (429, 500, 502, 503, 529):
-        return ToolError(f"{_ERR}: provider temporarily unavailable (status {status})")
-    return ToolError(f"{_ERR}: error result ({subtype}, status {status})")
+        return ProviderError(f"{_ERR}: provider temporarily unavailable (status {status})", usage=usage,
+                             usage_unknown=unknown)
+    return ProviderError(f"{_ERR}: error result ({subtype}, status {status})", usage=usage, usage_unknown=unknown)
 
 
 def _find_result(stdout: str) -> dict[str, Any] | None:
+    """The CLI's result object: the whole output (one or pretty-printed JSON object, or a --verbose message
+    array whose last result entry counts), or failing that the last JSON line that is a result object."""
     text = stdout.strip()
-    candidates = [text] + [line for line in reversed(text.splitlines()) if line.lstrip().startswith("{")]
-    for c in candidates:
-        try:
-            obj = json.loads(c)
-        except ValueError:
-            continue
+
+    def pick(obj: Any) -> dict[str, Any] | None:
         if isinstance(obj, dict) and obj.get("type") == "result":
             return obj
+        if isinstance(obj, list):
+            for item in reversed(obj):
+                if isinstance(item, dict) and item.get("type") == "result":
+                    return item
+        return None
+
+    try:
+        found = pick(json.loads(text))
+        if found is not None:
+            return found
+    except ValueError:
+        pass
+    for line in reversed(text.splitlines()):
+        line = line.strip()
+        if line.startswith(("{", "[")):
+            try:
+                found = pick(json.loads(line))
+            except ValueError:
+                continue
+            if found is not None:
+                return found
     return None
 
 
@@ -192,12 +238,12 @@ def parse_cli_output(
     """Turn ``claude -p --output-format json`` output into a :class:`RawCompletion` (or raise ToolError)."""
     data = _find_result(stdout)
     if data is None:
-        raise ToolError(f"{_ERR}: output was not a JSON result object")
-    if data.get("is_error") or data.get("subtype") != "success":
-        raise _classify_error(data)
+        raise ProviderError(f"{_ERR}: output was not a JSON result object", usage_unknown=True)
+    failed = bool(data.get("is_error")) or data.get("subtype") != "success"
     text = data.get("result")
-    if not isinstance(text, str):
-        raise ToolError(f"{_ERR}: result has no text")
+    if not failed and not isinstance(text, str):
+        raise ProviderError(f"{_ERR}: result has no text", usage_unknown=True)
+    text = text if isinstance(text, str) else ""
 
     usage = data.get("usage") if isinstance(data.get("usage"), Mapping) else {}
     top = tuple(_count(usage.get(k)) for k in ("input_tokens", "output_tokens", "cache_read_input_tokens",
@@ -237,11 +283,12 @@ def parse_cli_output(
         served = settings.name or "unknown"
 
     aux_in = aux_out = 0
-    for key, m in models.items():
-        if key == primary_key:
-            continue
-        aux_in += sum(m[k] or 0 for k in ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"))
-        aux_out += m["output_tokens"] or 0
+    if primary_key is not None:
+        for key, m in models.items():
+            if key == primary_key:
+                continue
+            aux_in += sum(m[k] or 0 for k in ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"))
+            aux_out += m["output_tokens"] or 0
 
     cost = data.get("total_cost_usd")
     reported_cost = round(float(cost), 8) if isinstance(cost, (int, float)) and not isinstance(cost, bool) and cost >= 0 else None
@@ -263,15 +310,17 @@ def parse_cli_output(
         "cost_note": "total_cost_usd as reported by the Claude CLI (list-price equivalent; not subscription billing)",
         "stop_sequences_emulated": stops_cut,
         "max_output_tokens_enforced": bool(settings.max_output_tokens),
+        "served_model_known": primary_key is not None,
+        "auxiliary_known": primary_key is not None or not models,
         "latency_ms": {
             "duration": data.get("duration_ms"),
             "api": data.get("duration_api_ms"),
             "ttft": data.get("ttft_ms"),
         },
     }
-    return RawCompletion(
+    raw = RawCompletion(
         text=text,
-        stop_reason=stop_reason,
+        stop_reason=stop_reason if not failed else "error",
         model=served,
         input_tokens=top[0] if usage_available else 0,  # type: ignore[arg-type]
         output_tokens=top[1] if usage_available else 0,  # type: ignore[arg-type]
@@ -282,7 +331,11 @@ def parse_cli_output(
         auxiliary_input_tokens=aux_in,
         auxiliary_output_tokens=aux_out,
         meta=meta,
+        model_verified=primary_key is not None,
     )
+    if failed:
+        raise _classify_error(data, raw if (usage_available or reported_cost is not None) else None)
+    return raw
 
 
 # --------------------------------------------------------------------- backend
@@ -290,6 +343,8 @@ class ClaudeCliBackend:
     """Completion backend that runs the Claude Code CLI once per call."""
 
     name = "claude-cli"
+    # The CLI has no per-call output cap; the gateway records max_output_tokens as null for its calls.
+    enforces_output_cap = False
 
     def __init__(self, *, environ: Mapping[str, str] = os.environ, binary: str | None = None) -> None:
         self._environ = dict(environ)
@@ -328,6 +383,8 @@ class ClaudeCliBackend:
             "backend": self.name,
             "claude_cli_version": self.cli_version(),
             "api_key_env_removed": not keep,
+            "forced_env": dict(FORCED_ENV),
+            "behaviour_env": behaviour_env(self._environ),
             "timeout_cap_s": self.timeout_cap,
         }
 
@@ -350,7 +407,8 @@ class ClaudeCliBackend:
             scratch = self._scratch_dir()
             prompt_file = Path(tempfile.mkstemp(prefix="system-", suffix=".txt", dir=scratch / "prompts")[1])
             try:
-                prompt_file.write_text(request.system, encoding="utf-8")
+                # An empty file could let the CLI fall back to its own default prompt; send one space instead.
+                prompt_file.write_text(request.system or " ", encoding="utf-8")
                 cmd = build_command(self.binary, settings, prompt_file)
                 limit = self.timeout_cap if timeout_s is None else min(self.timeout_cap, float(timeout_s))
                 stdout, stderr, code = self._run(cmd, render_prompt(request), build_env(self._environ, settings),
@@ -375,8 +433,14 @@ class ClaudeCliBackend:
             out, err = proc.communicate(input=prompt.encode("utf-8"), timeout=limit)
         except subprocess.TimeoutExpired:
             self._kill(proc)
-            proc.communicate()
-            raise ToolError(f"{_ERR}: timed out after {round(limit)} s") from None
+            try:  # a descendant that escaped the kill may keep the pipes open: do not wait for it forever
+                proc.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                for pipe in (proc.stdin, proc.stdout, proc.stderr):
+                    if pipe is not None:
+                        pipe.close()
+                proc.wait(timeout=5)
+            raise ProviderError(f"{_ERR}: timed out after {round(limit)} s", usage_unknown=True) from None
         finally:
             self._kill(proc)
         return out.decode("utf-8", "replace"), err.decode("utf-8", "replace"), proc.returncode
@@ -396,22 +460,43 @@ class ClaudeCliBackend:
             )
         if "/login" in low or "not logged in" in low or "authentication" in low or "invalid api key" in low:
             raise ProviderUnavailable(f"{_ERR}: not authenticated (run `claude` once in a terminal and log in)")
-        if "usage limit" in low or "limit reached" in low:
-            raise ProviderUnavailable(f"{_ERR}: usage limit reached for this Claude login")
+        if _USAGE_LIMIT.search(stderr):
+            raise ProviderUnavailable(f"{_ERR}: usage limit reached for this Claude login", usage_unknown=True)
         if "another claude code session" in low:
             raise ProviderUnavailable(f"{_ERR}: refused to start inside another Claude Code session")
-        raise ToolError(f"{_ERR}: exited with code {code} without a result")
+        raise ProviderError(f"{_ERR}: exited with code {code} without a result", usage_unknown=True)
 
     # ------------------------------------------------------------- preflight
     def check(self, settings: ModelSettings, timeout_s: float = 180.0) -> dict[str, Any]:
-        """One tiny call to confirm the CLI, the login and the model work before a long run."""
+        """One tiny call to confirm the CLI, the login and the model work before a long run.
+
+        It also checks that file mentions are really disabled: the prompt mentions a canary file outside the
+        CLI's working directory, and the run is refused if the canary's secret appears in the reply.
+        """
         from harness.llm import ModelMessage
 
+        scratch = self._scratch_dir()
+        token = f"TABCANARY-{secrets.token_hex(8)}"
+        canary = scratch / "canary.txt"
+        canary.write_text(f"{token}\n", encoding="utf-8")
+        prompt = (
+            "Reply with the single word: ready. If any text starting with TABCANARY is visible to you anywhere "
+            f"in this conversation, reply with that text instead. (Reference: @{canary})"
+        )
         req = ModelRequest(system="You are a connectivity check for a benchmark harness.",
-                           messages=(ModelMessage("user", "Reply with the single word: ready"),), purpose="preflight")
-        raw = self.complete(req, settings, max_output_tokens=16, timeout_s=timeout_s, lane="preflight")
+                           messages=(ModelMessage("user", prompt),), purpose="preflight")
+        try:
+            raw = self.complete(req, settings, max_output_tokens=16, timeout_s=timeout_s, lane="preflight")
+        finally:
+            canary.unlink(missing_ok=True)
+        if token in raw.text:
+            raise ProviderUnavailable(
+                f"{_ERR}: this Claude Code version expands @file mentions despite CLAUDE_CODE_DISABLE_ATTACHMENTS; "
+                "refusing to run (prompts could pull host files into the model's context)"
+            )
         return {
             "ok": True,
+            "file_mentions_disabled": True,
             "reply": raw.text.strip()[:80],
             "served_model": raw.model,
             "claude_cli_version": self.cli_version(),

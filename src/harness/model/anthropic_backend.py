@@ -57,7 +57,8 @@ def _default_client() -> Any:
             f"{PROVIDER_ERROR_PREFIX}: the 'anthropic' package is not installed in the harness "
             "(pip install 'temporal-agent-benchmark[anthropic]')"
         ) from None
-    return anthropic.Anthropic()
+    # No hidden SDK retries: every attempt the provider bills must go through the gateway's metering.
+    return anthropic.Anthropic(max_retries=0)
 
 
 def build_request_kwargs(
@@ -106,14 +107,19 @@ def parse_response(message: Any, settings: ModelSettings) -> RawCompletion:
     usage = getattr(message, "usage", None)
     stop_reason = getattr(message, "stop_reason", None)
     model = getattr(message, "model", None)
+    # Input and output counts must be reported; missing ones are "unavailable", never zero. Cache fields are
+    # absent when no cache was involved, which genuinely means zero.
+    known = usage is not None and all(getattr(usage, f, None) is not None for f in ("input_tokens", "output_tokens"))
     return RawCompletion(
         text="".join(parts),
         stop_reason=stop_reason if isinstance(stop_reason, str) and stop_reason else "unknown",
         model=model if isinstance(model, str) and model else str(settings.name),
-        input_tokens=_count(usage, "input_tokens"),
-        output_tokens=_count(usage, "output_tokens"),
-        cache_read_input_tokens=_count(usage, "cache_read_input_tokens"),
-        cache_creation_input_tokens=_count(usage, "cache_creation_input_tokens"),
+        input_tokens=_count(usage, "input_tokens") if known else 0,
+        output_tokens=_count(usage, "output_tokens") if known else 0,
+        cache_read_input_tokens=_count(usage, "cache_read_input_tokens") if known else 0,
+        cache_creation_input_tokens=_count(usage, "cache_creation_input_tokens") if known else 0,
+        usage_available=known,
+        model_verified=isinstance(model, str) and bool(model),
     )
 
 

@@ -28,7 +28,7 @@ from harness.agent import StepBudget
 from harness.canonical import canonical_json
 from harness.errors import AccessDenied, BudgetExceeded, ToolBoxClosed, ToolError
 from harness.llm import EmbeddingResponse, InvalidModelRequest, ModelRequest, ModelResponse
-from harness.tool_specs import COUNTED_FAMILIES, TOOL_NAMES, TOOL_SPECS, bind_args, check_arg
+from harness.tool_specs import COUNTED_FAMILIES, MAX_INT_ARG, TOOL_NAMES, TOOL_SPECS, bind_args, check_arg
 
 # Prefix of every error raised by a model provider (harness.model.gateway.PROVIDER_ERROR_PREFIX).
 PROVIDER_ERROR_PREFIX = "model provider error"
@@ -91,6 +91,7 @@ METER_KEYS = (
     "embedding_calls",
     "embedding_tokens",
     "cost_usd",
+    "uncached_cost_usd",  # cache-neutral list price: every input token at the uncached rate
     "tool_result_chars",
     "history_result_chars",
     "command_output_chars",
@@ -101,15 +102,19 @@ def empty_meter() -> dict[str, Any]:
     """A zero meter. ``cost_known``/``tokens_known`` turn false as soon as one call lacks that figure."""
     m: dict[str, Any] = {k: 0 for k in METER_KEYS}
     m["cost_usd"] = 0.0
+    m["uncached_cost_usd"] = 0.0
     m["cost_known"] = True
+    m["uncached_cost_known"] = True
     m["tokens_known"] = True
     return m
 
 
 def _recordable(value: Any) -> Any:
     """Arguments as recorded in the trace: JSON values as-is, anything else by type name."""
-    if value is None or isinstance(value, (str, bool, int)):
+    if value is None or isinstance(value, (str, bool)):
         return value
+    if isinstance(value, int):
+        return value if -MAX_INT_ARG <= value <= MAX_INT_ARG else {"unrecordable_type": "int"}
     if isinstance(value, float):
         return value if value == value and value not in (float("inf"), float("-inf")) else {"unrecordable_type": "float"}
     if isinstance(value, ModelRequest):
@@ -134,6 +139,7 @@ class ToolBox:
         commands: CommandService | None = None,
         model: ModelService | None = None,
         deadline: float | None = None,
+        time_limits: Callable[[int], float | None] | None = None,
     ) -> None:
         self._ws = workspace
         self._budget = budget
@@ -142,6 +148,10 @@ class ToolBox:
         self._commands = commands
         self._model = model
         self._deadline = deadline
+        # Replay only: the time limit each call had in the original run, by call index (see runner/replay).
+        self._time_limits = time_limits
+        self._index = 0  # index of the next recorded call (matches the trace's call_index)
+        self._limit: float | None = None  # effective time limit of the call in progress, if it has one
         self._meter = empty_meter()
         # Budget counters: metered tokens, or the estimate when a backend cannot report usage.
         self._spent_in = 0
@@ -167,6 +177,7 @@ class ToolBox:
         """Harness-metered usage of this step so far."""
         out = dict(self._meter)
         out["cost_usd"] = round(out["cost_usd"], 8)
+        out["uncached_cost_usd"] = round(out["uncached_cost_usd"], 8)
         return out
 
     def budget_remaining(self) -> dict[str, int]:
@@ -185,9 +196,16 @@ class ToolBox:
         self._closed = True
 
     def _remaining_time(self) -> float | None:
+        """Time left for the call in progress (recorded as its time limit)."""
+        if self._time_limits is not None:
+            recorded = self._time_limits(self._index)
+            if recorded is not None:
+                self._limit = recorded
+                return recorded
         if self._deadline is None:
             return None
-        return max(0.0, self._deadline - time.monotonic())
+        self._limit = round(max(0.0, self._deadline - time.monotonic()), 3)
+        return self._limit
 
     # ------------------------------------------------------------- dispatch
     def call(self, tool: str, *args: Any, **kwargs: Any) -> Any:
@@ -196,9 +214,16 @@ class ToolBox:
             raise ToolError(f"unknown tool {tool!r}")
         return getattr(self, tool)(*args, **kwargs)
 
+    def _emit(self, rec: dict[str, Any]) -> None:
+        if self._limit is not None:
+            rec["time_limit_s"] = self._limit
+        self._limit = None
+        self._index += 1
+        self._record(rec)
+
     def _refuse(self, tool: str, recorded: dict[str, Any], message: str) -> None:
         self._exhausted = True
-        self._record({"tool": tool, "args": recorded, "status": "budget_exceeded"})
+        self._emit({"tool": tool, "args": recorded, "status": "budget_exceeded"})
         raise BudgetExceeded(message)
 
     def _invoke(self, tool: str, args: dict[str, Any], fn: Callable[[], Any]) -> Any:
@@ -236,12 +261,18 @@ class ToolBox:
             except _Refused as refused:
                 self._refuse(tool, recorded, refused.message)
             except AccessDenied as exc:
-                self._record({"tool": tool, "args": recorded, "status": "denied", "error": str(exc)})
+                self._emit({"tool": tool, "args": recorded, "status": "denied", "error": str(exc)})
                 raise
             except ToolError as exc:
+                rec_err: dict[str, Any] = {"tool": tool, "args": recorded, "status": "error", "error": str(exc)}
                 if spec.family == "model" and str(exc).startswith(PROVIDER_ERROR_PREFIX):
                     self._meter["model_provider_errors"] += 1
-                self._record({"tool": tool, "args": recorded, "status": "error", "error": str(exc)})
+                    failed_meter = getattr(exc, "meter", None)
+                    if isinstance(failed_meter, dict):
+                        # A failed call still consumed what the provider reports (or an unknown amount).
+                        self._apply_model_meter(failed_meter, self._pending_estimate, self._pending_cap, "")
+                        rec_err["meter"] = failed_meter
+                self._emit(rec_err)
                 raise
             plain = result.to_dict() if isinstance(result, (ModelResponse, EmbeddingResponse)) else result
             if spec.family in COUNTED_FAMILIES:
@@ -254,7 +285,7 @@ class ToolBox:
             rec: dict[str, Any] = {"tool": tool, "args": recorded, "status": "ok", "result": plain}
             if meter_rec is not None:
                 rec["meter"] = meter_rec
-            self._record(rec)
+            self._emit(rec)
             return result
 
     # ------------------------------------------------------- workspace tools
@@ -353,28 +384,9 @@ class ToolBox:
                 raise _Refused(f"model output-token budget of {b.max_model_output_tokens_per_event} per event exhausted")
             cap = remaining_out if req.max_output_tokens is None else min(req.max_output_tokens, remaining_out)
             m["model_calls"] += 1
+            self._pending_estimate, self._pending_cap = estimate, cap
             response, meter = self._model.complete(req, max_output_tokens=cap, timeout_s=self._remaining_time())
-            used_in = meter.get("total_input_tokens")
-            if used_in is None and meter.get("input_tokens") is not None:
-                used_in = sum(meter.get(k) or 0 for k in
-                              ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"))
-            used_out = meter.get("output_tokens")
-            if used_in is None or used_out is None:
-                # The backend could not report usage: never invent numbers, but keep the budget honest.
-                m["tokens_known"] = False
-                self._spent_in += estimate
-                self._spent_out += cap
-            else:
-                m["model_input_tokens"] += used_in
-                m["model_output_tokens"] += used_out
-                self._spent_in += used_in
-                self._spent_out += used_out
-            m["model_cache_read_tokens"] += meter.get("cache_read_input_tokens") or 0
-            m["model_cache_write_tokens"] += meter.get("cache_creation_input_tokens") or 0
-            m["model_auxiliary_input_tokens"] += meter.get("auxiliary_input_tokens") or 0
-            m["model_auxiliary_output_tokens"] += meter.get("auxiliary_output_tokens") or 0
-            m["retrieval_tokens"] += meter.get("retrieval_tokens") or 0
-            self._add_cost(meter)
+            self._apply_model_meter(meter, estimate, cap, response.text)
             return _Metered(response, meter)
 
         return self._invoke("model_complete", {"request": request}, go)
@@ -396,6 +408,39 @@ class ToolBox:
             return _Metered(response, meter)
 
         return self._invoke("embed", {"texts": texts, "purpose": purpose}, go)
+
+    _pending_estimate = 0
+    _pending_cap = 0
+
+    def _apply_model_meter(self, meter: dict[str, Any], estimate: int, cap: int, text: str) -> None:
+        """Add one completion's metering record (successful or failed) to the step's meter and budgets."""
+        m = self._meter
+        used_in = meter.get("total_input_tokens")
+        if used_in is None and meter.get("input_tokens") is not None:
+            used_in = sum(meter.get(k) or 0 for k in ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"))
+        used_out = meter.get("output_tokens")
+        if used_in is None or used_out is None:
+            # The backend could not report usage: never invent numbers, but keep the budget honest with the
+            # deterministic estimate of what was sent and of the text that came back.
+            m["tokens_known"] = False
+            self._spent_in += estimate
+            self._spent_out += min(cap, max(1, -(-len(text.encode("utf-8", "surrogatepass")) // 4))) if text else 0
+        else:
+            m["model_input_tokens"] += used_in
+            m["model_output_tokens"] += used_out
+            self._spent_in += used_in
+            self._spent_out += used_out
+        m["model_cache_read_tokens"] += meter.get("cache_read_input_tokens") or 0
+        m["model_cache_write_tokens"] += meter.get("cache_creation_input_tokens") or 0
+        m["model_auxiliary_input_tokens"] += meter.get("auxiliary_input_tokens") or 0
+        m["model_auxiliary_output_tokens"] += meter.get("auxiliary_output_tokens") or 0
+        m["retrieval_tokens"] += meter.get("retrieval_tokens") or 0
+        self._add_cost(meter)
+        uncached = meter.get("uncached_cost_usd")
+        if uncached is None:
+            m["uncached_cost_known"] = False
+        else:
+            m["uncached_cost_usd"] += float(uncached)
 
     def _add_cost(self, meter: dict[str, Any]) -> None:
         cost = meter.get("cost_usd")

@@ -97,7 +97,7 @@ PYTHONPATH=src python -m harness smoke-baseline-claude --model claude-opus-5-5 -
 or the usage limit fails mid-run, the run stops and is marked failed, with its
 outputs preserved. `--model-provider anthropic --model MODEL` (with
 `ANTHROPIC_API_KEY`) remains available for later API-based runs.
-Summarize any run with `python -m harness report runs/<run_id> --markdown`.
+Summarize any run with `PYTHONPATH=src python -m harness report runs/<run_id> --markdown`.
 
 Other commands (all via `PYTHONPATH=src python -m harness ...`):
 

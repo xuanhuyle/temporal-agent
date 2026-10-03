@@ -145,3 +145,47 @@ in a run.
 
 This clarification changes no scenario, label, metric or contestant
 interface.
+
+### Clarification C2 to EXPERIMENT.md §9.4: standing runtime guidance (recorded 2026-10-03, before any real-model contestant run)
+
+§9.4 ("Ask no temporal hint") forbids event-specific hints, i.e. anything that
+tells an agent *which* event matters or *what* to reconsider. Every
+model-backed contestant uses the shared runtime (`src/contestant_runtime/`).
+Its system prompt carries a short, standing maintainer guidance. That
+guidance:
+
+- is identical for every event and every contestant, and carries no
+  information about any particular event;
+- says, in generic terms, that new information may affect earlier decisions
+  or pending work, and that something is reopened only when the new
+  information changes its basis, with evidence;
+- does not enumerate the benchmark's causal-pattern taxonomy and does not
+  disclose base rates. Both were removed after the adversarial review.
+
+This guidance is permitted under §9.4. Results are therefore measurements of
+*prompted* variance detection, under one fixed standing prompt that every
+contestant shares. The text is recorded in full in each run's agent
+description. It is a recorded configuration choice
+(`runtime_guidance: maintainer | minimal`), so a no-guidance ablation can be
+run under identical conditions. The guidance is kept because it strengthens
+the conventional baseline, which is the null hypothesis.
+
+### Deviation D1 from EXPERIMENT.md §7: lexical "embeddings" (recorded 2026-10-03)
+
+§7 lists "embeddings/vector retrieval" and "decision records retrievable by
+semantic search" as the baseline minimum. The only embedding backend in this
+environment is `hash-ngram-v1`: deterministic feature hashing of words and
+character n-grams. It is a lexical channel, not a neural semantic embedding.
+The baseline recovers part of the paraphrase recall through one LLM
+query-expansion call per retrieval, using the same metered model.
+
+Until a neural embedding backend is plugged in behind the existing
+`EmbeddingBackend` interface (local model or API), the rules are:
+
+- baseline runs with `--embedding-provider hash` do **not** meet §7's
+  semantic-search minimum;
+- they are machinery checks or preliminary runs, not §7-compliant baseline
+  evidence;
+- reports carry a banner saying so.
+
+This applies identically to every contestant in a run.

@@ -31,14 +31,17 @@ import platform
 import random
 import re
 import shutil
+import signal
+import stat
 import subprocess
 import tempfile
+import threading
 import time
 import traceback
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 import evaluation
 import harness
@@ -93,6 +96,13 @@ class RunConfig:
     hygiene: bool = True  # run each agent's own test suite on its final workspace
     # Replay only: recorded model/embedding calls served instead of a live provider.
     recorded_model_calls: tuple[dict[str, Any], ...] | None = None
+    # Replay only: the time limit each tool call had in the original run, agent -> seq -> call index -> seconds.
+    recorded_time_limits: Mapping[str, Mapping[int, Mapping[int, float]]] | None = None
+    # Replay only: the price table the original run used (otherwise built-in prices + TAB_MODEL_PRICING).
+    model_pricing: Any = None
+    # Contestants (role "contestant") must run in their own process (protocol amendment A4). Tests may allow
+    # in-process contestants explicitly; the run records it.
+    allow_in_process_contestants: bool = False
 
 
 @dataclass
@@ -263,6 +273,49 @@ class _Redactor:
         return text
 
 
+def remove_tree(path: Path) -> None:
+    """Remove a lane or scratch tree even if agent code or a command made directories non-writable."""
+    path = Path(path)
+    if not path.exists():
+        return
+    for dirpath, dirnames, _ in os.walk(path, followlinks=False):
+        for d in dirnames:
+            full = os.path.join(dirpath, d)
+            try:
+                if not os.path.islink(full):
+                    os.chmod(full, stat.S_IRWXU)
+            except OSError:
+                pass
+    try:
+        os.chmod(path, stat.S_IRWXU)
+    except OSError:
+        pass
+    shutil.rmtree(path, ignore_errors=True)
+
+
+@contextlib.contextmanager
+def _terminate_as_interrupt():
+    """While a run is in progress, SIGTERM and SIGHUP end it like Ctrl-C, so finalization still runs."""
+    if threading.current_thread() is not threading.main_thread():
+        yield
+        return
+
+    def handler(signum: int, frame: Any) -> None:
+        raise KeyboardInterrupt(f"received signal {signum}")
+
+    previous = {}
+    for sig in (signal.SIGTERM, signal.SIGHUP):
+        try:
+            previous[sig] = signal.signal(sig, handler)
+        except (ValueError, OSError):
+            pass
+    try:
+        yield
+    finally:
+        for sig, old in previous.items():
+            signal.signal(sig, old)
+
+
 def step_order(names: list[str], seed: int, seq: int) -> list[str]:
     """Deterministic, seed-dependent agent order for one step (recorded in the trace)."""
     rng = random.Random(int(hashlib.sha256(f"{seed}:{seq}".encode()).hexdigest()[:16], 16))
@@ -295,6 +348,17 @@ def run(
     *,
     replay_of: str | None = None,
 ) -> RunResult:
+    with _terminate_as_interrupt():
+        return _run(scenario, agents, config, replay_of=replay_of)
+
+
+def _run(
+    scenario: Scenario,
+    agents: Sequence[Agent],
+    config: RunConfig,
+    *,
+    replay_of: str | None = None,
+) -> RunResult:
     if not agents:
         raise ValueError("at least one agent is required")
     names = [a.name for a in agents]
@@ -315,12 +379,21 @@ def run(
         scenario.base_dir / ".git",
     ]
     # One gateway per run: every agent gets the same model settings (protocol amendment A3).
-    gateway = create_gateway(config.model, recorded=config.recorded_model_calls)
+    gateway = create_gateway(config.model, recorded=config.recorded_model_calls, pricing=config.model_pricing)
     agent_specs = [{"name": a.name, **_describe_guarded(a, denied_base)} for a in agents]
     if scenario.status != "frozen":
         contestants = [s["name"] for s in agent_specs if s["role"] not in NON_CONTESTANT_ROLES]
         if contestants:
             raise ScenarioError(f"contestants {contestants} may only run on frozen scenarios (EXPERIMENT.md §14)")
+    in_process_contestants = [
+        s["name"] for s, a in zip(agent_specs, agents)
+        if s["role"] not in NON_CONTESTANT_ROLES and not is_process_agent(a)
+    ]
+    if in_process_contestants and replay_of is None and not config.allow_in_process_contestants:
+        raise ValueError(
+            f"contestants {in_process_contestants} must run in their own process (protocol amendment A4); "
+            "use harness.process.ProcessAgent"
+        )
 
     content_hashes = scenario.verify(allow_draft=config.allow_draft)
     events: list[Event] = scenario.load_events()
@@ -387,7 +460,8 @@ def run(
         "scenario": {**scenario_info, "manifest": manifest_rel},
         "agents": agent_specs,
         "isolation": {a.name: ("process" if is_process_agent(a) else "in_process") for a in agents},
-        "config": {**run_config, "allow_draft": config.allow_draft},
+        "config": {**run_config, "allow_draft": config.allow_draft,
+                   "allow_in_process_contestants": config.allow_in_process_contestants},
         "config_hash": config_hash,
         "token_accounting": (
             "harness-metered (protocol v0.2, amendment A3): model and embedding usage is counted by the harness "
@@ -590,6 +664,10 @@ def run(
 
         def make_tools(lane: _Lane, seq: int, calls: list[dict[str, Any]]) -> ToolBox:
             deadline = time.monotonic() + budget.wall_clock_s_per_event if lane.process else None
+            limits = None
+            if config.recorded_time_limits is not None:
+                step_limits = config.recorded_time_limits.get(lane.name, {}).get(seq, {})
+                limits = step_limits.get
             return ToolBox(
                 lane.workspace,
                 budget,
@@ -598,6 +676,7 @@ def run(
                 commands=lane.commands,
                 model=gateway.lane(lane.name),
                 deadline=deadline,
+                time_limits=limits,
             )
 
         trace.emit(
@@ -642,8 +721,12 @@ def run(
                     guard_violations=violations,
                 )
 
-        # Step 0: optional ingestion of the seed world, same budget for every agent.
-        for lane in lanes:
+        # Step 0: optional ingestion of the seed world, same budget for every agent, in a seeded order
+        # (like every event step), so no agent is systematically first (e.g. to warm a provider cache).
+        by_name0 = {lane.name: lane for lane in lanes}
+        order0 = step_order([lane.name for lane in lanes], config.seed, 0)
+        trace.emit("step_order", seq=0, order=order0)
+        for lane in [by_name0[n] for n in order0]:
             if lane.enabled:
                 start_calls: list[dict[str, Any]] = []
                 tools = make_tools(lane, 0, start_calls)
@@ -894,9 +977,9 @@ def run(
         for writer in (trace, events_out, actions_out, evaluation_out, process_out):
             attempt(f"close {writer.path.name}", writer.close)
         for lane in lanes:
-            shutil.rmtree(lane.root, ignore_errors=True)
+            remove_tree(lane.root)
         if world_tmp is not None:
-            shutil.rmtree(world_tmp, ignore_errors=True)
+            remove_tree(world_tmp)
         attempt("evaluator cleanup", evaluator.close)
         metadata["status"] = status
         metadata["finished_at"] = _now_iso()

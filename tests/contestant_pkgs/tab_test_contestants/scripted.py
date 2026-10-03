@@ -182,6 +182,12 @@ class ScriptedAgent(Agent):
         time.sleep(60)
         return AgentResponse()
 
+    def do_cmd(self, event: AgentEvent, tools: Any) -> AgentResponse:
+        """A command that outlives the step's remaining wall clock (its limit comes from the deadline)."""
+        time.sleep(float(self.config.get("cmd_delay", 0)))
+        out = tools.run_command('python -c "import time; time.sleep(30)"')
+        return AgentResponse(actions=[_note({"timed_out": out["timed_out"]})])
+
     def do_crash(self, event: AgentEvent, tools: Any) -> AgentResponse:
         with open("crash.txt", "w", encoding="utf-8") as fh:
             fh.write("about-to-crash")

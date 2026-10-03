@@ -29,7 +29,7 @@ from harness.agent import (
     action_from_dict,
 )
 from harness.model.recorded import recorded_calls_from_trace
-from harness.process import StepTimeout
+from harness.process import ContestantCrashed, ContestantProtocolError, StepTimeout
 from harness.runner import RunConfig, RunResult, run, write_manifest
 from harness.scenario import ScenarioError, load_scenario
 from harness.tools import BudgetExceeded, ToolBox
@@ -59,6 +59,13 @@ def _reconstruct_arg(value: Any) -> Any:
     if isinstance(value, dict) and set(value) == {"unrecordable_type"}:
         return type(value["unrecordable_type"], (), {})()
     return value
+
+
+def _recreate_crash(error: str) -> ContestantCrashed:
+    """Rebuild the crash the runner recorded as ``"<Type>: <message>"``."""
+    name, sep, message = (error or "").partition(": ")
+    cls = ContestantProtocolError if name == "ContestantProtocolError" else ContestantCrashed
+    return cls(message if sep else error)
 
 
 class _Unexpected:
@@ -136,6 +143,8 @@ class ReplayAgent(Agent):
             raise BudgetExceeded(rec["error"])
         if rec and rec["status"] == "timeout":
             raise StepTimeout(rec["error"])
+        if rec and rec["status"] == "crashed":
+            raise _recreate_crash(rec["error"])
 
     def on_start(self, tools: ToolBox) -> None:
         self._replay_calls(0, self._start, tools)
@@ -186,6 +195,34 @@ def recorded_model_calls(records: list[dict[str, Any]], blobs_dir: Path) -> tupl
     return tuple(recorded_calls_from_trace(resolved, lambda sha: load_blob(blobs_dir, sha)))
 
 
+def recorded_time_limits(records: list[dict[str, Any]]) -> dict[str, dict[int, dict[int, float]]]:
+    """The time limit each tool call had (``time_limit_s``), so deadline-limited calls replay the same way."""
+    out: dict[str, dict[int, dict[int, float]]] = {}
+    for rec in records:
+        if rec.get("type") == "tool_call" and isinstance(rec.get("time_limit_s"), (int, float)):
+            out.setdefault(rec["agent"], {}).setdefault(rec["seq"], {})[rec["call_index"]] = float(rec["time_limit_s"])
+    return out
+
+
+def recorded_pricing(meta: dict[str, Any]) -> Any:
+    """The price table the original run used (its gateway description), or None for older runs."""
+    from harness.model.pricing import ModelPrice, Pricing
+
+    desc = (meta.get("config") or {}).get("model_gateway") or {}
+    pricing = desc.get("pricing")
+    if not isinstance(pricing, dict) or not isinstance(pricing.get("per_mtok_usd"), dict):
+        return None
+    from harness.model.pricing import DEFAULT_PRICES
+
+    table = dict(DEFAULT_PRICES)
+    for model, price in pricing["per_mtok_usd"].items():
+        if isinstance(price, dict):
+            table[model] = ModelPrice(**price)
+        else:
+            table.pop(model, None)  # unpriced in the original run
+    return Pricing(table, source=pricing.get("source", "recorded"))
+
+
 def compare_runs(original: Path, replayed: Path) -> list[dict[str, Any]]:
     mismatches = []
     for name in FINGERPRINT_FILES:
@@ -226,6 +263,9 @@ def replay_run(run_dir: Path, *, runs_dir: Path | None = None, scenario_path: Pa
         allow_draft=cfg["allow_draft"],
         hygiene=cfg.get("hygiene", True),
         recorded_model_calls=recorded_model_calls(records, blobs_dir),
+        recorded_time_limits=recorded_time_limits(records),
+        model_pricing=recorded_pricing(meta),
+        allow_in_process_contestants=cfg.get("allow_in_process_contestants", False),
     )
     result = run(scenario, agents, config, replay_of=meta["run_id"])
     mismatches = compare_runs(run_dir, result.run_dir)
