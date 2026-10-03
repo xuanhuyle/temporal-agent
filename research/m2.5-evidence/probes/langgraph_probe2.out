@@ -1,0 +1,4 @@
+with node cache: calls {'llm': 1} same answer on replay: True
+copy src {'source': 'fork', 'step': 1, 'parents': {}} copy parent 0d647b mid parent 0d647b next ('llm',)
+run_id metadata present: {'source': 'loop', 'step': 1, 'parents': {}}
+StateSnapshot.created_at sample: 2026-10-03T11:52:37.579936+00:00

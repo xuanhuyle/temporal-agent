@@ -4,6 +4,16 @@ A controlled experiment to test whether making time an **addressable dimension o
 
 This repository is intentionally a **benchmark first**. The Tesseract implementation is a contestant, not the benchmark designer.
 
+> **Status (2026-10-03, Milestone 2.5 research reset): disposition A, Stop.**
+> A review of 2025-2026 prior work found every NORTH_STAR concept and
+> mechanism already shipped or published. No residual hypothesis was both
+> distinct and cheap to test. The temporal-architecture program (Tesseract,
+> new scenario families) has stopped on value-of-information grounds.
+>
+> This is **not** an EXPERIMENT.md §13 kill: §13 was never run. See
+> [docs/m2.5-decision-record.md](docs/m2.5-decision-record.md) and
+> [docs/residual-hypotheses.md](docs/residual-hypotheses.md).
+
 ## Core question
 
 > When a new event changes the significance of an earlier decision, can an agent autonomously identify the affected historical decision, reconstruct what it knew at the time, reconsider it, and return to the present with a better action?
