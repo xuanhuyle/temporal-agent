@@ -31,7 +31,7 @@ The model, task stream, tool access, and evaluation conditions must otherwise be
 
 If the strong baseline reaches statistically similar temporal-governance performance at comparable total inference cost, the distinctive Tesseract thesis is not supported.
 
-See [EXPERIMENT.md](EXPERIMENT.md) for the frozen protocol.
+See [EXPERIMENT.md](EXPERIMENT.md) for the frozen protocol.\n\nSee [NORTH_STAR.md](NORTH_STAR.md) for the broader conceptual model of temporal agency that guides future research without changing the frozen benchmark.
 
 ## Repository layout
 
