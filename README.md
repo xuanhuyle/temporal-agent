@@ -15,6 +15,14 @@ This repository is intentionally a **benchmark first**. The Tesseract implementa
 > [docs/m2.5-decision-record.md](docs/m2.5-decision-record.md) and
 > [docs/residual-hypotheses.md](docs/residual-hypotheses.md).
 
+## Product experiment: Resume Gate
+
+The temporal-agency research program is stopped, but the repository now contains a separate product experiment: **Resume Gate**, a deterministic pre-resume validator for long-running agent checkpoints.
+
+It asks whether a checkpoint created under an earlier runtime, policy, authority and dependency state is still safe to execute now. See [docs/resume-gate-v0.md](docs/resume-gate-v0.md).
+
+This is intentionally separate from the Tesseract thesis. It is a product wedge around safe resumption, not a claim of novel temporal cognition.
+
 ## Core question
 
 > When a new event changes the significance of an earlier decision, can an agent autonomously identify the affected historical decision, reconstruct what it knew at the time, reconsider it, and return to the present with a better action?
