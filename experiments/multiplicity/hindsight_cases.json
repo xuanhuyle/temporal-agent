@@ -1,0 +1,239 @@
+{
+  "schema_version": "tmk.hindsight/1",
+  "cases": [
+    {
+      "id": "incident-network-backfill",
+      "cutoff": 2,
+      "choices": [
+        "transient",
+        "capacity",
+        "network"
+      ],
+      "correct_at_cutoff": "transient",
+      "later_answer": "network",
+      "question": "How should the incident be classified at the cutoff?",
+      "events": [
+        {
+          "seq": 1,
+          "text": "Decision rule in force: classify capacity only if CPU is above 80%; classify network only if packet loss is above 5%; otherwise classify transient."
+        },
+        {
+          "seq": 2,
+          "text": "Observed: API latency is high, CPU is 42%, and packet-loss monitoring reports 1%."
+        },
+        {
+          "seq": 3,
+          "text": "The incident is escalated for deeper network inspection."
+        },
+        {
+          "seq": 4,
+          "text": "A monitoring bug is discovered. Packet loss during sequence 2 was actually 12%, although this was not known at sequence 2."
+        }
+      ]
+    },
+    {
+      "id": "vendor-sanction-backfill",
+      "cutoff": 2,
+      "choices": [
+        "approve",
+        "reject"
+      ],
+      "correct_at_cutoff": "approve",
+      "later_answer": "reject",
+      "question": "What procurement decision was justified at the cutoff?",
+      "events": [
+        {
+          "seq": 1,
+          "text": "Procurement rule in force: approve when SLA is at least 99.9% and certification is valid, unless a sanctions match is known. Reject if a sanctions match is known."
+        },
+        {
+          "seq": 2,
+          "text": "Vendor SLA is 99.95%, certification is valid, and the sanctions check returns no match."
+        },
+        {
+          "seq": 3,
+          "text": "Contract drafting begins."
+        },
+        {
+          "seq": 4,
+          "text": "The sanctions provider backfills a missed record: the vendor was on the sanctions list before sequence 2, but this fact was not available to procurement then."
+        }
+      ]
+    },
+    {
+      "id": "fraud-device-later-takeover",
+      "cutoff": 2,
+      "choices": [
+        "allow",
+        "challenge",
+        "block"
+      ],
+      "correct_at_cutoff": "allow",
+      "later_answer": "block",
+      "question": "What transaction action was justified at the cutoff?",
+      "events": [
+        {
+          "seq": 1,
+          "text": "Fraud rule in force: block if an account-takeover signal is known; challenge if either device or location is unfamiliar; otherwise allow."
+        },
+        {
+          "seq": 2,
+          "text": "The device is familiar, location is familiar, and no account-takeover signal is present."
+        },
+        {
+          "seq": 3,
+          "text": "The payment settles."
+        },
+        {
+          "seq": 4,
+          "text": "Support later confirms the account had been taken over before sequence 2; the takeover signal was generated late and was unavailable at the cutoff."
+        }
+      ]
+    },
+    {
+      "id": "release-policy-changed-later",
+      "cutoff": 2,
+      "choices": [
+        "ship",
+        "hold"
+      ],
+      "correct_at_cutoff": "ship",
+      "later_answer": "hold",
+      "question": "Under the rule in force at the cutoff, should the release ship?",
+      "events": [
+        {
+          "seq": 1,
+          "text": "Release rule v1: ship if all required tests pass and there is no severity-1 incident."
+        },
+        {
+          "seq": 2,
+          "text": "All required tests pass and there is no severity-1 incident."
+        },
+        {
+          "seq": 3,
+          "text": "Security leadership issues rule v2: any unresolved severity-2 security finding now requires a hold."
+        },
+        {
+          "seq": 4,
+          "text": "The release has an unresolved severity-2 security finding."
+        }
+      ]
+    },
+    {
+      "id": "credit-data-restatement",
+      "cutoff": 2,
+      "choices": [
+        "approve",
+        "decline"
+      ],
+      "correct_at_cutoff": "approve",
+      "later_answer": "decline",
+      "question": "What credit decision was justified at the cutoff?",
+      "events": [
+        {
+          "seq": 1,
+          "text": "Credit rule in force: approve if leverage is at most 3.0x and there is no known covenant breach; otherwise decline."
+        },
+        {
+          "seq": 2,
+          "text": "Reported leverage is 2.7x and no covenant breach is known."
+        },
+        {
+          "seq": 3,
+          "text": "The facility is approved subject to documentation."
+        },
+        {
+          "seq": 4,
+          "text": "Audited numbers later restate leverage at sequence 2 to 3.4x. The restatement was not knowable at the cutoff."
+        }
+      ]
+    },
+    {
+      "id": "routing-map-later-closure",
+      "cutoff": 2,
+      "choices": [
+        "route_A",
+        "route_B"
+      ],
+      "correct_at_cutoff": "route_A",
+      "later_answer": "route_B",
+      "question": "Which route was justified at the cutoff?",
+      "events": [
+        {
+          "seq": 1,
+          "text": "Routing rule: choose route A if its known travel time is under 40 minutes and no closure is known; otherwise choose route B."
+        },
+        {
+          "seq": 2,
+          "text": "Route A is estimated at 32 minutes and no closure is known. Route B is estimated at 45 minutes."
+        },
+        {
+          "seq": 3,
+          "text": "The vehicle departs on route A."
+        },
+        {
+          "seq": 4,
+          "text": "A road authority feed arrives late showing route A had been closed shortly before sequence 2; the closure was not in the system at the cutoff."
+        }
+      ]
+    },
+    {
+      "id": "capacity-forecast-revision",
+      "cutoff": 2,
+      "choices": [
+        "no_scale",
+        "scale"
+      ],
+      "correct_at_cutoff": "no_scale",
+      "later_answer": "scale",
+      "question": "What scaling action was justified at the cutoff?",
+      "events": [
+        {
+          "seq": 1,
+          "text": "Capacity rule: scale if the known next-hour demand forecast exceeds 80 units; otherwise do not scale."
+        },
+        {
+          "seq": 2,
+          "text": "The available next-hour forecast is 68 units."
+        },
+        {
+          "seq": 3,
+          "text": "No scaling action is taken."
+        },
+        {
+          "seq": 4,
+          "text": "A corrected model run later shows that demand at sequence 2 should have been forecast at 91 units; the correction did not exist at the cutoff."
+        }
+      ]
+    },
+    {
+      "id": "access-policy-revision",
+      "cutoff": 2,
+      "choices": [
+        "grant",
+        "deny"
+      ],
+      "correct_at_cutoff": "grant",
+      "later_answer": "deny",
+      "question": "Under the policy and facts known at the cutoff, should access be granted?",
+      "events": [
+        {
+          "seq": 1,
+          "text": "Access policy v3: grant if employment is active and the requested project is assigned. No geography restriction exists in v3."
+        },
+        {
+          "seq": 2,
+          "text": "Employment is active and the requested project is assigned."
+        },
+        {
+          "seq": 3,
+          "text": "Policy v4 is adopted, adding a geography restriction for this data class."
+        },
+        {
+          "seq": 4,
+          "text": "The requester's geography would violate the new v4 restriction."
+        }
+      ]
+    }
+  ]
+}
