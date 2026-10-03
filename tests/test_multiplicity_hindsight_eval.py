@@ -127,8 +127,19 @@ def test_breach_aborts_instead_of_scoring(monkeypatch):
     monkeypatch.setattr(he, "post_cutoff_exposure", lambda case, request: 1)
     with pytest.raises(ExperimentInvalid):
         he.evaluate_one(SpyService([case]), case, "isolated")
+    monkeypatch.setattr(he, "post_cutoff_lines_complete", lambda case, request: 1)
     with pytest.raises(ExperimentInvalid):
         he.evaluate_one(SpyService([case]), case, "baseline")
+
+
+def test_baseline_check_requires_the_complete_post_cutoff_lines():
+    case = load_cases()[0]
+    full = _render(case, "baseline")
+    assert he.post_cutoff_lines_complete(case, full) == 2
+    truncated = full.messages[0].content.replace(case.post_cutoff_texts()[1], case.post_cutoff_texts()[1][:10])
+    req = he.ModelRequest(system=full.system, messages=(he.ModelMessage("user", truncated),), purpose=full.purpose)
+    assert he.post_cutoff_exposure(case, req) == 2  # a marker alone still counts as a trace (isolation side)
+    assert he.post_cutoff_lines_complete(case, req) == 1  # but the baseline check sees the truncation
 
 
 def test_case_state_keeps_everything_in_knowledge_which_the_cutoff_filters():
@@ -144,7 +155,7 @@ def test_no_per_call_output_cap_and_same_budget_for_both_conditions():
     case = load_cases()[0]
     service = SpyService([case])
     run_experiment(service, [case])
-    assert [cap for _, cap in service.requests] == [None, None]
+    assert [cap for _, cap in service.requests] == [None] * 2 * he.PROTOCOL_REPEATS
 
 
 def test_cli_settings_do_not_cap_claude_cli_output_by_default():
@@ -152,15 +163,26 @@ def test_cli_settings_do_not_cap_claude_cli_output_by_default():
     settings = he.settings_from_args(args)
     assert settings.max_output_tokens is None
     assert settings.effort == "high"
+    assert args.repeats == he.PROTOCOL_REPEATS == 2
+    args = he.build_parser().parse_args(["--provider", "anthropic", "--model", "m", "--effort", "high"])
+    assert he.settings_from_args(args).max_output_tokens == he.ANTHROPIC_DEFAULT_MAX_OUTPUT_TOKENS
 
 
-def test_choices_are_presented_sorted_so_position_carries_no_answer():
+def test_choice_order_is_counterbalanced_across_the_registered_repeats():
     cases = load_cases()
-    first = [presented_choices(c)[0] == c.correct_at_cutoff for c in cases]
-    assert not all(first)
     for case in cases:
-        content = _render(case, "isolated").messages[0].content
-        assert ("Choices: " + ", ".join(sorted(case.choices))) in content
+        assert presented_choices(case, 0) == tuple(sorted(case.choices))
+        assert presented_choices(case, 1) == tuple(reversed(sorted(case.choices)))
+    # over both repeats, every binary case shows the justified answer first exactly once
+    for case in (c for c in cases if len(c.choices) == 2):
+        assert sum(presented_choices(case, r)[0] == case.correct_at_cutoff for r in (0, 1)) == 1
+    # the order is identical in both conditions of a pair and is what the model is shown
+    case = cases[1]
+    service = SpyService([case])
+    rows = [he.evaluate_one(service, case, cond, repeat=1) for cond in CONDITIONS]
+    assert rows[0].presented_choices == rows[1].presented_choices == list(presented_choices(case, 1))
+    for request, _ in service.requests:
+        assert ("Choices: " + ", ".join(presented_choices(case, 1))) in request.messages[0].content
 
 
 def test_schedule_alternates_which_condition_goes_first():
@@ -188,9 +210,9 @@ def test_answer_parser_is_fail_closed_but_accepts_fenced_json():
 def test_experiment_runs_both_conditions_with_same_service_and_scores_leaks():
     cases = load_cases()
     service = SpyService(cases)
-    outcome = run_experiment(service, cases, repeats=2)
+    outcome = run_experiment(service, cases)
     assert outcome.complete
-    assert len(outcome.results) == 2 * 2 * len(cases)
+    assert len(outcome.results) == 2 * he.PROTOCOL_REPEATS * len(cases)
     for row in outcome.results:
         if row.condition == "baseline":  # the spy leaks whenever it sees a later event
             assert row.hindsight_leak and not row.correct
@@ -210,10 +232,39 @@ def test_provider_error_is_recorded_and_the_run_continues():
                 raise err
             return super().complete(request, max_output_tokens=max_output_tokens, timeout_s=timeout_s)
 
-    outcome = run_experiment(Flaky(cases), cases)
-    assert outcome.complete and len(outcome.results) == 4
+    outcome = run_experiment(Flaky(cases), cases, sleep=lambda s: None)
+    assert outcome.complete and len(outcome.results) == 2 * he.PROTOCOL_REPEATS * len(cases)
     first = outcome.results[0]
     assert first.error and first.choice is None and not first.correct and first.meter == {"failed": True}
+    assert not first.fatal and len(first.attempts) == 1  # a timeout is not retried
+
+
+def test_transient_provider_error_is_retried_and_recorded():
+    case = load_cases()[0]
+    slept = []
+
+    class Overloaded(SpyService):
+        def complete(self, request, *, max_output_tokens, timeout_s):
+            if not self.requests:
+                self.requests.append((request, max_output_tokens))
+                raise ProviderError("model provider error: claude-cli: provider temporarily unavailable (status 529)")
+            return super().complete(request, max_output_tokens=max_output_tokens, timeout_s=timeout_s)
+
+    row = he.evaluate_one(Overloaded([case]), case, "isolated", sleep=slept.append)
+    assert row.error is None and row.correct and len(row.attempts) == 1 and slept == [he.TRANSIENT_BACKOFF_S]
+
+
+def test_a_non_provider_tool_error_is_a_fatal_configuration_fault():
+    from harness.errors import ToolError
+
+    cases = load_cases()[:2]
+
+    class Misconfigured(SpyService):
+        def complete(self, request, *, max_output_tokens, timeout_s):
+            raise ToolError("model provider error: the 'anthropic' package is not installed")
+
+    outcome = run_experiment(Misconfigured(cases), cases)
+    assert not outcome.complete and len(outcome.results) == 1 and outcome.results[0].fatal
 
 
 def test_fatal_provider_error_stops_the_run():
@@ -268,23 +319,77 @@ def test_cli_writes_a_self_contained_result(tmp_path, monkeypatch):
     gateway = _Gateway(SpyService(cases))
     monkeypatch.setattr(he, "create_gateway", lambda settings, environ=None: gateway)
     out = tmp_path / "r.json"
-    code = he.main(["--provider", "anthropic", "--model", "m", "--repeats", "1", "--output", str(out)], environ={})
+    code = he.main(["--provider", "anthropic", "--model", "m", "--output", str(out)], environ={})
     assert code == 0 and gateway.closed
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload["status"] == "complete" and payload["stopped_reason"] is None
     assert payload["protocol_version"] == he.PROTOCOL_VERSION
     assert payload["protocol"]["system_prompt"] == SYSTEM
-    assert payload["protocol"]["repeats"] == 1
-    assert len(payload["dataset"]["sha256"]) == 64 and payload["dataset"]["n_cases"] == len(cases)
-    assert set(payload["code"]) >= {"git_commit", "git_dirty", "hindsight_eval_sha256", "multiplicity_core_sha256"}
+    assert payload["protocol"]["repeats"] == he.PROTOCOL_REPEATS
+    assert payload["dataset"]["sha256"] == he.hindsight_analysis.REGISTERED_DATASET_SHA256
+    assert payload["dataset"]["n_cases"] == len(cases)
+    assert set(payload["code"]) >= {"git_commit", "git_dirty", "hindsight_eval_sha256", "multiplicity_core_sha256",
+                                    "transport_sha256"}
     assert payload["environment"]["inside_claude_code"] is False
     assert payload["model"]["provider"] == "anthropic"
-    assert len(payload["results"]) == 2 * len(cases)
+    assert payload["model"]["max_output_tokens"] == he.ANTHROPIC_DEFAULT_MAX_OUTPUT_TOKENS
+    assert len(payload["results"]) == 2 * he.PROTOCOL_REPEATS * len(cases)
     row = payload["results"][0]
-    assert {"prompt", "raw", "meter", "branch", "choice", "correct", "hindsight_leak"} <= set(row)
+    assert {"prompt", "raw", "meter", "branch", "choice", "correct", "hindsight_leak", "presented_choices",
+            "attempts", "truncated"} <= set(row)
     assert payload["served_models"] == ["spy-model"]
+    # the spy leaks on every baseline call: the machinery must carry that through to the registered rule
     decision = payload["analysis"]["decision"]
-    assert decision["verdict"] in ("SUPPORTED_FOR_NEXT_TEST", "NO_DISTINCT_ADVANTAGE", "INCONCLUSIVE")
+    assert decision["verdict"] == "SUPPORTED_FOR_NEXT_TEST" and decision["b_cases"] == len(cases)
+
+
+def test_cli_does_not_block_the_anthropic_provider_inside_claude_code(tmp_path, monkeypatch):
+    cases = load_cases()
+    reached = []
+
+    def gateway(settings, environ=None):
+        reached.append(settings.provider)
+        return _Gateway(SpyService(cases))
+
+    monkeypatch.setattr(he, "create_gateway", gateway)
+    out = tmp_path / "r.json"
+    assert he.main(["--provider", "anthropic", "--model", "m", "--output", str(out)], environ={"CLAUDECODE": "1"}) == 0
+    assert reached == ["anthropic"]
+    assert json.loads(out.read_text(encoding="utf-8"))["environment"]["inside_claude_code"] is True
+
+
+def test_cli_preflight_failure_is_recorded_as_incomplete(tmp_path, monkeypatch):
+    cases = load_cases()
+    monkeypatch.setattr(he, "create_gateway", lambda settings, environ=None: _Gateway(SpyService(cases)))
+
+    def failing(settings, environ):
+        raise ProviderUnavailable("model provider error: claude-cli: not authenticated")
+
+    monkeypatch.setattr(he, "preflight", failing)
+    out = tmp_path / "r.json"
+    assert he.main(["--provider", "claude-cli", "--model", "m", "--output", str(out)], environ={}) == 1
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    assert payload["status"] == "incomplete" and payload["stopped_reason"].startswith("preflight failed")
+    assert payload["results"] == [] and payload["preflight"]["ok"] is False
+
+
+def test_cli_interrupt_finalises_the_result_file(tmp_path, monkeypatch):
+    cases = load_cases()
+
+    class Interrupting(SpyService):
+        def complete(self, request, *, max_output_tokens, timeout_s):
+            if len(self.requests) == 3:
+                raise KeyboardInterrupt
+            return super().complete(request, max_output_tokens=max_output_tokens, timeout_s=timeout_s)
+
+    monkeypatch.setattr(he, "create_gateway", lambda settings, environ=None: _Gateway(Interrupting(cases)))
+    out = tmp_path / "r.json"
+    assert he.main(["--provider", "anthropic", "--model", "m", "--output", str(out)], environ={}) == 1
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    assert payload["status"] == "incomplete" and payload["stopped_reason"] == "interrupted"
+    assert len(payload["results"]) == 3 and payload["finished_at_utc"]
+    assert payload["analysis"]["decision"]["verdict"] == "INCONCLUSIVE"
+    assert not list(tmp_path.glob("*.partial"))
 
 
 def test_cli_marks_an_isolation_breach_as_invalid_and_keeps_the_file(tmp_path, monkeypatch):
@@ -305,6 +410,7 @@ def test_print_prompts_makes_no_model_call(capsys, monkeypatch):
     assert he.main(["--print-prompts"], environ={"CLAUDECODE": "1"}) == 0
     out = capsys.readouterr().out
     assert "post-cutoff events in input: 0/2" in out and "post-cutoff events in input: 2/2" in out
+    assert out.count("=====") == 2 * he.PROTOCOL_REPEATS * len(load_cases()) + 1
 
 
 def test_all_cases_have_post_cutoff_hindsight_pressure():

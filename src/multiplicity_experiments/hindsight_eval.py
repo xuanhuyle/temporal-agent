@@ -24,7 +24,7 @@ Run it from a normal terminal, never from inside Claude Code (the claude-cli
 provider refuses to start when ``CLAUDECODE`` is set):
 
     PYTHONPATH=src python -m multiplicity_experiments.hindsight_eval \\
-        --provider claude-cli --model MODEL --effort high --repeats 3 \\
+        --provider claude-cli --model MODEL --effort high \\
         --output results/temporal-multiplicity/NAME.json
 
 The result file is self-contained (code and dataset hashes, git commit, the
@@ -41,8 +41,11 @@ import json
 import os
 import platform
 import re
+import signal
 import subprocess
 import sys
+import tempfile
+import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -51,19 +54,30 @@ from typing import Any, Callable, Mapping, Protocol
 from harness.agent import ModelSettings
 from harness.errors import ToolError
 from harness.llm import ModelMessage, ModelRequest, ModelResponse
-from harness.model.gateway import ProviderUnavailable, create_gateway
+from harness.model.gateway import ProviderError, ProviderUnavailable, create_gateway
 
 from multiplicity import AgentState, RunResult, TemporalMultiplicity
 
 from . import hindsight_analysis
 
 EXPERIMENT_ID = "tmk-hindsight"
-PROTOCOL_VERSION = "v0.1"
+PROTOCOL_VERSION = hindsight_analysis.REGISTERED_PROTOCOL_VERSION
+PROTOCOL_REPEATS = hindsight_analysis.REGISTERED_REPEATS
 CONDITIONS = ("baseline", "isolated")
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CASES = REPO_ROOT / "experiments" / "multiplicity" / "hindsight_cases.json"
 DEFAULT_TIMEOUT_S = 600.0
 PURPOSE = "tmk_hindsight"
+# Retries only when no model reply was received for a transient provider fault (overload, rate limit, 5xx).
+# Timeouts are not retried: long deliberation may depend on the condition, and a retry would resample one side.
+TRANSIENT_RETRIES = 2
+TRANSIENT_BACKOFF_S = 10.0
+_TRANSIENT = re.compile(r"temporarily unavailable|overloaded|status (?:429|500|502|503|529)\b", re.IGNORECASE)
+# The anthropic provider enforces a per-call cap that includes thinking; the claude-cli provider is left uncapped.
+ANTHROPIC_DEFAULT_MAX_OUTPUT_TOKENS = 16000
+# Non-secret operator settings that change how much the model thinks; recorded so 'effort high' can be checked.
+_RECORDED_ENV = re.compile(r"^(MAX_THINKING_TOKENS|CLAUDE_EFFORT|CLAUDE_CODE_EFFORT_LEVEL|ANTHROPIC_MODEL|"
+                           r"ANTHROPIC_DEFAULT_\w+_MODEL|ANTHROPIC_SMALL_FAST_MODEL|CLAUDE_CODE_SUBAGENT_MODEL)$")
 
 # Frozen prompt, protocol v0.1. Identical in both conditions. Changing it is a new protocol version.
 SYSTEM = """You are taking part in a controlled evaluation of historical decision-making.
@@ -85,6 +99,8 @@ Timeline:
 
 Question: {question}
 Choices: {choices}"""
+
+CHOICE_ORDER_RULE = "sorted on even repeats, reverse-sorted on odd repeats; identical in both conditions of a pair"
 
 PARSE_RULE = (
     "strict JSON object; else a single fenced ```json block; else the JSON objects embedded in the text, "
@@ -153,9 +169,11 @@ def state_for_case(case: EvalCase) -> AgentState:
 
 
 # -------------------------------------------------------------------- rendering
-def presented_choices(case: EvalCase) -> tuple[str, ...]:
-    """Choices in sorted order, so the position of an answer carries no information."""
-    return tuple(sorted(case.choices))
+def presented_choices(case: EvalCase, repeat: int = 0) -> tuple[str, ...]:
+    """Choice order (:data:`CHOICE_ORDER_RULE`): label-blind, and each case is shown in both orders across the
+    registered two repeats. Sorting alone left the justified answer first in 5 of the 8 cases."""
+    ordered = sorted(case.choices)
+    return tuple(reversed(ordered) if repeat % 2 else ordered)
 
 
 def visible_events(state: AgentState) -> tuple[tuple[int, str], ...]:
@@ -167,18 +185,23 @@ def visible_events(state: AgentState) -> tuple[tuple[int, str], ...]:
     )
 
 
-def render_prompt(case: EvalCase, state: AgentState) -> str:
-    timeline = "\n".join(f"[seq {seq}] {text}" for seq, text in visible_events(state))
+def event_line(seq: int, text: str) -> str:
+    return f"[seq {seq}] {text}"
+
+
+def render_prompt(case: EvalCase, state: AgentState, repeat: int = 0) -> str:
+    timeline = "\n".join(event_line(seq, text) for seq, text in visible_events(state))
     return USER_TEMPLATE.format(
         cutoff=case.cutoff,
         timeline=timeline,
         question=case.question,
-        choices=", ".join(presented_choices(case)),
+        choices=", ".join(presented_choices(case, repeat)),
     )
 
 
-def request_for_state(case: EvalCase, state: AgentState) -> ModelRequest:
-    return ModelRequest(system=SYSTEM, messages=(ModelMessage("user", render_prompt(case, state)),), purpose=PURPOSE)
+def request_for_state(case: EvalCase, state: AgentState, repeat: int = 0) -> ModelRequest:
+    return ModelRequest(system=SYSTEM, messages=(ModelMessage("user", render_prompt(case, state, repeat)),),
+                        purpose=PURPOSE)
 
 
 def request_text(request: ModelRequest) -> str:
@@ -186,10 +209,16 @@ def request_text(request: ModelRequest) -> str:
 
 
 def post_cutoff_exposure(case: EvalCase, request: ModelRequest) -> int:
-    """How many post-cutoff events (by text, or by their ``[seq N]`` marker) appear in the request."""
+    """How many post-cutoff events leave any trace (their text or their ``[seq N]`` marker) in the request."""
     text = request_text(request)
     later = [e for e in case.events if int(e["seq"]) > case.cutoff]
     return sum(1 for e in later if str(e["text"]) in text or f"[seq {int(e['seq'])}]" in text)
+
+
+def post_cutoff_lines_complete(case: EvalCase, request: ModelRequest) -> int:
+    """How many post-cutoff events appear as their exact, complete timeline line in the user message."""
+    lines = set(request.messages[0].content.splitlines())
+    return sum(1 for e in case.events if int(e["seq"]) > case.cutoff and event_line(int(e["seq"]), str(e["text"])) in lines)
 
 
 # ---------------------------------------------------------------------- parsing
@@ -258,18 +287,21 @@ class GatewayBackend:
     """``CognitiveBackend`` over the harness model gateway (experiment adapter, not part of the core package).
 
     It renders whatever explicit state it is handed into one request and parses the reply. It is not told
-    which experimental condition it serves.
+    which experimental condition it serves. ``repeat`` only selects the counterbalanced choice order.
     """
 
-    def __init__(self, service: CompletionService, case: EvalCase, *, timeout_s: float = DEFAULT_TIMEOUT_S) -> None:
+    def __init__(
+        self, service: CompletionService, case: EvalCase, *, repeat: int = 0, timeout_s: float = DEFAULT_TIMEOUT_S
+    ) -> None:
         self.service = service
         self.case = case
+        self.repeat = repeat
         self.timeout_s = timeout_s
 
     def reason(self, state: AgentState, task: str, budget: int) -> RunResult:
         if task != self.case.question:
             raise ValueError("task does not match the case question")
-        request = request_for_state(self.case, state)
+        request = request_for_state(self.case, state, self.repeat)
         response, meter = self.service.complete(request, max_output_tokens=None, timeout_s=self.timeout_s)
         parsed = parse_answer(response.text, self.case.choices)
         return RunResult(
@@ -279,6 +311,7 @@ class GatewayBackend:
                 "parse_mode": parsed.mode,
                 "raw": response.text,
                 "served_model": response.model,
+                "stop_reason": response.stop_reason,
             },
             state=state,
             trace=(f"events_in_input={[seq for seq, _ in visible_events(state)]}",),
@@ -295,14 +328,17 @@ class CaseResult:
     order_in_pair: int
     correct_at_cutoff: str
     later_answer: str
+    presented_choices: list[str]
     choice: str | None
     confidence: float | None
     parse_mode: str | None
     correct: bool
     hindsight_leak: bool
+    truncated: bool
     raw: str | None
     error: str | None
     fatal: bool
+    attempts: list[dict[str, Any]]
     meter: dict[str, Any]
     branch: dict[str, Any]
     prompt: str
@@ -313,6 +349,16 @@ class CaseResult:
         return asdict(self)
 
 
+def is_transient(exc: BaseException) -> bool:
+    """A provider fault where no model reply was received and a retry cannot favour either condition."""
+    return (
+        isinstance(exc, ProviderError)
+        and not isinstance(exc, ProviderUnavailable)
+        and "timed out" not in str(exc)
+        and bool(_TRANSIENT.search(str(exc)))
+    )
+
+
 def evaluate_one(
     service: CompletionService,
     case: EvalCase,
@@ -321,24 +367,26 @@ def evaluate_one(
     repeat: int = 0,
     order_in_pair: int = 0,
     timeout_s: float = DEFAULT_TIMEOUT_S,
+    sleep: Callable[[float], None] = time.sleep,
 ) -> CaseResult:
-    """One model call for one case under one condition, through snapshot -> fork -> run."""
+    """One scored model call for one case under one condition, through snapshot -> fork -> run."""
     if condition not in CONDITIONS:
         raise ValueError(f"unknown condition {condition!r}")
-    capability = TemporalMultiplicity(GatewayBackend(service, case, timeout_s=timeout_s))
+    capability = TemporalMultiplicity(GatewayBackend(service, case, repeat=repeat, timeout_s=timeout_s))
     root = capability.snapshot(state_for_case(case))
     branch = capability.fork(root, epistemic_cutoff=case.cutoff if condition == "isolated" else None)
     branch_state = capability.branch_state(branch)
     kernel_branch = capability.kernel.get_branch(branch.branch_id)
 
     # Validity checks on the exact request the backend will build, before any model call.
-    request = request_for_state(case, branch_state)
+    request = request_for_state(case, branch_state, repeat)
     exposure = post_cutoff_exposure(case, request)
+    complete_lines = post_cutoff_lines_complete(case, request)
     n_later = len(case.post_cutoff_texts())
     if condition == "isolated" and exposure:
         raise ExperimentInvalid(f"isolation breach: {exposure} post-cutoff event(s) in the isolated input ({case.id})")
-    if condition == "baseline" and exposure != n_later:
-        raise ExperimentInvalid(f"baseline input is missing post-cutoff events ({case.id}: {exposure}/{n_later})")
+    if condition == "baseline" and complete_lines != n_later:
+        raise ExperimentInvalid(f"baseline input lacks complete post-cutoff events ({case.id}: {complete_lines}/{n_later})")
 
     prompt = request.messages[0].content
     branch_info = {
@@ -349,6 +397,7 @@ def evaluate_one(
         "state_seq": branch_state.seq,
         "events_in_input": [seq for seq, _ in visible_events(branch_state)],
         "post_cutoff_events_in_input": exposure,
+        "post_cutoff_lines_complete": complete_lines,
     }
     common = dict(
         case_id=case.id,
@@ -357,20 +406,31 @@ def evaluate_one(
         order_in_pair=order_in_pair,
         correct_at_cutoff=case.correct_at_cutoff,
         later_answer=case.later_answer,
+        presented_choices=list(presented_choices(case, repeat)),
         branch=branch_info,
         prompt=prompt,
         prompt_chars=len(request.system) + len(prompt),
     )
-    try:
-        run = capability.run(branch, case.question)
-    except ToolError as exc:  # provider failures (ProviderError is a ToolError)
-        return CaseResult(
-            **common,
-            choice=None, confidence=None, parse_mode=None, correct=False, hindsight_leak=False,
-            raw=None, error=str(exc), fatal=isinstance(exc, ProviderUnavailable),
-            meter=dict(getattr(exc, "meter", None) or {}),
-        )
+    attempts: list[dict[str, Any]] = []
+    for attempt in range(1 + TRANSIENT_RETRIES):
+        try:
+            run = capability.run(branch, case.question)
+            break
+        except ToolError as exc:  # ProviderError is a ToolError; any other ToolError is a configuration fault
+            meter = dict(getattr(exc, "meter", None) or {})
+            attempts.append({"error": str(exc), "meter": meter})
+            if is_transient(exc) and attempt < TRANSIENT_RETRIES:
+                sleep(TRANSIENT_BACKOFF_S * (attempt + 1))
+                continue
+            return CaseResult(
+                **common,
+                choice=None, confidence=None, parse_mode=None, correct=False, hindsight_leak=False, truncated=False,
+                raw=None, error=str(exc),
+                fatal=isinstance(exc, ProviderUnavailable) or not isinstance(exc, ProviderError),
+                attempts=attempts, meter=meter,
+            )
     answer = run.result.answer
+    meter = dict(run.result.cost or {})
     choice = answer["choice"]
     return CaseResult(
         **common,
@@ -379,10 +439,12 @@ def evaluate_one(
         parse_mode=answer["parse_mode"],
         correct=choice == case.correct_at_cutoff,
         hindsight_leak=choice == case.later_answer and case.later_answer != case.correct_at_cutoff,
+        truncated=answer.get("stop_reason") == "max_tokens" or meter.get("stop_reason") == "max_tokens",
         raw=answer["raw"],
         error=None,
         fatal=False,
-        meter=dict(run.result.cost or {}),
+        attempts=attempts,
+        meter=meter,
         served_model=answer.get("served_model"),
     )
 
@@ -398,7 +460,8 @@ class ExperimentRun:
 
 
 def schedule(cases: list[EvalCase], repeats: int) -> list[tuple[int, EvalCase, tuple[str, str]]]:
-    """Call order: per repeat, per case, both conditions; which condition goes first alternates."""
+    """Call order: per repeat, per case, both conditions; which condition goes first alternates by
+    (case index + repeat) parity. (Choice order depends on the repeat only, so the two are not aliased.)"""
     out = []
     for repeat in range(repeats):
         for i, case in enumerate(cases):
@@ -411,22 +474,24 @@ def run_experiment(
     service: CompletionService,
     cases: list[EvalCase],
     *,
-    repeats: int = 1,
+    repeats: int = PROTOCOL_REPEATS,
     timeout_s: float = DEFAULT_TIMEOUT_S,
     on_result: Callable[[CaseResult], None] | None = None,
     should_stop: Callable[[], str | None] | None = None,
+    sleep: Callable[[float], None] = time.sleep,
 ) -> ExperimentRun:
     if repeats < 1:
         raise ValueError("repeats must be at least 1")
     run = ExperimentRun()
     for repeat, case, order in schedule(cases, repeats):
         for position, condition in enumerate(order):
-            row = evaluate_one(service, case, condition, repeat=repeat, order_in_pair=position, timeout_s=timeout_s)
+            row = evaluate_one(service, case, condition, repeat=repeat, order_in_pair=position, timeout_s=timeout_s,
+                               sleep=sleep)
             run.results.append(row)
             if on_result is not None:
                 on_result(row)
             if row.fatal:
-                run.stopped_reason = f"fatal provider error: {row.error}"
+                run.stopped_reason = f"fatal error: {row.error}"
                 return run
             reason = should_stop() if should_stop is not None else None
             if reason:
@@ -436,6 +501,10 @@ def run_experiment(
 
 
 # --------------------------------------------------------------- run metadata
+TRANSPORT_FILES = ("harness/llm.py", "harness/model/gateway.py", "harness/model/claude_cli.py",
+                   "harness/model/anthropic_backend.py")
+
+
 def _sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -459,12 +528,14 @@ def code_info() -> dict[str, Any]:
         core_digest.update(path.name.encode())
         core_digest.update(path.read_bytes())
     dirty = _git("status", "--porcelain", "--untracked-files=no")
+    src = REPO_ROOT / "src"
     return {
         "git_commit": _git("rev-parse", "HEAD"),
         "git_dirty": None if dirty is None else bool(dirty),
         "hindsight_eval_sha256": _sha256_file(Path(__file__)),
         "hindsight_analysis_sha256": _sha256_file(Path(hindsight_analysis.__file__)),
         "multiplicity_core_sha256": core_digest.hexdigest(),
+        "transport_sha256": {f: _sha256_file(src / f) for f in TRANSPORT_FILES if (src / f).exists()},
     }
 
 
@@ -488,16 +559,26 @@ def protocol_info(repeats: int, timeout_s: float) -> dict[str, Any]:
         "system_prompt_sha256": _sha256_text(SYSTEM),
         "user_template": USER_TEMPLATE,
         "user_template_sha256": _sha256_text(USER_TEMPLATE),
-        "choice_order": "sorted",
+        "choice_order": CHOICE_ORDER_RULE,
         "conditions": list(CONDITIONS),
         "condition_difference": "isolated input = baseline input minus the post-cutoff events (kernel fork)",
         "repeats": repeats,
+        "registered_repeats": PROTOCOL_REPEATS,
         "call_order": "per repeat, per case; the first condition alternates by (case index + repeat) parity",
-        "max_output_tokens_per_call": None,
+        "max_output_tokens_per_call": None,  # filled from the gateway once it exists
+        "output_cap_enforced_per_call": None,
         "timeout_s": timeout_s,
+        "transient_retries": TRANSIENT_RETRIES,
         "parse_rule": PARSE_RULE,
         "verdict_thresholds": dict(hindsight_analysis.THRESHOLDS),
     }
+
+
+def recorded_env(environ: Mapping[str, str]) -> dict[str, Any]:
+    """Non-secret operator settings that change the model's thinking, plus whether API routing is overridden."""
+    out: dict[str, Any] = {k: environ[k] for k in sorted(environ) if _RECORDED_ENV.match(k)}
+    out["ANTHROPIC_BASE_URL_set"] = bool(environ.get("ANTHROPIC_BASE_URL"))
+    return out
 
 
 def default_output(settings: ModelSettings, repeats: int) -> Path:
@@ -507,11 +588,21 @@ def default_output(settings: ModelSettings, repeats: int) -> Path:
     return REPO_ROOT / "results" / "temporal-multiplicity" / name
 
 
-def _write_atomic(path: Path, payload: Mapping[str, Any]) -> None:
+def _claim(path: Path) -> None:
+    """Create the result file exclusively, so an existing result is never overwritten (raises FileExistsError)."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(path.suffix + ".partial")
-    tmp.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    os.replace(tmp, path)
+    os.close(os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644))
+
+
+def _write_atomic(path: Path, payload: Mapping[str, Any]) -> None:
+    fd, tmp = tempfile.mkstemp(prefix=path.name + ".", suffix=".partial", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+        os.replace(tmp, path)
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise
 
 
 def _now() -> str:
@@ -529,6 +620,33 @@ def preflight(settings: ModelSettings, environ: Mapping[str, str]) -> dict[str, 
         backend.close()
 
 
+class _Terminated(KeyboardInterrupt):
+    """SIGTERM/SIGHUP, turned into the interrupt path so the result file is finalised and children are killed."""
+
+
+def _install_signal_handlers() -> dict[int, Any]:
+    previous = {}
+
+    def handler(signum, frame):  # noqa: ARG001
+        raise _Terminated(f"signal {signum}")
+
+    for sig in (getattr(signal, "SIGTERM", None), getattr(signal, "SIGHUP", None)):
+        if sig is not None:
+            try:
+                previous[sig] = signal.signal(sig, handler)
+            except (ValueError, OSError):  # not in the main thread, or unsupported
+                pass
+    return previous
+
+
+def _restore_signal_handlers(previous: Mapping[int, Any]) -> None:
+    for sig, old in previous.items():
+        try:
+            signal.signal(sig, old)
+        except (ValueError, OSError):
+            pass
+
+
 # -------------------------------------------------------------------------- CLI
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -537,9 +655,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--provider", choices=["anthropic", "claude-cli"])
     parser.add_argument("--model")
     parser.add_argument("--effort")
-    parser.add_argument("--repeats", type=int, default=1, help="calls per case and condition (default 1)")
+    parser.add_argument("--repeats", type=int, default=PROTOCOL_REPEATS,
+                        help=f"calls per case and condition (registered: {PROTOCOL_REPEATS}; "
+                             "any other value is off-protocol and its verdict is INCONCLUSIVE)")
     parser.add_argument("--max-output-tokens", type=int, default=None,
-                        help="run-level output cap; default none (claude-cli) or the gateway default (anthropic)")
+                        help="run-level output cap, identical for both conditions; default: none for claude-cli, "
+                             f"{ANTHROPIC_DEFAULT_MAX_OUTPUT_TOKENS} for anthropic")
     parser.add_argument("--timeout-s", type=float, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--cases", type=Path, default=DEFAULT_CASES)
     parser.add_argument("--output", type=Path, help="result JSON path (default: a timestamped file in "
@@ -551,24 +672,23 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def settings_from_args(args: argparse.Namespace) -> ModelSettings:
-    return ModelSettings(
-        provider=args.provider,
-        name=args.model,
-        effort=args.effort,
-        max_output_tokens=args.max_output_tokens,
-    )
+    cap = args.max_output_tokens
+    if cap is None and args.provider == "anthropic":
+        cap = ANTHROPIC_DEFAULT_MAX_OUTPUT_TOKENS
+    return ModelSettings(provider=args.provider, name=args.model, effort=args.effort, max_output_tokens=cap)
 
 
-def print_prompts(cases: list[EvalCase]) -> int:
-    for case in cases:
-        for condition in CONDITIONS:
-            capability = TemporalMultiplicity(GatewayBackend(_NoService(), case))
-            root = capability.snapshot(state_for_case(case))
-            branch = capability.fork(root, epistemic_cutoff=case.cutoff if condition == "isolated" else None)
-            request = request_for_state(case, capability.branch_state(branch))
-            print(f"===== {case.id} / {condition} (post-cutoff events in input: "
-                  f"{post_cutoff_exposure(case, request)}/{len(case.post_cutoff_texts())})")
-            print(request.messages[0].content)
+def print_prompts(cases: list[EvalCase], repeats: int) -> int:
+    for repeat in range(repeats):
+        for case in cases:
+            for condition in CONDITIONS:
+                capability = TemporalMultiplicity(GatewayBackend(_NoService(), case, repeat=repeat))
+                root = capability.snapshot(state_for_case(case))
+                branch = capability.fork(root, epistemic_cutoff=case.cutoff if condition == "isolated" else None)
+                request = request_for_state(case, capability.branch_state(branch), repeat)
+                print(f"===== {case.id} / {condition} / repeat {repeat} (post-cutoff events in input: "
+                      f"{post_cutoff_exposure(case, request)}/{len(case.post_cutoff_texts())})")
+                print(request.messages[0].content)
     print("===== system prompt (identical in both conditions)")
     print(SYSTEM)
     return 0
@@ -583,13 +703,16 @@ def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None
     environ = os.environ if environ is None else environ
     parser = build_parser()
     args = parser.parse_args(argv)
-    cases = load_cases(args.cases)
-    if args.print_prompts:
-        return print_prompts(cases)
-    if not args.provider or not args.model:
-        parser.error("--provider and --model are required (unless --print-prompts)")
     if args.repeats < 1:
         parser.error("--repeats must be at least 1")
+    if not args.cases.exists():
+        parser.error(f"cases file not found: {args.cases} (run from a source checkout with PYTHONPATH=src, "
+                     "or an editable install, or pass --cases)")
+    cases = load_cases(args.cases)
+    if args.print_prompts:
+        return print_prompts(cases, args.repeats)
+    if not args.provider or not args.model:
+        parser.error("--provider and --model are required (unless --print-prompts)")
     inside_claude_code = bool(environ.get("CLAUDECODE"))
     if args.provider == "claude-cli" and inside_claude_code:
         print(
@@ -601,7 +724,9 @@ def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None
 
     settings = settings_from_args(args)
     output = args.output or default_output(settings, args.repeats)
-    if output.exists():
+    try:
+        _claim(output)
+    except FileExistsError:
         print(f"refusing to overwrite existing result file {output}", file=sys.stderr)
         return 2
 
@@ -617,6 +742,7 @@ def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None
             "inside_claude_code": inside_claude_code,
             "python": sys.version.split()[0],
             "platform": platform.platform(),
+            "recorded_env": recorded_env(environ),
         },
         "code": code_info(),
         "dataset": dataset_info(args.cases),
@@ -637,49 +763,56 @@ def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None
         payload["analysis"] = hindsight_analysis.analyze(payload)
         _write_atomic(output, payload)
 
-    gateway = create_gateway(settings, environ=environ)
+    save()
+    previous_handlers = _install_signal_handlers()
+    gateway = None
     try:
-        payload["gateway"] = gateway.describe()
+        gateway = create_gateway(settings, environ=environ)
+        describe = gateway.describe()
+        payload["gateway"] = describe
         payload["runtime"] = gateway.runtime_info()
+        payload["protocol"]["max_output_tokens_per_call"] = describe.get("effective_max_output_tokens")
+        payload["protocol"]["output_cap_enforced_per_call"] = describe.get("output_cap_enforced_per_call")
         if args.provider == "claude-cli" and not args.skip_preflight:
             try:
                 payload["preflight"] = preflight(settings, environ)
             except ToolError as exc:
                 payload["preflight"] = {"ok": False, "error": str(exc)}
                 payload["stopped_reason"] = f"preflight failed: {exc}"
-                payload["finished_at_utc"] = _now()
-                save("incomplete")
-                print(f"preflight failed: {exc}\nresult file: {output}", file=sys.stderr)
-                return 1
-        save()
-        service = gateway.lane("multiplicity-hindsight")
-
-        def on_result(row: CaseResult) -> None:
-            payload["results"].append(row.to_dict())
+        if payload["stopped_reason"] is None:
             save()
-            print(f"[{len(payload['results'])}] {row.case_id} r{row.repeat} {row.condition}: "
-                  f"{row.choice if row.error is None else 'ERROR ' + row.error}", file=sys.stderr)
+            service = gateway.lane("multiplicity-hindsight")
 
-        outcome = run_experiment(
-            service,
-            cases,
-            repeats=args.repeats,
-            timeout_s=args.timeout_s,
-            on_result=on_result,
-            should_stop=lambda: gateway.fatal_error,
-        )
-        payload["stopped_reason"] = outcome.stopped_reason
+            def on_result(row: CaseResult) -> None:
+                payload["results"].append(row.to_dict())
+                save()
+                print(f"[{len(payload['results'])}] {row.case_id} r{row.repeat} {row.condition}: "
+                      f"{row.choice if row.error is None else 'ERROR ' + row.error}", file=sys.stderr)
+
+            outcome = run_experiment(
+                service,
+                cases,
+                repeats=args.repeats,
+                timeout_s=args.timeout_s,
+                on_result=on_result,
+                should_stop=lambda: gateway.fatal_error,
+            )
+            payload["stopped_reason"] = outcome.stopped_reason
     except ExperimentInvalid as exc:
         payload["stopped_reason"] = f"experiment invalid: {exc}"
-    except KeyboardInterrupt:
-        payload["stopped_reason"] = "interrupted"
+    except KeyboardInterrupt as exc:
+        payload["stopped_reason"] = f"interrupted ({exc})" if isinstance(exc, _Terminated) else "interrupted"
     except BaseException as exc:
         payload["stopped_reason"] = f"crashed: {type(exc).__name__}: {exc}"
         raise
     finally:
-        gateway.close()
-        payload["finished_at_utc"] = _now()
-        save("complete" if payload["stopped_reason"] is None else "incomplete")
+        try:
+            if gateway is not None:
+                gateway.close()
+        finally:
+            _restore_signal_handlers(previous_handlers)
+            payload["finished_at_utc"] = _now()
+            save("complete" if payload["stopped_reason"] is None else "incomplete")
 
     sys.stdout.write(hindsight_analysis.render_markdown(payload, payload["analysis"]))
     print(f"\nresult file: {output}")

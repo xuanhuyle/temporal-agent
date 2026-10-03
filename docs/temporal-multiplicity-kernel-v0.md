@@ -49,7 +49,10 @@ Each case has:
 - an explicit decision rule;
 - evidence available before a cutoff;
 - a historically justified answer at the cutoff;
-- later information that strongly points to a different answer.
+- later information that points to a different answer (in 5 of the 8 cases
+  the later events also record the decision actually taken at the cutoff,
+  which matches the justified answer; see the results document's threats to
+  validity).
 
 The same model is run in two conditions.
 
@@ -63,6 +66,11 @@ available at the cutoff.
 
 The model receives the same task and decision rule, but the state has been
 mechanically truncated. Post-cutoff events do not exist in its input.
+
+From protocol v0.1 both conditions get the same system prompt (which carries
+the instruction), the same user template and the same output budget, and both
+run through `TemporalMultiplicity.fork` and `.run` with one backend. The only
+difference is the fork's `epistemic_cutoff`.
 
 ### Primary metrics
 
@@ -89,7 +97,8 @@ After installing the package:
 
     tmk-hindsight --provider claude-cli --model <model> --effort high
 
-or:
+(the console script needs an editable install, `pip install -e .`, because the
+cases live in the source tree), or:
 
     PYTHONPATH=src python -m multiplicity_experiments.hindsight_eval \
       --provider claude-cli \
