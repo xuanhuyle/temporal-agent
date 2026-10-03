@@ -128,3 +128,46 @@ to test are:
 5. safe self-modification by fork, evaluate and commit.
 
 Each should be a separate falsifiable experiment.
+
+
+## Product interpretation: a cognitive capability, not a model
+
+The product hypothesis is deliberately model-agnostic.
+
+Temporal multiplicity should be something an agent runtime can **gain** without
+requiring a specific foundation model:
+
+    ordinary agent
+        +
+    TemporalMultiplicity capability
+        =
+    agent that can snapshot, fork, execute and compare versions of its own
+    explicit state
+
+The model remains the reasoning engine. The multiplicity layer changes the
+operations available to that reasoning engine.
+
+The core package therefore defines only a generic `CognitiveBackend` contract:
+
+    reason(state, task, budget) -> RunResult
+
+A backend may wrap:
+
+- Claude;
+- GPT;
+- Gemini;
+- a local/open-weight model;
+- a symbolic reasoner;
+- a human or hybrid workflow;
+- another agent runtime.
+
+The core `multiplicity` package has an explicit test forbidding imports from
+the benchmark harness and from model-vendor SDKs. Provider-specific evaluation
+code now lives in `multiplicity_experiments`.
+
+This separation matters scientifically too. If a capability gain only appears
+with one model family, that is evidence for an interaction effect, not a general
+cognitive primitive.
+
+A mature claim would therefore require replication across multiple reasoning
+backends.
