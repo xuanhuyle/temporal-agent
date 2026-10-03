@@ -64,3 +64,49 @@ affected.
   - A wrong password costs a configured-cost hash during a cost change.
   - A reconcile poll that refreshes nothing fails visibly.
   - Test connections are closed.
+
+## 0.2.0 (Milestone 2: protocol v0.2, shared contestant runtime, conventional baseline)
+
+Harness 0.3.0. Evaluator unchanged (0.3.0): scoring logic, `smoke_v1`, its
+events and its ground truth are byte-identical to 0.1.1. These are benchmark
+and runtime changes. The contestant code (`src/contestant_runtime/`,
+`src/baseline/`) is a contestant, not part of the benchmark, and is not
+logged here. No earlier result is invalidated, because only reference agents
+had ever run.
+
+- **Protocol v0.2** (`docs/protocol-amendments.md`), recorded before any
+  contestant code:
+  - A1: shared read-only world history.
+  - A2: `run_command`.
+  - A3: harness-metered model access, with one model configuration per run.
+  - A4: contestant process boundary and per-event wall-clock budget.
+  - C1: the backend serving the model is an operational choice recorded with
+    the run.
+- **Instructions** `tab.instructions/2`: they mention the history and command
+  tools and that model calls count against the budget. They still contain no
+  temporal hint.
+- **Budgets:** `StepBudget` gains command, model-call, model-token,
+  embedding-token and wall-clock limits. `smoke_v1` fixes only the tool-call
+  budget; the rest are harness defaults, recorded in each run's config.
+- **Usage:** efficiency is now harness-metered. The self-reported `Usage` is
+  kept as `reported_usage`. `model_input_tokens` counts every prompt token
+  processed, cache reads and writes included. Figures a backend cannot
+  report are `null`, never estimated.
+- **Outputs:**
+  - `process.jsonl`: contestant process lifecycle. It is volatile and not
+    fingerprinted.
+  - `metadata.model_runtime`: facts read from the machine, such as the
+    Claude CLI version.
+  - New trace record types: `world_state_revealed`.
+  - New step statuses: `timeout` and `crashed`.
+  - Structured tool arguments are stored as blobs.
+- **Model backends:** `fake` (CI), `recorded` (replay), `anthropic` (optional,
+  API key) and `claude-cli`. The last one runs the Claude Code CLI with the
+  operator's existing login, so no API key is needed.
+- **Commands:**
+  - `smoke-baseline-fake`: machinery check; its scores are meaningless.
+  - `smoke-baseline-claude`: real model run through the Claude CLI.
+  - `claude-cli-check`: one-call preflight.
+  - `report`: run summary.
+- **CI:** GitHub Actions runs the test suite, the reference smoke run, and the
+  fake-model baseline smoke run with replay.

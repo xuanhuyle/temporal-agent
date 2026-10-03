@@ -120,3 +120,28 @@ It also adds a realistic requirement that applies to both contestants
 equally: a long-lived agent must survive restarts, which exercises its
 checkpoints. The process boundary is not a security sandbox. See
 `docs/milestone-2-design.md` for exactly what it does and does not protect.
+
+### Clarification C1 to A3: which backend serves the model (recorded 2026-10-03, before any real-model contestant run)
+
+A3 makes the model configuration a property of the run. *How* the harness
+reaches the model is an operational choice, not part of the protocol. The
+choices are the Anthropic API with an API key, the Claude Code CLI with the
+operator's existing Claude login, or a deterministic fake for machinery
+checks. The protocol requires only these:
+
+- every contestant in a run is served by the same backend, model and
+  settings;
+- contestants never hold credentials or reach the provider themselves;
+- the harness meters whatever the backend actually exposes, and records a
+  figure as unavailable (`null`) rather than estimating it.
+
+The run records the backend, its transport and its limitations. Results from
+different backends are not pooled without saying so. The Claude CLI backend
+adds a small amount of its own context to each request (including the real
+current date), has no temperature control, and reports a list-price cost
+equivalent, not a bill. These limitations are documented in
+`docs/milestone-2-design.md` §4, and they apply equally to every contestant
+in a run.
+
+This clarification changes no scenario, label, metric or contestant
+interface.

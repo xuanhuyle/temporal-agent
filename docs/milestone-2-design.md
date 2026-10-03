@@ -1,6 +1,6 @@
 # Milestone 2 design: shared contestant runtime and strong conventional baseline
 
-Status: **in progress** (implementation specification). Protocol: v0.2
+Status: **implemented** (Milestone 2). Protocol: v0.2
 (`docs/protocol-amendments.md`). No Tesseract code is part of this milestone.
 
 The milestone exists for falsification. It must produce the strongest *fair*
@@ -180,44 +180,135 @@ class EmbeddingBackend(Protocol):
               lane: str) -> RawEmbedding
 ```
 
-**Metering record** (returned with every response; the ToolBox sums it and
-records it in the trace):
-- tokens: `{"provider", "model", "input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"}`;
-- accounting: `{"retrieval_tokens", "cost_usd" (float or null if unpriced), "stop_reason", "purpose", "request_sha256"}`;
-- `latency_ms` is volatile.
+**Metering record.** Every response comes with one. The ToolBox sums it into
+the step's meter and writes it to the trace:
 
-`retrieval_tokens = round(input_tokens * retrieval_chars / total_chars)`.
+```
+{"provider", "model", "usage_available", "input_tokens", "output_tokens",
+ "cache_read_input_tokens", "cache_creation_input_tokens", "total_input_tokens",
+ "auxiliary_input_tokens", "auxiliary_output_tokens", "retrieval_tokens",
+ "cost_usd", "cost_basis", "stop_reason", "purpose", "request_sha256",
+ "max_output_tokens", "latency_ms", ["provider_meta"]}
+```
+
+- **Token fields.**
+  - `input_tokens` is the provider's uncached input.
+  - The cache fields are its cache reads and cache writes.
+  - `total_input_tokens` is their sum, i.e. every prompt token processed.
+    Efficiency (`model_input_tokens`) and the input budget use the total.
+- **Never invented.** A backend that cannot report usage sets
+  `usage_available: false`. Every token field is then `null`, the agent's
+  meter gets `tokens_known: false`, and budgets fall back to the
+  deterministic estimate.
+- **Cost.** `cost_basis` says where `cost_usd` comes from:
+  - `price_table`: tokens times the list prices;
+  - `provider_reported`: a figure the provider or CLI reported;
+  - `null`: the call is unpriced, and `cost_usd` is `null` too.
+- **Auxiliary calls.** `auxiliary_*` count a provider's own side calls (the
+  Claude CLI makes a small auxiliary model call per invocation). They are
+  reported apart from the contestant's call.
+- `retrieval_tokens = round(total_input_tokens * retrieval_chars / total_chars)`.
+- `latency_ms` (anywhere in the record) is volatile.
 
 - **Token estimator** (`tokens.estimate_tokens`): `ceil(utf8_bytes / 4)`.
   It is deterministic. Budget pre-checks use it, and so does the fake
   backend's usage.
-- **Backends.**
-  - `fake` (model `fake-v1`): deterministic, implements the agent–LLM protocol
-    (§7). Used in CI and for machinery checks. Its scores mean nothing.
-  - `anthropic`: the official `anthropic` SDK, an optional dependency imported
-    lazily. Credentials are resolved by the SDK in the **harness** process
-    only. The request:
-    - `model=settings.name` (required);
-    - `max_tokens`, `system`, `messages`, `stop_sequences`;
-    - `temperature` only if set; `output_config.effort` if set; top-level
-      `cache_control` if `prompt_caching`.
-    - No server-side model fallbacks: a fallback would change the model in
-      mid-run and break equality. A refusal comes back as
-      `stop_reason: "refusal"`.
+- **Backends.** Pick one per run with `--model-provider`. Each run records
+  `provider`, `model` and `transport` in its fingerprinted configuration, and
+  facts read from the machine (e.g. the CLI version) in
+  `metadata.model_runtime`.
 
-    Provider errors become `ToolError`.
-  - `hash` embeddings (model `hash-ngram-v1`): deterministic feature hashing of
-    word uni- and bigrams plus character 3–5-grams into `embedding_dims`
-    (default 384), sublinear tf, L2-normalized, cost 0. It is a lexical
-    channel, **not** a neural semantic embedding, and is reported as such.
-  - `recorded` (replay): serves the recorded responses per lane in order. A
-    request whose hash differs from the recording raises `ToolError`.
+  | provider | what it is | needs | used for |
+  |---|---|---|---|
+  | `fake` (`fake-v1`) | deterministic test double implementing the agent–LLM protocol (§7) | nothing | CI and machinery checks. **Its scores are meaningless.** |
+  | `claude-cli` | the Claude Code CLI, `claude -p --output-format json`, one process per call | an existing Claude login (e.g. a Max subscription); no API key | real model runs without separate API billing |
+  | `anthropic` | Messages API via the official `anthropic` SDK (optional dependency, lazy import) | `ANTHROPIC_API_KEY` in the harness environment | later: many repeated controlled runs, exact settings, cleaner metering |
+  | `recorded` | serves a run's recorded responses, per lane, in order; a request whose hash differs raises `ToolError` | the original run | replay only |
+  | embeddings `hash` (`hash-ngram-v1`) | deterministic feature hashing of word 1–2-grams and character 3–5-grams, L2-normalized, cost 0 | nothing | the baseline's dense channel. It is lexical, **not** a neural semantic embedding. |
+
+  Other providers (OpenAI, local models) are added as one more backend class.
+  The protocol, the ToolBox and the contestants do not change.
+
+- **`anthropic` request.**
+  - `model=settings.name`, `max_tokens`, `system`, `messages`, `stop_sequences`;
+  - `temperature` only if set (sent through `extra_body`, as current SDKs
+    require); `output_config.effort` if set; top-level `cache_control` if
+    `prompt_caching`;
+  - no server-side fallbacks: a fallback would change the model in mid-run
+    and break equality. A refusal comes back as `stop_reason: "refusal"`.
+- **`claude-cli` call** (`harness/model/claude_cli.py`):
+  - **What is sent.**
+    - The system prompt goes byte for byte, through `--system-prompt-file`.
+    - The conversation goes on stdin. A single user message is sent
+      verbatim. A multi-turn request (the runtime's tool loop) is serialized
+      in order under `=== user ===` / `=== assistant ===` headers, after a
+      fixed one-line preamble, because the CLI takes one prompt per call.
+  - **Isolation of the call.**
+    - `--tools ""`: the model has no tools, so it cannot read files, run
+      commands or browse.
+    - `--safe-mode`: no CLAUDE.md, hooks, skills, plugins or MCP servers.
+    - `--strict-mcp-config`, `--disable-slash-commands`,
+      `--no-session-persistence`.
+    - No `--fallback-model`.
+    - It runs in an empty private working directory.
+    - `ANTHROPIC_API_KEY`/`ANTHROPIC_AUTH_TOKEN` are removed from its
+      environment, so the subscription login is used. Set
+      `TAB_CLAUDE_CLI_KEEP_API_KEY=1` to keep them.
+    - `--bare` is *not* used: it ignores OAuth logins.
+  - **What is recorded.** Only what the CLI reports:
+    - `usage` tokens (or `usage_available: false`);
+    - the served model, taken from the `modelUsage` entry whose counts match
+      `usage`;
+    - the other `modelUsage` entries as `auxiliary_*`;
+    - `total_cost_usd` as `cost_usd` with `cost_basis: provider_reported`.
+      This is the CLI's list-price equivalent, including its side calls, not
+      what a subscription is charged;
+    - thinking tokens, turn count and CLI version in `provider_meta`, and the
+      CLI's own timings under `provider_meta.latency_ms` (volatile).
+  - **Failures.**
+    - Not logged in, usage limit reached, executable missing, or an
+      unsupported option: `ProviderUnavailable`. The runner then **stops the
+      run** (status `failed`, outputs preserved), so the remaining steps are
+      not run with degraded conditions that would make them incomparable.
+    - Overload, timeout, an over-long reply or a malformed result: an
+      ordinary provider error that the agent sees.
+  - **Preflight.** `smoke-baseline-claude` first makes one tiny call
+    (`claude-cli-check`) and refuses to start if it fails.
+  - **Limitations compared with the API.**
+    1. **Added context.** The CLI adds its own text to every request: an
+       "Agent SDK" preamble, account reminders, and an environment block with
+       the working directory, platform, model identity and **today's real
+       date**. That date differs from the scenario's simulated timestamps.
+       Measured at about 1.1k input tokens. It is identical for every
+       contestant and contains nothing from the benchmark, but the prompt is
+       not exactly the harness's.
+    2. **No temperature control.** A temperature setting is rejected at
+       configuration time.
+    3. **No per-call output cap.** `CLAUDE_CODE_MAX_OUTPUT_TOKENS` is set
+       only when the run configures `max_output_tokens`, and the CLI then
+       *fails* an over-long reply instead of truncating it. The per-event
+       output budget is enforced after the fact.
+    4. **Stop sequences are emulated** by cutting the returned text.
+    5. **Internal retries.** The CLI may retry inside one call; the reported
+       usage includes the retries.
+    6. **Limits and speed.** Subscription usage limits and rate limits apply,
+       and the CLI starts one process per call, adding seconds of latency
+       each time.
+    7. **Approximate cost.** Cost is a list-price equivalent computed by the
+       CLI, not a bill.
+    8. **No temperature-0 determinism and no seeds.** Like the API, outputs
+       vary between runs; replay uses the recording.
+
+    For many repeated controlled runs, exact settings and cleaner metering,
+    use the `anthropic` backend later; the protocol does not change.
 - **Pricing.** A small table with a source date covers known model ids. It
   can be overridden with `TAB_MODEL_PRICING` (JSON). An unknown model gives
-  `cost_usd: null`.
-- **Equality.** The gateway is created once per run from the run's
-  `ModelSettings`. A request cannot name a model or a temperature. Every
-  lane's metering records carry the same provider and model.
+  `cost_usd: null`. CLI-reported costs bypass the table.
+- **Equality.**
+  - The gateway is created once per run from the run's `ModelSettings`.
+  - A request cannot name a model, a temperature or a provider.
+  - Every lane's metering records carry the same provider and requested
+    model; the served model is recorded per call.
 
 ## 5. Tripwire (`harness/tripwire.py`)
 
