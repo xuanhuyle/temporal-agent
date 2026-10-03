@@ -205,7 +205,7 @@ def test_baseline_runs_under_the_harness_guard_without_a_model(mini_scenario, ru
     from harness.runner import RunConfig, run
 
     agent = BaselineAgent(name="baseline", config={"preset": "k8"})
-    result = run(mini_scenario, [agent], RunConfig(runs_dir=runs_dir, hygiene=False))
+    result = run(mini_scenario, [agent], RunConfig(runs_dir=runs_dir, hygiene=False, allow_in_process_contestants=True))
     assert result.status == "completed"
     assert result.scores["agents"]["baseline"]["step_status"] == {"ok": len(mini_scenario.load_events())}
     assert [e["event_id"] for e in agent.memory.events] == [f"evt-{i:04d}" for i in (1, 2, 3)]
