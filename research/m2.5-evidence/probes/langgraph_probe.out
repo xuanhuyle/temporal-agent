@@ -1,0 +1,47 @@
+--- original run
+id=..66fb53 parent=..c5056b src=loop step=2 parents={} next=() plan=plan-609912 log=['plan', 'act:plan-609912'] meta_keys=['parents', 'source', 'step']
+id=..c5056b parent=..4d4c19 src=loop step=1 parents={} next=('act',) plan=plan-609912 log=['plan'] meta_keys=['parents', 'source', 'step']
+id=..4d4c19 parent=..4132f5 src=loop step=0 parents={} next=('plan',) plan=None log=[] meta_keys=['parents', 'source', 'step']
+id=..4132f5 parent=..None src=input step=-1 parents={} next=('__start__',) plan=None log=[] meta_keys=['parents', 'source', 'step']
+CALLS after run {'plan': 1, 'act': 1, 'tool': 0} EXTERNAL {'file_written': ['plan-609912']}
+RAW checkpoint keys: ['channel_values', 'channel_versions', 'id', 'ts', 'updated_channels', 'v', 'versions_seen']
+RAW channel_values: {'goal': 'g', 'log': ['plan'], 'plan': 'plan-609912', 'branch:to:act': None}
+RAW channel_versions: {'__start__': '00000000000000000000000000000002.0.2462284028318893', 'goal': '00000000000000000000000000000002.0.2462284028318893', 'log': '00000000000000000000000000000003.0.776172816170097', 'branch:to:plan': '00000000000000000000000000000003.0.776172816170097', 'plan': '00000000000000000000000000000003.0.776172816170097', 'branch:to:act': '00000000000000000000000000000003.0.776172816170097'}
+RAW versions_seen: {'__input__': {}, '__start__': {'__start__': '00000000000000000000000000000001.0.2368972874866352'}, 'plan': {'branch:to:plan': '00000000000000000000000000000002.0.2462284028318893'}}
+RAW metadata: {'source': 'loop', 'step': 1, 'parents': {}}
+RAW pending_writes: [('61d368d9-6b73-c5a3-2361-a6528db34790', 'log', ['act:plan-609912'])]
+RAW parent_config: {'configurable': {'thread_id': 't1', 'checkpoint_ns': '', 'checkpoint_id': '1f1bf20e-0886-6dfe-8000-ab308f4d4c19'}}
+CALLS after replay-before-act {'plan': 1, 'act': 2, 'tool': 0} EXTERNAL {'file_written': ['plan-609912', 'plan-609912']}
+CALLS after replay-before-plan {'plan': 2, 'act': 3, 'tool': 0} EXTERNAL {'file_written': ['plan-609912', 'plan-609912', 'plan-32779']}
+replay2 plan: plan-32779 original plan: plan-609912
+--- history after two replays (all branches interleaved?)
+id=..ea44d7 parent=..dea7ed src=loop step=3 parents={} next=() plan=plan-32779 log=['plan', 'act:plan-32779'] meta_keys=['parents', 'source', 'step']
+id=..dea7ed parent=..3452e9 src=loop step=2 parents={} next=('act',) plan=plan-32779 log=['plan'] meta_keys=['parents', 'source', 'step']
+id=..3452e9 parent=..4d4c19 src=fork step=1 parents={} next=('plan',) plan=None log=[] meta_keys=['parents', 'source', 'step']
+id=..afb16e parent=..27fa59 src=loop step=3 parents={} next=() plan=plan-609912 log=['plan', 'act:plan-609912'] meta_keys=['parents', 'source', 'step']
+id=..27fa59 parent=..c5056b src=fork step=2 parents={} next=('act',) plan=plan-609912 log=['plan'] meta_keys=['parents', 'source', 'step']
+id=..66fb53 parent=..c5056b src=loop step=2 parents={} next=() plan=plan-609912 log=['plan', 'act:plan-609912'] meta_keys=['parents', 'source', 'step']
+id=..c5056b parent=..4d4c19 src=loop step=1 parents={} next=('act',) plan=plan-609912 log=['plan'] meta_keys=['parents', 'source', 'step']
+id=..4d4c19 parent=..4132f5 src=loop step=0 parents={} next=('plan',) plan=None log=[] meta_keys=['parents', 'source', 'step']
+id=..4132f5 parent=..None src=input step=-1 parents={} next=('__start__',) plan=None log=[] meta_keys=['parents', 'source', 'step']
+original before_act values unchanged: True
+original before_act pending_writes after replays: [('61d368d9-6b73-c5a3-2361-a6528db34790', 'log', ['act:plan-609912'])]
+--- fork checkpoint
+id=..b2970d parent=..c5056b src=update step=2 parents={} next=('act',) plan=HUMAN-EDITED log=['plan'] meta_keys=['parents', 'source', 'step']
+fork parent == before_act: True
+latest == fork: True
+pending writes on SOURCE checkpoint before/after update_state: 1 3 [('61d368d9-6b73-c5a3-2361-a6528db34790', 'log', ['act:plan-609912']), ('7e3aa248-2bd7-5ebb-9c8c-f148e2ed1e2d', 'plan', 'HUMAN-EDITED'), ('7e3aa248-2bd7-5ebb-9c8c-f148e2ed1e2d', 'branch:to:act', None)]
+CALLS after fork run {'plan': 2, 'act': 4, 'tool': 0} EXTERNAL {'file_written': ['plan-609912', 'plan-609912', 'plan-32779', 'HUMAN-EDITED']}
+fork metadata: {'source': 'update', 'step': 2, 'parents': {}}
+count source=update: 1
+count source=fork: 2
+custom metadata on t2 head: {'source': 'loop', 'step': 2, 'parents': {}, 'why': 'testing-reason'}
+interrupt replay output: {'v': [], '__interrupt__': [Interrupt(value='name?', id='492671d776b7602b5487b14fbc8f0752', response_schema=None)]} ask calls: {'ask': 3}
+after replay: next ('ask',) interrupts (Interrupt(value='name?', id='492671d776b7602b5487b14fbc8f0752', response_schema=None),)
+parent task state config: {'configurable': {'thread_id': 's1', 'checkpoint_ns': 'subnode:faa0e5d9-7056-0efd-69c7-de1d327a6b59', 'checkpoint_id': '1f1bf20e-08d1-6c44-8000-3a820cf1b637', 'checkpoint_map': {'': '1f1bf20e-08cd-6611-8000-5be3ab1f449b', 'subnode:faa0e5d9-7056-0efd-69c7-de1d327a6b59': '1f1bf20e-08d1-6c44-8000-3a820cf1b637'}}}
+namespaces stored: ['', 'subnode:faa0e5d9-7056-0efd-69c7-de1d327a6b59']
+namespaces stored after completion: {'': 3, 'subnode:faa0e5d9-7056-0efd-69c7-de1d327a6b59': 4}
+  sub ckpt subnode:faa0e5d9-7056-0efd-69c7-de1d327a6b59 src input step -1 parents {'': '1f1bf20e-08cd-6611-8000-5be3ab1f449b'}
+  sub ckpt subnode:faa0e5d9-7056-0efd-69c7-de1d327a6b59 src loop step 0 parents {'': '1f1bf20e-08cd-6611-8000-5be3ab1f449b'}
+  sub ckpt subnode:faa0e5d9-7056-0efd-69c7-de1d327a6b59 src loop step 1 parents {'': '1f1bf20e-08cd-6611-8000-5be3ab1f449b'}
+  sub ckpt subnode:faa0e5d9-7056-0efd-69c7-de1d327a6b59 src loop step 2 parents {'': '1f1bf20e-08cd-6611-8000-5be3ab1f449b'}

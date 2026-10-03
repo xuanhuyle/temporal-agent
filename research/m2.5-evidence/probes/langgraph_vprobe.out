@@ -1,0 +1,8 @@
+A head metadata (context= only): {'source': 'loop', 'step': 2, 'parents': {}}
+B before tasks (pre-update): [('write', {'joke': 'j:socks'})]
+C fork metadata with config metadata: {'source': 'update', 'step': 2, 'parents': {}, 'why': 'ADR-7 reopened', 'actor': 'agent'}
+D before tasks (post-update): [('write', {'joke': 'j:socks'})]
+D2 before values unchanged: True
+E raw pending writes on source: [('joke', 'j:socks'), ('topic', 'chickens'), ('branch:to:write', None)]
+F filter by why: ['update']
+G copy meta: {'source': 'fork', 'step': 2, 'parents': {}} parent==before.parent: True

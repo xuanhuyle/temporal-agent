@@ -1,0 +1,4 @@
+head metadata: {'source': 'loop', 'step': 2, 'parents': {}, 'model_name': 'model-A', 'system_prompt_version': 3}
+fork metadata: {'source': 'update', 'step': 2, 'parents': {}}
+fork versions_seen: {'__input__': {}, '__start__': {'__start__': '00000000000000000000000000000001.0.2610696644150069'}, 'gen': {'branch:to:gen': '00000000000000000000000000000002.0.12698922292371595'}}
+orig versions_seen: {'__input__': {}, '__start__': {'__start__': '00000000000000000000000000000001.0.2610696644150069'}, 'gen': {'branch:to:gen': '00000000000000000000000000000002.0.12698922292371595'}}

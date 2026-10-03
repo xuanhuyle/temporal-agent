@@ -1,0 +1,2 @@
+store before time travel: {'v': 2}
+replay from first run's pre-bump checkpoint -> state n: 3 | store now: {'v': 3}
