@@ -21,6 +21,8 @@ A new, deliberately separate experiment now tests a smaller primitive: explicit 
 
 The v0 kernel implements snapshot, fork, run and compare. Its first model-backed test compares strong full-history prompting against mechanically enforced epistemic isolation on hindsight-sensitive historical decisions.
 
+Product framing: this is a **model-agnostic cognitive capability** injected into an agent runtime. The LLM provides reasoning; the capability provides operations over executable versions of agent state.
+
 See [docs/temporal-multiplicity-kernel-v0.md](docs/temporal-multiplicity-kernel-v0.md). This does not reverse the Milestone 2.5 stop decision on the earlier Tesseract architecture.
 
 ## Core question
