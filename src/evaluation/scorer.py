@@ -42,7 +42,7 @@ from harness.agent import Action, ReopenAction, canonical_target
 from harness.canonical import copy_tree
 from harness.events import Event
 
-EVALUATOR_VERSION = "0.3.0"
+EVALUATOR_VERSION = "0.3.1"
 SCORES_SCHEMA_VERSION = "tab.scores/1"
 AXES = ("pattern", "causal_depth", "temporal_lag", "wording", "evidence_locus")
 
