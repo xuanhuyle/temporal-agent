@@ -53,6 +53,7 @@ scenarios/
   smoke/          # smoke_v1: frozen 10-event machinery check (not held out)
   simple/ long_history/ high_noise/ deep_causality/   # planned families
 runs/             # generated experiment outputs (not source of truth)
+results/          # archived runs referenced by reports (milestone-2: fake-model machinery checks only)
 tests/
 prompts/
 ```
@@ -98,6 +99,9 @@ or the usage limit fails mid-run, the run stops and is marked failed, with its
 outputs preserved. `--model-provider anthropic --model MODEL` (with
 `ANTHROPIC_API_KEY`) remains available for later API-based runs.
 Summarize any run with `PYTHONPATH=src python -m harness report runs/<run_id> --markdown`.
+
+Archived Milestone 2 runs (fake model only, non-scientific) are in
+[results/milestone-2/](results/milestone-2/README.md).
 
 Other commands (all via `PYTHONPATH=src python -m harness ...`):
 

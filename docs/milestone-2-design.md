@@ -340,13 +340,13 @@ the step's meter and writes it to the trace:
          between contestants.
        - Step 0 runs lanes in the same seeded order as events, so no lane is
          systematically the one that warms the cache.
-    9. **Operator state.** The CLI runs with the operator's real `HOME` (that
+    8. **Operator state.** The CLI runs with the operator's real `HOME` (that
        is where the login lives). `--no-session-persistence` and safe mode
        keep transcripts and memory out of it, but the CLI's own bookkeeping
        files may change. Behaviour-relevant environment variables
        (`CLAUDE_*`, `ANTHROPIC_*`, `MAX_THINKING*`, ...) are recorded in
        `metadata.model_runtime.behaviour_env`, with secret values redacted.
-    8. **No temperature-0 determinism and no seeds.** Like the API, outputs
+    9. **No temperature-0 determinism and no seeds.** Like the API, outputs
        vary between runs; replay uses the recording.
 
     For many repeated controlled runs, exact settings and cleaner metering,
@@ -368,9 +368,36 @@ the step's meter and writes it to the trace:
 
 ## 5. Tripwire (`harness/tripwire.py`)
 
-An allowlist audit hook installed in a child process (contestant worker or
-command bootstrap) before any untrusted code runs. See the module docstring.
-It is a tripwire, not a sandbox.
+An allowlist audit hook installed in a child process (contestant worker,
+command bootstrap, or evaluator check process) before any untrusted code
+runs. See the module docstring. It is a tripwire, not a sandbox.
+
+- **Reads** only under the read roots or the write roots, plus `/dev/null` and
+  the random devices. **Writes** only under the write roots and `/dev/null`.
+- There is **no exemption for bytecode caches**. Every process that installs
+  the tripwire runs with `-B`/`PYTHONDONTWRITEBYTECODE=1`. An exemption would
+  give code a writable location outside its allowlist that persists across
+  runs and is shared between contestants.
+- **Network**, **processes** (including `_posixsubprocess.fork_exec`) and
+  **ctypes** are refused unless explicitly allowed. **Signals** to any other
+  process are refused.
+- Every refusal raises `TripwireViolation` (a `PermissionError`) and is
+  recorded. Contestant workers report refusals to the harness, which writes
+  them to `process.jsonl` and the trace.
+
+Where it is installed, with which allowlist:
+
+| Process | Reads | Writes | Processes |
+|---|---|---|---|
+| contestant worker | bundle, stdlib | the agent's state dir | refused |
+| `run_command` child | workspace, stdlib and site-packages, zoneinfo (and the write roots) | workspace, scratch home/tmp | refused |
+| hidden-test check (evaluator) | snapshot, hidden-test dir, evaluator ini, JUnit dir, private home/tmp, stdlib and site-packages, zoneinfo | JUnit dir, private home/tmp | refused |
+| hygiene check (evaluator) | as above, without the hidden-test dir | as above | refused |
+
+The in-process guard (`harness/guard.py`, used for reference agents that the
+runner explicitly allows in process) is separate. Its only write exemption is
+`__pycache__` under the bytecode roots fixed when the run is armed (the
+interpreter's import paths) and `sys.pycache_prefix`.
 
 ## 6. Process boundary (`harness/process.py`, `harness/worker.py`, amendment A4)
 
@@ -440,7 +467,9 @@ protocol. It is text-only and provider-neutral: no provider tool-use API.
 
 - **System prompt.** The harness instructions, then the runtime's rules, then
   a tool catalogue (one `- name(args): description` line per tool), then
-  exactly one line `<<tools: name1, name2, ...>>`.
+  exactly one line `<<tools: name1, name2, ...>>`. The runtime's rules are the
+  response format plus a standing working guidance. Its variant is the
+  configuration key `runtime_guidance` (see §8 and amendment C2).
 - **First user message of an event** starts with
   `<<event seq=N id=EVENT_ID>>`, followed by:
   - the event rendering (`Date:`, `Channel:`, `Author:`, `Subject:`,
@@ -449,7 +478,10 @@ protocol. It is text-only and provider-neutral: no provider tool-use API.
 
   At step 0 the first user message starts with `<<start>>`.
 - **Assistant replies** are exactly one JSON object, optionally fenced in
-  ```` ```json ````:
+  ```` ```json ````. The parser takes the first top-level object that has a
+  `tool` or `final` key: fenced blocks first, then bare objects, then any
+  object (so the "neither key" error can be reported). The scan is bounded
+  (256 candidate starts) so that a garbage reply costs linear time.
   - `{"tool": NAME, "args": {...}}`
   - `{"final": {"actions": [ACTION...], "memory": "text to remember"}}`, where
     `ACTION` is
@@ -457,7 +489,14 @@ protocol. It is text-only and provider-neutral: no provider tool-use API.
     or `{"type": "note", "text"}`.
 - **Observations** are user messages starting
   `<<observation tool=NAME status=ok|error|denied|budget>>`. Protocol errors use
-  `tool=protocol status=error`.
+  `tool=protocol status=error`. An observation longer than
+  `observation_chars` keeps its head and tail. A cut `read_file`/`read_at`
+  result is cut at line boundaries and names the omitted lines and the
+  `read_lines` call that reads them.
+- **Runtime tool `read_lines(path, start, end, seq=None)`**: numbered lines
+  `start..end` of a workspace file, or of a past repository state when `seq`
+  is given. It is executed with one `read_file`/`read_at` call, so it costs
+  one harness tool call. Every contestant gets it, identically.
 - **Auxiliary calls** set `ModelRequest.purpose`:
   - `query_expansion` expects `{"queries": [str]}`;
   - `summary` expects plain text;
@@ -502,8 +541,49 @@ The loop gives the model, identically for every contestant:
 - a bounded number of turns.
 
 It turns `final` into `ReopenAction`/`NoteAction` and checkpoints after every
-event. Model budgets are respected by asking for a final answer when calls
-run low.
+event.
+
+Loop configuration (`LoopConfig`, part of every contestant's recorded
+configuration): `max_turns` 20, `observation_chars` 24000,
+`transcript_chars` 120000, `max_protocol_retries` 2, `max_actions` 32,
+`memory_chars` 6000, `keep_recent_exchanges` 2, `token_safety` 1.25,
+`min_output_tokens` 256, and an optional `max_output_tokens` (the run's
+setting is the ceiling).
+
+Budget handling:
+
+- Before every model call the loop reads `tools.budget_remaining()`. It
+  switches to **final-only** (the request asks for the final answer, and a
+  tool call in reply is not executed) in three cases:
+  - at most one model call is left after the calls reserved for the memory
+    system;
+  - the turn limit is reached;
+  - the input-token budget cannot pay for this request plus one more of the
+    same size, even after the transcript is compacted hard.
+
+  One grace turn is allowed if the model ignores a final-only request.
+- The request size is estimated with the harness's rule
+  (`ceil(utf8_bytes / 4)` plus 4 per message) times `token_safety`. The
+  step ends without a final answer only when even the final-only request
+  does not fit.
+- A workspace, history or command call whose budget is exhausted is not
+  attempted. The model gets a `status=budget` observation instead.
+- A failed model call (provider error) is retried once. After a second
+  failure the step ends without a final answer. `BudgetExceeded` is never
+  caught.
+
+**Standing guidance** (`runtime_guidance`, amendment C2) is a recorded
+configuration choice. It is identical for every event and every contestant
+and carries no event-specific information:
+
+- `maintainer` (default): generic maintainer practice. It says that new
+  information may affect earlier decisions or pending work, and that
+  reopening needs evidence that the basis changed.
+- `minimal`: working and format rules only, with no sentence about
+  reconsidering earlier decisions. Use it for ablations.
+
+`describe()` records the variant, its full text (`runtime_guidance_text`) and
+its hash (`runtime_guidance_sha256`), so the run fingerprint covers it.
 
 ## 9. Baseline (`baseline/`)
 
@@ -511,16 +591,31 @@ A memory system with no temporal-causal machinery:
 
 - **Raw event memory**: every received event is appended to `events.jsonl`
   before any processing. Nothing is available before it occurs.
-- **Checkpoints**: atomic `checkpoint.json` plus append-only stores. On a
+- **Checkpoints**: atomic `checkpoint.json`, `docs_index.json` and
+  `summary.json` (temp file plus `os.replace`), plus append-only stores. On a
   restart the indexes are rebuilt deterministically from the stores.
+- **Workspace intents**: every `write_file`/`delete_file` of the agent is
+  logged (op, path, seq) to the append-only `workspace_intents.jsonl` *before*
+  it executes. After a restart (timeout or crash), every path changed since
+  the last checkpoint, by an event or by the agent, is queued and re-read
+  from the workspace. Edits made by code that `run_command` runs are not
+  logged; see the limitations.
 - **Indexes**: events; workspace documents and code chunks (markdown by
   heading, Python by top-level definition, other files by size), re-indexed
   when an event changes them; the agent's own per-event notes.
 - **Hybrid retrieval**: BM25 over code-aware tokens, plus dense vectors
   through `tools.embed`, plus an entity/metadata channel (ADR/TCK ids, file
-  paths, versions). The channels are fused with reciprocal rank fusion, with
-  a per-source diversity cap. Filters: kind, seq range, path. LLM query
-  expansion (one call) generates extra queries.
+  paths, versions). The channels are fused with reciprocal rank fusion
+  (`rrf_k` 60), with a per-source diversity cap (4). Filters: kind, seq
+  range, path. LLM query expansion (one call, up to 8 queries) generates
+  extra queries. `retrieval` can be set to `hybrid`, `lexical` (BM25 plus
+  entity) or `dense` (dense plus entity).
+  - With the only embedding backend implemented so far (`hash`,
+    `hash-ngram-v1`) the "dense" channel is lexical: hashed word and
+    character n-grams. The `memory_search` tool description says so
+    ("lexical, not semantic"). See amendment D1.
+  - Without an embedding provider, dense retrieval reports itself
+    unavailable, and BM25 and entity retrieval continue.
 - **Summary memory**: a rolling summary updated once per event from what was
   known then.
 - **Configurations**: `baseline-k8`, `baseline-k32`, `baseline-k64` (top-k of
@@ -530,3 +625,65 @@ A memory system with no temporal-causal machinery:
   `affected_targets`, future events, temporal fact graphs, or privileged
   mappings from new facts to old decisions. It rediscovers relevance through
   retrieval and reasoning.
+
+## 10. Known limitations and deviations
+
+What this milestone does not deliver, or delivers only partly. Each item is
+also recorded where it applies.
+
+- **Not a test of past-self dialogue** (§0). Results speak only to temporal
+  governance over decisions that the world authored.
+- **Not a sandbox** (§5, §6). The process boundary and the tripwires stop
+  accidental access and casual attempts. They do not stop code that
+  deliberately attacks its own interpreter. Running untrusted contestant
+  code needs an OS-level sandbox (separate user, container, namespaces or
+  an LSM). The contestants in this repository are trusted code; the boundary
+  exists so that an honest mistake (an indexer walking `/`, a library
+  phoning home) cannot become a leak.
+- **Lexical "embeddings"** (amendment D1). The only embedding backend is
+  `hash` (`hash-ngram-v1`), which is lexical. The baseline's "dense" channel
+  is therefore a second lexical channel, and EXPERIMENT.md §7's semantic
+  minimum is not met. Before any comparative claim, a real embedding model
+  must be added behind `embed` (the interface is provider-neutral), and
+  both contestants must use it.
+- **Standing guidance** (amendment C2). The default `maintainer` guidance
+  tells every contestant that new information may affect earlier decisions.
+  It is generic and identical for every contestant, but it is a prior that
+  helps any contestant. The `minimal` variant exists for ablation.
+- **Claude CLI backend** (§4, limitations 1–9). Added context with the real
+  date, no temperature, no per-call output cap, emulated stop sequences,
+  internal retries, a shared always-on cache, list-price cost, subscription
+  limits, process-per-call latency, and operator `HOME` state.
+- **Edits by `run_command` are not intent-logged.** The baseline logs its own
+  `write_file`/`delete_file` calls before executing them. Files changed by a
+  program that `run_command` runs (for example a formatter) are re-indexed
+  only when the next event or a later read touches them, and they are not
+  queued after a restart.
+- **In-process guard bytecode exemption** (§5). For reference agents that
+  run in process, `__pycache__` writes under the interpreter's import roots
+  remain allowed. Contestants run in processes whose tripwire has no such
+  exemption.
+- **`--durations` output.** Which rows pytest prints under `--durations`
+  depends on timing. The values are normalized, but the set of rows is not.
+  Replay compares the recorded output, so it is not affected.
+- **Fake-model scores are meaningless.** The `fake` backend follows a fixed
+  hash-based policy (§7) and exists to exercise the machinery. Its scores
+  say nothing about the baseline.
+- **One scenario.** Only `smoke_v1` (10 events) exists. It is a machinery
+  check, not a measurement.
+
+## 11. Commands
+
+```bash
+# Machinery check: every baseline preset on smoke_v1 with the deterministic fake model.
+PYTHONPATH=src python -m harness smoke-baseline-fake
+
+# Real model through the Claude CLI and an existing Claude login (no API key).
+# Run from a normal terminal, not from inside another Claude Code session.
+PYTHONPATH=src python -m harness claude-cli-check --model claude-opus-5-5
+PYTHONPATH=src python -m harness smoke-baseline-claude --model claude-opus-5-5 --effort high
+
+# Replay and summarize a run.
+PYTHONPATH=src python -m harness replay runs/<run_id>
+PYTHONPATH=src python -m harness report runs/<run_id>
+```

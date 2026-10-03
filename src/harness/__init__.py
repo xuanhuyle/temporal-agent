@@ -8,4 +8,4 @@ and never receive paths to scenario manifests, future events, or evaluator
 ground truth. Everything else in this package is harness-side.
 """
 
-HARNESS_VERSION = "0.3.0"
+HARNESS_VERSION = "0.3.1"

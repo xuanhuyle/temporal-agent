@@ -110,3 +110,68 @@ had ever run.
   - `report`: run summary.
 - **CI:** GitHub Actions runs the test suite, the reference smoke run, and the
   fake-model baseline smoke run with replay.
+
+## 0.2.1 (Milestone 2 adversarial review; before any real-model contestant run)
+
+Harness 0.3.1 and evaluator 0.3.1. The adversarial review confirmed these findings, and they
+were fixed before release. Scoring logic, `smoke_v1`, its events and its
+ground truth are byte-identical to 0.1.1. The only contestant runs so far
+used the fake model (machinery checks); their archives are kept under
+`results/milestone-2/`, and they are not results about any contestant.
+
+Contestant changes made after the same review (`contestant_runtime`,
+`baseline`: observation cap, `read_lines`, turn limit, reply parser, budget
+handling, workspace intents, guidance variants) are contestant changes. They
+are recorded in their own commit and in `docs/milestone-2-design.md` §7–§9,
+not here.
+
+- **Evaluator 0.3.1 (remediation checks):**
+  - Hidden-test and hygiene processes run workspace code. They now install
+    the tripwire after importing pytest and before the snapshot goes on
+    `sys.path`. Before this fix the ground truth and the whole repository
+    were readable and writable from workspace code.
+  - Since the tripwire forbids writes to the hidden-test directory, the
+    evaluator deletes the hidden files over a private pipe once pytest has
+    collected them. The child waits until they are gone.
+  - The docstring no longer claims that workspace code runs only after the
+    deletion; it runs during collection too.
+  - The pass criterion is unchanged (exact JUnit count, all passed).
+- **Claude CLI backend:**
+  - `CLAUDE_CODE_DISABLE_ATTACHMENTS=1` is always set. Without it, the CLI
+    read `@`-mentioned host files, ground truth included, into the model's
+    context. This was verified with a canary file.
+  - The preflight repeats that canary test and refuses to run if the secret
+    reaches the model.
+- **Metering:**
+  - Usage reported for a failed provider call is counted. A call whose
+    usage is unknown marks tokens and cost as incomplete instead of free.
+  - Every record carries a cache-neutral `uncached_cost_usd`.
+  - Dated model ids are priced. A replay uses the original run's prices and
+    time limits.
+- **Equality:**
+  - One served model per run: the first verified model is pinned, and any
+    other model stops the run.
+  - Three consecutive provider failures stop the run.
+  - `prompt_caching` and temperature are rejected for `claude-cli`, whose
+    caching is always on and which has no temperature control.
+  - The Anthropic backend makes no hidden SDK retries.
+- **Runner:**
+  - Contestants must run in their own process (A4) unless a test opts in.
+  - Step 0 runs lanes in seeded order.
+  - SIGTERM and SIGHUP finalize like Ctrl-C.
+  - Lanes are removed even if they were made unwritable.
+  - Oversized integer arguments are traced tool errors.
+  - Crashed steps replay as crashed.
+- **Commands:**
+  - Object addresses and pytest `--durations` rows are normalized.
+  - Output is normalized while it streams, and truncation is decided on
+    normalized text, so it never depends on host path lengths.
+- **Tripwire:** no bytecode-cache write exemption. Every process that
+  installs it runs with `-B`.
+- **Guard (in-process reference agents):** bytecode caches may be written
+  only in `__pycache__` under the import roots fixed when the run is armed.
+- **Docs:**
+  - Protocol clarification C2: standing runtime guidance.
+  - Deviation D1: lexical embeddings.
+  - Design-doc limitations section.
+  - Reports and CLI output mark fake-model and lexical-embedding runs.
