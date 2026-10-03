@@ -1,0 +1,467 @@
+{
+  "schema_version": "resume-gate-public-cases/1",
+  "note": "These are normalized reproductions of public failure reports, not manifests supplied by the issue authors. They test whether Resume Gate v0's existing rules would surface the relevant risk if the corresponding state were declared in the checkpoint manifest.",
+  "cases": [
+    {
+      "id": "microsoft-agt-2641-stale-authorization",
+      "source": "https://github.com/microsoft/agent-governance-toolkit/issues/2641",
+      "framework": "Microsoft Agent Governance Toolkit + LangGraph",
+      "failure": "A tool permission serialized into checkpoint state can survive until resume even after the tool is removed from allowed_tools.",
+      "classification": "caught",
+      "expected_verdict": "BLOCK",
+      "why": "v0 compares the checkpoint tool contract with the current tool/permission set.",
+      "checkpoint": {
+        "checkpoint_id": "agt-2641",
+        "policy_version": "p1",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        },
+        "tools": {
+          "transfer": {
+            "version": "1",
+            "permission": "transfer:write"
+          }
+        }
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p1",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        },
+        "tools": {}
+      }
+    },
+    {
+      "id": "langgraph-9001-state-key-removed",
+      "source": "https://github.com/langchain-ai/langgraph/issues/9001",
+      "framework": "LangGraph",
+      "failure": "A removed state key can leave resumed approval flows in an infinite re-interrupt loop.",
+      "classification": "caught",
+      "expected_verdict": "MIGRATE",
+      "why": "The public report treats state-key removal as a breaking schema change; v0 blocks normal resume behind a migration verdict when the declared state schema changes.",
+      "checkpoint": {
+        "checkpoint_id": "lg-9001",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "state-v1",
+          "model": "m"
+        }
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "2",
+          "state_schema": "state-v2",
+          "model": "m"
+        }
+      }
+    },
+    {
+      "id": "langgraph-9006-tool-timeout-ambiguous-effect",
+      "source": "https://github.com/langchain-ai/langgraph/issues/9006",
+      "framework": "LangGraph",
+      "failure": "After a tool timeout or worker death, recovery may not know whether the external effect happened and whether replay is safe.",
+      "classification": "caught",
+      "expected_verdict": "BLOCK",
+      "why": "v0 blocks automatic replay of an uncertain side effect without an idempotency key.",
+      "checkpoint": {
+        "checkpoint_id": "lg-9006",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        },
+        "side_effects": [
+          {
+            "id": "charge-42",
+            "tool": "charge",
+            "status": "unknown"
+          }
+        ]
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      }
+    },
+    {
+      "id": "openai-agents-4646-ambiguous-tool-commit",
+      "source": "https://github.com/openai/openai-agents-python/issues/4646",
+      "framework": "OpenAI Agents SDK",
+      "failure": "A tool can complete before Session persistence fails, leaving resumable state that may advance without a durable record of the completed effect.",
+      "classification": "caught",
+      "expected_verdict": "BLOCK",
+      "why": "Normalized as a completed-but-unacknowledged non-idempotent side effect; v0 refuses automatic resume.",
+      "checkpoint": {
+        "checkpoint_id": "oa-4646",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "0.22",
+          "state_schema": "runstate-v1",
+          "model": "m"
+        },
+        "side_effects": [
+          {
+            "id": "tool-call-1",
+            "tool": "external_action",
+            "status": "unknown"
+          }
+        ]
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "0.22",
+          "state_schema": "runstate-v1",
+          "model": "m"
+        }
+      }
+    },
+    {
+      "id": "langgraph-7066-unknown-type-deserialization",
+      "source": "https://github.com/langchain-ai/langgraph/issues/7066",
+      "framework": "LangGraph",
+      "failure": "After code/type changes, a checkpoint may deserialize a custom object as a raw dict and resume with corrupted state.",
+      "classification": "partial",
+      "expected_verdict": "REVALIDATE",
+      "why": "v0 can flag the declared agent/runtime version change but does not validate serialized payload types, so it surfaces drift without proving corruption.",
+      "checkpoint": {
+        "checkpoint_id": "lg-7066",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1.0",
+          "state_schema": "1",
+          "model": "m"
+        }
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1.1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      }
+    },
+    {
+      "id": "langgraphjs-2667-subgraph-task-reexec",
+      "source": "https://github.com/langchain-ai/langgraphjs/issues/2667",
+      "framework": "LangGraph.js",
+      "failure": "A task completed before interruption can be re-executed when the graph is resumed as a subgraph.",
+      "classification": "partial",
+      "expected_verdict": "REVALIDATE",
+      "why": "If the task crossed an external boundary and is declared with an idempotency key, v0 requires receipt verification; it does not understand checkpoint namespaces or pure-task duplication.",
+      "checkpoint": {
+        "checkpoint_id": "lgjs-2667",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1.4.9",
+          "state_schema": "1",
+          "model": "m"
+        },
+        "side_effects": [
+          {
+            "id": "task-1",
+            "tool": "external_task",
+            "status": "unknown",
+            "idempotency_key": "task-1"
+          }
+        ]
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1.4.9",
+          "state_schema": "1",
+          "model": "m"
+        }
+      }
+    },
+    {
+      "id": "openai-agents-4685-handoff-session-append",
+      "source": "https://github.com/openai/openai-agents-python/issues/4685",
+      "framework": "OpenAI Agents SDK",
+      "failure": "After an approved local tool and handoff, Session persistence can fail after the target has advanced, leaving missing durable tool output.",
+      "classification": "partial",
+      "expected_verdict": "REVALIDATE",
+      "why": "v0 can force verification of an ambiguous idempotent external effect, but it does not validate handoff/session-history consistency.",
+      "checkpoint": {
+        "checkpoint_id": "oa-4685",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "0.22",
+          "state_schema": "runstate-v1",
+          "model": "m"
+        },
+        "side_effects": [
+          {
+            "id": "tool-1",
+            "tool": "local_tool",
+            "status": "unknown",
+            "idempotency_key": "tool-1"
+          }
+        ]
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "0.22",
+          "state_schema": "runstate-v1",
+          "model": "m"
+        }
+      }
+    },
+    {
+      "id": "openai-agents-4690-terminal-tool-session-append",
+      "source": "https://github.com/openai/openai-agents-python/issues/4690",
+      "framework": "OpenAI Agents SDK",
+      "failure": "A resumed terminal tool can complete but fail to persist its output to Session, creating an ambiguous recovery boundary.",
+      "classification": "partial",
+      "expected_verdict": "REVALIDATE",
+      "why": "v0 can force verification when the effect is declared uncertain/idempotent, but it does not reconcile Session history.",
+      "checkpoint": {
+        "checkpoint_id": "oa-4690",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "0.22",
+          "state_schema": "runstate-v1",
+          "model": "m"
+        },
+        "side_effects": [
+          {
+            "id": "terminal-tool-1",
+            "tool": "terminal_tool",
+            "status": "unknown",
+            "idempotency_key": "terminal-tool-1"
+          }
+        ]
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "0.22",
+          "state_schema": "runstate-v1",
+          "model": "m"
+        }
+      }
+    },
+    {
+      "id": "langgraph-8234-inconsistent-checkpoint-writes",
+      "source": "https://github.com/langchain-ai/langgraph/issues/8234",
+      "framework": "LangGraph",
+      "failure": "Crash recovery can combine writes from a partial superstep with a checkpoint from another boundary.",
+      "classification": "not_caught",
+      "expected_verdict": "SAFE",
+      "why": "v0 compares environment drift; it has no internal checkpoint consistency proof or write-set hash.",
+      "checkpoint": {
+        "checkpoint_id": "lg-8234",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      }
+    },
+    {
+      "id": "langgraph-8837-stale-resume-payload",
+      "source": "https://github.com/langchain-ai/langgraph/issues/8837",
+      "framework": "LangGraph",
+      "failure": "A consumed resume value can be redelivered to a later interrupt, silently answering a second approval with the first payload.",
+      "classification": "not_caught",
+      "expected_verdict": "SAFE",
+      "why": "v0 does not model interrupt/resume payload identity or consumption.",
+      "checkpoint": {
+        "checkpoint_id": "lg-8837",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      }
+    },
+    {
+      "id": "langgraph-8579-multi-interrupt-misrouting",
+      "source": "https://github.com/langchain-ai/langgraph/issues/8579",
+      "framework": "LangGraph",
+      "failure": "A scalar resume can be associated with the wrong pending interrupt when multiple approvals share a task.",
+      "classification": "not_caught",
+      "expected_verdict": "SAFE",
+      "why": "v0 does not validate interrupt IDs or resume-value routing.",
+      "checkpoint": {
+        "checkpoint_id": "lg-8579",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      }
+    },
+    {
+      "id": "langgraph-6792-subgraph-checkpoint-scope",
+      "source": "https://github.com/langchain-ai/langgraph/issues/6792",
+      "framework": "LangGraph",
+      "failure": "Nested checkpoint scopes can cause completed pre-interrupt work to rerun on resume.",
+      "classification": "not_caught",
+      "expected_verdict": "SAFE",
+      "why": "Without an explicitly declared side effect, v0 has no model of checkpoint namespace ancestry or completed-task identity.",
+      "checkpoint": {
+        "checkpoint_id": "lg-6792",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      }
+    },
+    {
+      "id": "langgraph-8358-history-live-boundary",
+      "source": "https://github.com/langchain-ai/langgraph/issues/8358",
+      "framework": "LangGraph Agent Server",
+      "failure": "After hydrating an idle thread, replayed historical events can lack a durable boundary distinguishing them from events of the newly started run.",
+      "classification": "not_caught",
+      "expected_verdict": "SAFE",
+      "why": "v0 validates checkpoint viability, not event-stream provenance or historical/live event identity.",
+      "checkpoint": {
+        "checkpoint_id": "lg-8358",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      }
+    },
+    {
+      "id": "openai-agents-4323-pending-input-ordering",
+      "source": "https://github.com/openai/openai-agents-python/issues/4323",
+      "framework": "OpenAI Agents SDK",
+      "failure": "Resumable state needs durable pending-input ordering and exactly-once admission across approvals and persistence boundaries.",
+      "classification": "not_caught",
+      "expected_verdict": "SAFE",
+      "why": "v0 has no concept of pending-input ownership, ordering or consumption.",
+      "checkpoint": {
+        "checkpoint_id": "oa-4323",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      }
+    },
+    {
+      "id": "langgraph-6938-malformed-checkpoint-schema",
+      "source": "https://github.com/langchain-ai/langgraph/issues/6938",
+      "framework": "LangGraph",
+      "failure": "Malformed checkpoint payloads can enter load paths without strict fail-closed schema validation.",
+      "classification": "not_caught",
+      "expected_verdict": "SAFE",
+      "why": "v0 compares declared schema versions but does not validate the checkpoint payload against a schema definition.",
+      "checkpoint": {
+        "checkpoint_id": "lg-6938",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      },
+      "current": {
+        "now": "2026-10-03T12:00:00Z",
+        "policy_version": "p",
+        "runtime": {
+          "agent_version": "1",
+          "state_schema": "1",
+          "model": "m"
+        }
+      }
+    },
+    {
+      "id": "langgraph-8764-no-durable-checkpoint",
+      "source": "https://github.com/langchain-ai/langgraph/issues/8764",
+      "framework": "LangGraph",
+      "failure": "A background run can die before its first durable checkpoint, leaving nothing to resume and no durable acceptance/failure record.",
+      "classification": "out_of_scope",
+      "expected_verdict": null,
+      "why": "There is no checkpoint for a resume validator to inspect; this belongs to durable run admission/ledgering.",
+      "checkpoint": null,
+      "current": null
+    }
+  ]
+}
