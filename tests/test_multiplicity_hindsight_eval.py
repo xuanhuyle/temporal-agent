@@ -1,7 +1,7 @@
 import json
 
 from harness.llm import ModelResponse
-from multiplicity.hindsight_eval import (
+from multiplicity_experiments.hindsight_eval import (
     EvalCase,
     load_cases,
     parse_answer,
