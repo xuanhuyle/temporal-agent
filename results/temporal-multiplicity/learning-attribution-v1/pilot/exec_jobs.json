@@ -1,0 +1,472 @@
+[
+ {
+  "job_id": "P1|dev|S0",
+  "episode": "P1",
+  "split": "dev",
+  "state": "S0",
+  "modules": [
+   "BASE",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P1|dev|S1",
+  "episode": "P1",
+  "split": "dev",
+  "state": "S1",
+  "modules": [
+   "BASE",
+   "ROUND",
+   "ZONE_OLD"
+  ]
+ },
+ {
+  "job_id": "P1|dev|S2",
+  "episode": "P1",
+  "split": "dev",
+  "state": "S2",
+  "modules": [
+   "BASE",
+   "ROUND",
+   "ZONE_OLD",
+   "MEMO"
+  ]
+ },
+ {
+  "job_id": "P1|dev|S3",
+  "episode": "P1",
+  "split": "dev",
+  "state": "S3",
+  "modules": [
+   "BASE",
+   "ROUND",
+   "ZONE_OLD",
+   "MEMO",
+   "ZONE"
+  ]
+ },
+ {
+  "job_id": "P1|dev|S3-ZONE_OLD",
+  "episode": "P1",
+  "split": "dev",
+  "state": "S3-ZONE_OLD",
+  "modules": [
+   "BASE",
+   "ROUND",
+   "MEMO",
+   "ZONE"
+  ]
+ },
+ {
+  "job_id": "P1|dev|S3-MEMO",
+  "episode": "P1",
+  "split": "dev",
+  "state": "S3-MEMO",
+  "modules": [
+   "BASE",
+   "ROUND",
+   "ZONE_OLD",
+   "ZONE"
+  ]
+ },
+ {
+  "job_id": "P1|heldout|S3",
+  "episode": "P1",
+  "split": "heldout",
+  "state": "S3",
+  "modules": [
+   "BASE",
+   "ROUND",
+   "ZONE_OLD",
+   "MEMO",
+   "ZONE"
+  ]
+ },
+ {
+  "job_id": "P1|heldout|S3-ZONE_OLD",
+  "episode": "P1",
+  "split": "heldout",
+  "state": "S3-ZONE_OLD",
+  "modules": [
+   "BASE",
+   "ROUND",
+   "MEMO",
+   "ZONE"
+  ]
+ },
+ {
+  "job_id": "P1|heldout|S3-MEMO",
+  "episode": "P1",
+  "split": "heldout",
+  "state": "S3-MEMO",
+  "modules": [
+   "BASE",
+   "ROUND",
+   "ZONE_OLD",
+   "ZONE"
+  ]
+ },
+ {
+  "job_id": "P1|heldout|S3-ZONE",
+  "episode": "P1",
+  "split": "heldout",
+  "state": "S3-ZONE",
+  "modules": [
+   "BASE",
+   "ROUND",
+   "ZONE_OLD",
+   "MEMO"
+  ]
+ },
+ {
+  "job_id": "P1|heldout|S3+ERRATA",
+  "episode": "P1",
+  "split": "heldout",
+  "state": "S3+ERRATA",
+  "modules": [
+   "BASE",
+   "ROUND",
+   "ZONE_OLD",
+   "MEMO",
+   "ERRATA",
+   "ZONE"
+  ]
+ },
+ {
+  "job_id": "P1|heldout|S3+EXAMPLES",
+  "episode": "P1",
+  "split": "heldout",
+  "state": "S3+EXAMPLES",
+  "modules": [
+   "BASE",
+   "ROUND",
+   "ZONE_OLD",
+   "MEMO",
+   "EXAMPLES",
+   "ZONE"
+  ]
+ },
+ {
+  "job_id": "P1|heldout|S3+FRAG",
+  "episode": "P1",
+  "split": "heldout",
+  "state": "S3+FRAG",
+  "modules": [
+   "BASE",
+   "ROUND",
+   "ZONE_OLD",
+   "MEMO",
+   "FRAG",
+   "ZONE"
+  ]
+ },
+ {
+  "job_id": "P2|dev|S0",
+  "episode": "P2",
+  "split": "dev",
+  "state": "S0",
+  "modules": [
+   "ZONE"
+  ]
+ },
+ {
+  "job_id": "P2|dev|S1",
+  "episode": "P2",
+  "split": "dev",
+  "state": "S1",
+  "modules": [
+   "ZONE",
+   "BASE"
+  ]
+ },
+ {
+  "job_id": "P2|dev|S2",
+  "episode": "P2",
+  "split": "dev",
+  "state": "S2",
+  "modules": [
+   "ZONE",
+   "BASE",
+   "CUSTOMS"
+  ]
+ },
+ {
+  "job_id": "P2|dev|S3",
+  "episode": "P2",
+  "split": "dev",
+  "state": "S3",
+  "modules": [
+   "ZONE",
+   "BASE",
+   "CUSTOMS",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P2|dev|S3-BASE",
+  "episode": "P2",
+  "split": "dev",
+  "state": "S3-BASE",
+  "modules": [
+   "ZONE",
+   "CUSTOMS",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P2|dev|S3-CUSTOMS",
+  "episode": "P2",
+  "split": "dev",
+  "state": "S3-CUSTOMS",
+  "modules": [
+   "ZONE",
+   "BASE",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P2|heldout|S3",
+  "episode": "P2",
+  "split": "heldout",
+  "state": "S3",
+  "modules": [
+   "ZONE",
+   "BASE",
+   "CUSTOMS",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P2|heldout|S3-BASE",
+  "episode": "P2",
+  "split": "heldout",
+  "state": "S3-BASE",
+  "modules": [
+   "ZONE",
+   "CUSTOMS",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P2|heldout|S3-CUSTOMS",
+  "episode": "P2",
+  "split": "heldout",
+  "state": "S3-CUSTOMS",
+  "modules": [
+   "ZONE",
+   "BASE",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P2|heldout|S3-ROUND",
+  "episode": "P2",
+  "split": "heldout",
+  "state": "S3-ROUND",
+  "modules": [
+   "ZONE",
+   "BASE",
+   "CUSTOMS"
+  ]
+ },
+ {
+  "job_id": "P2|heldout|S3+HEAVY",
+  "episode": "P2",
+  "split": "heldout",
+  "state": "S3+HEAVY",
+  "modules": [
+   "ZONE",
+   "BASE",
+   "CUSTOMS",
+   "HEAVY",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P2|heldout|S3+EXPR",
+  "episode": "P2",
+  "split": "heldout",
+  "state": "S3+EXPR",
+  "modules": [
+   "ZONE",
+   "BASE",
+   "CUSTOMS",
+   "EXPR",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P2|heldout|S3+EXAMPLES",
+  "episode": "P2",
+  "split": "heldout",
+  "state": "S3+EXAMPLES",
+  "modules": [
+   "ZONE",
+   "BASE",
+   "CUSTOMS",
+   "EXAMPLES",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P3|dev|S0",
+  "episode": "P3",
+  "split": "dev",
+  "state": "S0",
+  "modules": [
+   "BASE",
+   "ZONE"
+  ]
+ },
+ {
+  "job_id": "P3|dev|S1",
+  "episode": "P3",
+  "split": "dev",
+  "state": "S1",
+  "modules": [
+   "BASE",
+   "ZONE",
+   "EXAMPLES"
+  ]
+ },
+ {
+  "job_id": "P3|dev|S2",
+  "episode": "P3",
+  "split": "dev",
+  "state": "S2",
+  "modules": [
+   "BASE",
+   "ZONE",
+   "EXAMPLES",
+   "FRAG"
+  ]
+ },
+ {
+  "job_id": "P3|dev|S3",
+  "episode": "P3",
+  "split": "dev",
+  "state": "S3",
+  "modules": [
+   "BASE",
+   "ZONE",
+   "EXAMPLES",
+   "FRAG",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P3|dev|S3-EXAMPLES",
+  "episode": "P3",
+  "split": "dev",
+  "state": "S3-EXAMPLES",
+  "modules": [
+   "BASE",
+   "ZONE",
+   "FRAG",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P3|dev|S3-FRAG",
+  "episode": "P3",
+  "split": "dev",
+  "state": "S3-FRAG",
+  "modules": [
+   "BASE",
+   "ZONE",
+   "EXAMPLES",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P3|heldout|S3",
+  "episode": "P3",
+  "split": "heldout",
+  "state": "S3",
+  "modules": [
+   "BASE",
+   "ZONE",
+   "EXAMPLES",
+   "FRAG",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P3|heldout|S3-EXAMPLES",
+  "episode": "P3",
+  "split": "heldout",
+  "state": "S3-EXAMPLES",
+  "modules": [
+   "BASE",
+   "ZONE",
+   "FRAG",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P3|heldout|S3-FRAG",
+  "episode": "P3",
+  "split": "heldout",
+  "state": "S3-FRAG",
+  "modules": [
+   "BASE",
+   "ZONE",
+   "EXAMPLES",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P3|heldout|S3-ROUND",
+  "episode": "P3",
+  "split": "heldout",
+  "state": "S3-ROUND",
+  "modules": [
+   "BASE",
+   "ZONE",
+   "EXAMPLES",
+   "FRAG"
+  ]
+ },
+ {
+  "job_id": "P3|heldout|S3+HEAVY",
+  "episode": "P3",
+  "split": "heldout",
+  "state": "S3+HEAVY",
+  "modules": [
+   "BASE",
+   "ZONE",
+   "EXAMPLES",
+   "FRAG",
+   "HEAVY",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P3|heldout|S3+EXPR",
+  "episode": "P3",
+  "split": "heldout",
+  "state": "S3+EXPR",
+  "modules": [
+   "BASE",
+   "ZONE",
+   "EXAMPLES",
+   "FRAG",
+   "EXPR",
+   "ROUND"
+  ]
+ },
+ {
+  "job_id": "P3|heldout|S3+MEMO",
+  "episode": "P3",
+  "split": "heldout",
+  "state": "S3+MEMO",
+  "modules": [
+   "BASE",
+   "ZONE",
+   "EXAMPLES",
+   "FRAG",
+   "MEMO",
+   "ROUND"
+  ]
+ }
+]

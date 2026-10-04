@@ -1,0 +1,158 @@
+[
+ {
+  "episode": "P1",
+  "condition": "multiplicity",
+  "repeat": 0,
+  "output": {
+   "attribution": {
+    "ZONE_OLD": "no_effect",
+    "MEMO": "essential",
+    "ZONE": "essential"
+   },
+   "gaps": "There are no measured gaps on the evaluation suite. S3 scores 100% (plain 4/4, zoned 12/12), and the suite contains only the plain and zoned families. The remaining gaps are in families outside the suite. Heavy parcels over 10 kg have no base price, because BASE stops at 10 kg. No module covers fragile handling or express service. One open risk is that ZONE_OLD (B x1.5, C x2.5, D x3) contradicts ZONE (B x2, C x3, D x4). It does no harm right now, since removing it leaves the score at 100%, but nothing I have says which schedule is authoritative. A second open point is MEMO. Its text adds no pricing rule and it added nothing when learned alone (S1 to S2 stayed at 38%). Yet removing it from S3 drops the score to 38%. That means it works through an interaction with ZONE that I can't explain from its content.",
+   "ranking": [
+    "ERRATA",
+    "EXAMPLES",
+    "FRAG"
+   ],
+   "choice": "ERRATA",
+   "rationale": "These effects come from the single-module removal experiments on S3. Removing ZONE_OLD keeps the score at 100%, so it has no effect. Removing ZONE falls back to S2 (38%, zoned 2/12), so ZONE is essential. Removing MEMO also drops the score to 38% (zoned 2/12), so it is essential in the current state. That holds even though its text has no pricing rule and learning it alone (S1 to S2) changed nothing. The effect only appears together with ZONE, and the removal test is what measures causal effect. The learning-order gains would credit MEMO with nothing, which would be misleading.\n\nFor the next module, the current state already scores 100% on a suite made only of plain and zoned tasks. So no candidate can raise the expected score on new tasks from this suite, and the ranking is about robustness. ERRATA ranks first: a notice on zone schedules most likely settles the conflict between ZONE_OLD and ZONE, which is the only known risk to zoned tasks (75% of the suite). EXAMPLES is second: worked examples could confirm the zone factors and the round-up-to-5 rule, but they add no new rule. FRAG is last because fragile parcels never appear in the suite.",
+   "webFetchSavedFiles": {
+    "dirs": [
+     "/root/.claude/projects/-home-user-temporal-agent/45e7646f-fce6-5edf-8cae-b85e30b6afde/tool-results"
+    ],
+    "paths": []
+   }
+  }
+ },
+ {
+  "episode": "P1",
+  "condition": "baseline",
+  "repeat": 0,
+  "output": {
+   "attribution": {
+    "ZONE_OLD": "no_effect",
+    "MEMO": "no_effect",
+    "ZONE": "essential"
+   },
+   "gaps": "The suite has nothing left to fix. It contains only plain (25%) and zoned (75%) tasks, and the S3 score is 100% (plain 4/4, zoned 12/12).\n\nOne risk remains inside what I already know. ZONE_OLD (B x1.5, C x2.5, D x3) disagrees with ZONE (B x2, C x3, D x4). After rounding up to a multiple of 5, the two only give the same price in one case: zone B up to 2 kg, where 10.5 and 14 both become 15. In the other eight zone and weight combinations the prices differ, for example zone B over 2 to 5 kg gives 20 against 25, and zone D up to 2 kg gives 25 against 30. That fits the 2/12 zoned score at S1. If ZONE_OLD were ever used by mistake, most zoned answers would be wrong again.\n\nI also have no rules for three families that are not in the suite: heavy parcels (BASE stops at 10 kg), fragile handling, and express service. These gaps do not affect the measured score.",
+   "ranking": [
+    "ERRATA",
+    "EXAMPLES",
+    "FRAG"
+   ],
+   "choice": "ERRATA",
+   "rationale": "Both earlier analyses reach the same conclusions. I checked their arithmetic and agree with them.\n\n**Effect of each module (judged by what removing it now would do):**\n- **ZONE: essential.** Adding it raised zoned from 2/12 to 12/12 and overall from 38% to 100%. Together with BASE and ROUND it produces every zoned answer. Without it I would fall back to ZONE_OLD and drop to about 38%.\n- **ZONE_OLD: no effect.** Its 2/12 at S1 came only from the zone B, up to 2 kg rounding coincidence, and ZONE now covers those tasks. The score is 100% with ZONE_OLD still learned, so it is not lowering performance and should not be called harmful. Removing it would also leave the score unchanged. It is a latent risk, not a measured cost.\n- **MEMO: no effect.** It has no pricing rules (only credits, certified scales and the label zone), and the score stayed at 38% from S1 to S2.\n\n**Which module to learn next:**\n- No candidate can raise the measured score, because the suite is already at its ceiling. The useful aim is to keep zoned answers (75% of the suite) reliable on new tasks.\n- **ERRATA ranks first.** Judging only from its title (\"Notice on zone schedules\"), it is most likely to resolve the ZONE_OLD and ZONE conflict, which is the only remaining weakness.\n- **EXAMPLES ranks second.** Worked examples could confirm the zone factors and the rounding, but they are less directly aimed at the conflict.\n- **FRAG ranks last.** Fragile parcels are not in the suite, so it can bring no gain here.\n\nThe expected gain from any of the three is about zero.",
+   "webFetchSavedFiles": {
+    "dirs": [
+     "/root/.claude/projects/-home-user-temporal-agent/45e7646f-fce6-5edf-8cae-b85e30b6afde/tool-results"
+    ],
+    "paths": []
+   }
+  }
+ },
+ {
+  "episode": "P2",
+  "condition": "multiplicity",
+  "repeat": 0,
+  "output": {
+   "attribution": {
+    "BASE": "essential",
+    "CUSTOMS": "no_effect",
+    "ROUND": "essential"
+   },
+   "gaps": "Zoned tasks are solved (8/8). Heavy parcels (over 10 kg) are mostly failing (1/8). The BASE table stops at 10 kg, so I have no rule for pricing parcels over 10 kg, and the one heavy pass was probably luck or an edge case. None of my modules cover express or fragile pricing either, but those families are not in the evaluation suite. CUSTOMS is only about paperwork and never changes a price, so it does nothing for this suite.",
+   "ranking": [
+    "HEAVY",
+    "EXAMPLES",
+    "EXPR"
+   ],
+   "choice": "HEAVY",
+   "rationale": "Attribution comes from the ablations. Removing BASE drops the score from 56% to 0%, so BASE is essential. Removing ROUND gives the S2 result (0%), so ROUND is also essential: it only pays off together with BASE and ZONE, because unrounded prices are never exactly right. Removing CUSTOMS leaves the score at 56%, so it has no effect, which fits with it being about forms rather than prices. The only failures left are 7 of the 8 heavy tasks, which are half the suite, and they fail because BASE has no price for parcels over 10 kg. HEAVY is the module that names that exact gap, so it should recover most of the remaining ~44%. EXAMPLES comes second: worked examples might include a heavy case to copy from, but that is uncertain and gives no general rule. EXPR comes last because express is not in the suite (zoned 50%, heavy 50%), so it would add nothing.",
+   "webFetchSavedFiles": {
+    "dirs": [
+     "/root/.claude/projects/-home-user-temporal-agent/45e7646f-fce6-5edf-8cae-b85e30b6afde/tool-results"
+    ],
+    "paths": []
+   }
+  }
+ },
+ {
+  "episode": "P2",
+  "condition": "baseline",
+  "repeat": 0,
+  "output": {
+   "attribution": {
+    "BASE": "essential",
+    "CUSTOMS": "no_effect",
+    "ROUND": "essential"
+   },
+   "gaps": "The gap that costs points is pricing heavy parcels (over 10 kg). Heavy tasks are 50% of the suite and score only 1/8. The BASE table ends at \"over 5 kg up to 10 kg: 18 credits\", and none of my modules says how to price anything heavier. The one heavy pass is not evidence that I have the skill. It was probably a coincidence, for example a heavy rule that happened to match the 18-credit top band after zone and rounding. Zoned tasks are already 8/8, so there is nothing left to gain there. I also have no rules for express or fragile parcels, but neither family is in this suite, so those gaps do not affect the score. CUSTOMS covers paperwork (form CX-2), not price, so it fills no pricing gap. One more caveat: I only know the candidate modules by their titles, so I cannot be sure HEAVY contains a complete rule.",
+   "ranking": [
+    "HEAVY",
+    "EXAMPLES",
+    "EXPR"
+   ],
+   "choice": "HEAVY",
+   "rationale": "The two earlier analyses agree on every point, and I checked each one against the score history.\n\nHow each module affected my score:\n- BASE is essential. A zoned price is the base price times the zone factor, then rounded up to the next multiple of 5. BASE is my only source for the base price, so without it I cannot produce any price, and zoned would drop back to 0/8. Its effect did not show at S1 (still 0%) only because the suite counts exact prices alone, and the rounding rule was still missing. So BASE and ROUND only work together. Neither is enough by itself.\n- ROUND is essential. Adding it at S3 was the only change that moved the score from 0% to 56% (zoned went from 0/8 to 8/8, heavy from 0/8 to 1/8). Without it, every price that needed rounding would be wrong.\n- CUSTOMS has no effect. By its content it only covers the CX-2 declaration form and never changes a price. The score stayed at 0% from S1 to S2. That flat score is weak evidence on its own, because the score was 0% either way, but the content settles it. Zoned still reached 8/8 with CUSTOMS learned, so nothing suggests it hurt.\n\nWhat to learn next:\n- HEAVY is first. Zoned is already at its maximum, so all of the remaining loss (about 44 percentage points) comes from heavy tasks. HEAVY goes straight at the missing over-10 kg pricing. The risk is that I only know its title, but it is still the most direct fix.\n- EXAMPLES is second. Worked examples might include heavy parcels and let me work out the rule, but that is uncertain and indirect.\n- EXPR is last. Express is not one of the suite's families, so it would most likely gain nothing.",
+   "webFetchSavedFiles": {
+    "dirs": [
+     "/root/.claude/projects/-home-user-temporal-agent/45e7646f-fce6-5edf-8cae-b85e30b6afde/tool-results"
+    ],
+    "paths": []
+   }
+  }
+ },
+ {
+  "episode": "P3",
+  "condition": "multiplicity",
+  "repeat": 0,
+  "output": {
+   "attribution": {
+    "EXAMPLES": "no_effect",
+    "FRAG": "essential",
+    "ROUND": "no_effect"
+   },
+   "gaps": "Express service is the main gap: 0/5, and express makes up 30% of the suite. No module I have says how express is priced, for example whether it is a multiplier or a flat fee, or whether it applies before or after the zone factor, the fragile fee and rounding. A smaller gap: parcels over 10 kg (heavy) have no price, because BASE stops at 10 kg. Heavy is not one of the suite's families, though, so it costs nothing on the current evaluation. One weak point: the rounding knowledge appears twice (in EXAMPLES and in ROUND), so plain and zoned would only fail if both were removed.",
+   "ranking": [
+    "EXPR",
+    "MEMO",
+    "HEAVY"
+   ],
+   "choice": "EXPR",
+   "rationale": "Each module's effect comes from the single-removal tests on S3. FRAG is essential: without it, the score drops from 69% to 38% (fragile goes from 5/5 to 0/5). EXAMPLES has no effect right now: without it, the score stays at 69%. ROUND also has no effect: S3 without ROUND equals S2 at 69%, and adding ROUND at S3 gained nothing. The two cover the same thing. The worked examples already taught rounding up to a multiple of 5 (22->25, 18->20, 21->25), and that is why plain and zoned went from 0/3 to 3/3 at S1. ROUND only states that rule outright, so either module alone is enough. Removing both would probably break plain and zoned (20% + 20%), but neither one adds anything while the other is present. The only family still failing is express (0/5, 30% of the suite), so EXPR, the Express service rule, directly fills the only gap and could lift the score from 69% to as much as 100%. MEMO comes second: its title is vague, and it might mention express pricing, but that is a guess, and it could even be a distractor. HEAVY comes last: heavy (>10 kg) is not one of the suite's families, and fragile tasks already pass at 5/5, so nothing suggests the suite uses parcels over 10 kg. It would add an ability the evaluation does not test.",
+   "webFetchSavedFiles": {
+    "dirs": [
+     "/root/.claude/projects/-home-user-temporal-agent/45e7646f-fce6-5edf-8cae-b85e30b6afde/tool-results"
+    ],
+    "paths": []
+   }
+  }
+ },
+ {
+  "episode": "P3",
+  "condition": "baseline",
+  "repeat": 0,
+  "output": {
+   "attribution": {
+    "EXAMPLES": "no_effect",
+    "FRAG": "essential",
+    "ROUND": "no_effect"
+   },
+   "gaps": "1) Express is the main gap. It is 30% of the suite and has scored 0/5 at every stage, because no module says how express changes the price: whether it is a multiplier or a flat fee, or where it sits relative to the zone factor, the 9-credit fragile fee and rounding. This alone holds the score at 69%. That figure is unweighted, 11/16 = 68.75%; weighted by family share it is 20+20+30 = 70%. Either way it is the ceiling without express knowledge. 2) Heavy parcels over 10 kg are not covered, since BASE stops at 10 kg. But 'heavy' has no share in the suite and no recorded tasks, so this gap costs nothing here. 3) Some rounding edge cases are unresolved. Under 'rounded up to the next multiple of 5', a total that is already a multiple of 5 might stay put or go up by 5. Plain and zoned totals never hit this: 7, 11, 18 times 1 to 4 never gives a multiple of 5. Fragile totals can: 11+9=20, 21+9=30, 36+9=45. Fragile passed 5/5, but with only 5 samples some of these cases may not have come up. EXAMPLES does not settle this either. 4) Attribution is inferred only from the score history. No ablation was run and no more evaluations are possible. In particular, ROUND alone (without EXAMPLES) has never been tested, and samples are small (3 to 5 per family).",
+   "ranking": [
+    "EXPR",
+    "MEMO",
+    "HEAVY"
+   ],
+   "choice": "EXPR",
+   "rationale": "Both earlier analyses agree on FRAG = essential, ROUND = no_effect, the express gap and the ranking EXPR > MEMO > HEAVY. They differ only on EXAMPLES, and Analysis 2 is the more consistent one.\n\nFRAG: fragile went from 0/5 to 5/5 at S2 with nothing else changing. No other module supplies the 9-credit fee, so removing FRAG now would lose about 30% of the suite. Essential.\n\nROUND: S3 changed nothing (69% to 69%, every family identical). It states the rule EXAMPLES had already taught implicitly (22->25, 18->20, 21->25). No_effect.\n\nEXAMPLES: the question asks about its effect on current performance, which means the counterfactual of removing it now while ROUND stays. ROUND states the same rule explicitly ('final prices are always rounded up to the next multiple of 5'), and EXAMPLES adds nothing else ROUND lacks. It does not settle the exact-multiple edge case or the fragile ordering. So removing it should leave the score unchanged: no_effect. Analysis 1 calls it 'helpful' because of its historical 38-point gain. That treats the redundant pair unevenly: if ROUND is no_effect because EXAMPLES covers rounding, then EXAMPLES is no_effect because ROUND covers it. Historical importance is not the same as current causal effect. Caveats: the pair is overdetermined. Removing both would likely send plain, zoned and fragile back to 0, as at S0, so rounding itself is essential. Also, ROUND-alone sufficiency is inferred rather than measured.\n\nNext module: EXPR is the only candidate whose title targets a known failing family. Express is 30% weight and 0/5, so it can lift the score from about 69-70% toward 100%. MEMO is second: its content is unknown. It might mention express or settle edge cases, but it may just as well be irrelevant or repeat what I know. HEAVY is last: heavy has no share in the suite and no recorded tasks, so it should gain nothing on new tasks from this suite, even though it fills the obvious hole in the BASE table.",
+   "webFetchSavedFiles": {
+    "dirs": [
+     "/root/.claude/projects/-home-user-temporal-agent/45e7646f-fce6-5edf-8cae-b85e30b6afde/tool-results"
+    ],
+    "paths": []
+   }
+  }
+ }
+]

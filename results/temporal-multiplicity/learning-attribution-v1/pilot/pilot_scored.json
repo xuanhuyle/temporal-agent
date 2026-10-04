@@ -1,0 +1,196 @@
+{
+  "rows": [
+    {
+      "episode": "P1",
+      "condition": "multiplicity",
+      "repeat": 0,
+      "choice": "ERRATA",
+      "choice_gain": 0.75,
+      "best_gain": 0.75,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "ERRATA": 0.75,
+        "EXAMPLES": 0.75,
+        "FRAG": 0.75
+      },
+      "attribution": {
+        "ZONE_OLD": "no_effect",
+        "MEMO": "essential",
+        "ZONE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "MEMO": "harmful",
+        "ZONE": "no_effect"
+      },
+      "attribution_hits": 0,
+      "attribution_n": 3,
+      "ranking": [
+        "ERRATA",
+        "EXAMPLES",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "P1",
+      "condition": "baseline",
+      "repeat": 0,
+      "choice": "ERRATA",
+      "choice_gain": 0.75,
+      "best_gain": 0.75,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "ERRATA": 0.75,
+        "EXAMPLES": 0.75,
+        "FRAG": 0.75
+      },
+      "attribution": {
+        "ZONE_OLD": "no_effect",
+        "MEMO": "no_effect",
+        "ZONE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "MEMO": "harmful",
+        "ZONE": "no_effect"
+      },
+      "attribution_hits": 0,
+      "attribution_n": 3,
+      "ranking": [
+        "ERRATA",
+        "EXAMPLES",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "P2",
+      "condition": "multiplicity",
+      "repeat": 0,
+      "choice": "HEAVY",
+      "choice_gain": 0.4375,
+      "best_gain": 0.4375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY": 0.4375,
+        "EXPR": 0.0,
+        "EXAMPLES": 0.0
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "ROUND": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "ROUND": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "P2",
+      "condition": "baseline",
+      "repeat": 0,
+      "choice": "HEAVY",
+      "choice_gain": 0.4375,
+      "best_gain": 0.4375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY": 0.4375,
+        "EXPR": 0.0,
+        "EXAMPLES": 0.0
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "ROUND": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "ROUND": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "P3",
+      "condition": "multiplicity",
+      "repeat": 0,
+      "choice": "EXPR",
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY": 0.0,
+        "EXPR": 0.3125,
+        "MEMO": 0.0
+      },
+      "attribution": {
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential",
+        "ROUND": "no_effect"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential",
+        "ROUND": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "P3",
+      "condition": "baseline",
+      "repeat": 0,
+      "choice": "EXPR",
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY": 0.0,
+        "EXPR": 0.3125,
+        "MEMO": 0.0
+      },
+      "attribution": {
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential",
+        "ROUND": "no_effect"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential",
+        "ROUND": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    }
+  ]
+}
