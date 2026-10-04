@@ -25,6 +25,8 @@ Product framing: this is a **model-agnostic cognitive capability** injected into
 
 See [docs/temporal-multiplicity-kernel-v0.md](docs/temporal-multiplicity-kernel-v0.md). This does not reverse the Milestone 2.5 stop decision on the earlier Tesseract architecture.
 
+The governing research map is [docs/temporal-multiplicity-capability-map.md](docs/temporal-multiplicity-capability-map.md). Future experiments should test whether executable self-state is a real cognitive primitive, not indefinitely optimize narrow benchmark details.
+
 The first real-model test (protocol v0.1, frozen and pre-registered; not yet run, because it must run outside Claude Code) and its exact command are in [docs/experiments/tmk-hindsight-v0-results.md](docs/experiments/tmk-hindsight-v0-results.md).
 
 ## Core question
