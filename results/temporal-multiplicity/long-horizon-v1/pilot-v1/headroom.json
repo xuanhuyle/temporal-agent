@@ -1,0 +1,2231 @@
+[
+ {
+  "episode": "P1",
+  "rules": [
+   {
+    "rule": "R1",
+    "kind": "SUB",
+    "stage": 1,
+    "style": "aside",
+    "reinforced": false,
+    "params": {
+     "client": "Port of Elsby works"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c1",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      1.0
+     ],
+     [
+      "c2",
+      1.0
+     ],
+     [
+      "c3",
+      1.0
+     ],
+     [
+      "c4",
+      1.0
+     ],
+     [
+      "c4c",
+      1.0
+     ],
+     [
+      "c5",
+      1.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c12c",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ],
+     [
+      "c16c",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R2",
+    "kind": "CUR",
+    "stage": 2,
+    "style": "formal",
+    "reinforced": true,
+    "params": {
+     "vendor": "Lindqvist Tools",
+     "currency": "SEK"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c2",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      1.0
+     ],
+     [
+      "c3",
+      1.0
+     ],
+     [
+      "c4",
+      1.0
+     ],
+     [
+      "c4c",
+      1.0
+     ],
+     [
+      "c5",
+      1.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c12c",
+      0.75
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c14",
+      0.75
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ],
+     [
+      "c16c",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R3",
+    "kind": "COLD",
+    "stage": 3,
+    "style": "formal",
+    "reinforced": false,
+    "params": {
+     "cat": "sealant kits"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c3",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      1.0
+     ],
+     [
+      "c4",
+      1.0
+     ],
+     [
+      "c4c",
+      1.0
+     ],
+     [
+      "c5",
+      1.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c12c",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ],
+     [
+      "c16c",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R4",
+    "kind": "HARBOUR",
+    "stage": 4,
+    "style": "aside",
+    "reinforced": false,
+    "params": {
+     "site": "Pier 7"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c4",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      0.0
+     ],
+     [
+      "c4",
+      1.0
+     ],
+     [
+      "c4c",
+      1.0
+     ],
+     [
+      "c5",
+      1.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c12c",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ],
+     [
+      "c16c",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R5",
+    "kind": "CUR",
+    "stage": 5,
+    "style": "formal",
+    "reinforced": true,
+    "params": {
+     "vendor": "Brandt Hydraulik",
+     "currency": "CHF"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c5",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      0.0
+     ],
+     [
+      "c4",
+      0.0
+     ],
+     [
+      "c4c",
+      0.0
+     ],
+     [
+      "c5",
+      1.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c12c",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ],
+     [
+      "c16c",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R6",
+    "kind": "CARRIER",
+    "stage": 6,
+    "style": "formal",
+    "reinforced": false,
+    "params": {
+     "client": "Ashgrove Hospital retrofit"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c6",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      0.0
+     ],
+     [
+      "c4",
+      0.0
+     ],
+     [
+      "c4c",
+      0.0
+     ],
+     [
+      "c5",
+      0.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c12c",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ],
+     [
+      "c16c",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R7",
+    "kind": "SAFETY",
+    "stage": 7,
+    "style": "formal",
+    "reinforced": true,
+    "params": {
+     "cats": [
+      "lifting gear",
+      "fall-arrest harnesses"
+     ]
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c7",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      0.0
+     ],
+     [
+      "c4",
+      0.0
+     ],
+     [
+      "c4c",
+      0.0
+     ],
+     [
+      "c5",
+      0.0
+     ],
+     [
+      "c6",
+      0.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c12c",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ],
+     [
+      "c16c",
+      1.0
+     ]
+    ]
+   }
+  ],
+  "compactions": 4,
+  "compaction_stages": [
+   4,
+   8,
+   12,
+   16
+  ],
+  "mem_chars": [
+   1371,
+   1424,
+   1477,
+   1402
+  ],
+  "lifetime_full_accuracy": 1.0,
+  "final_checkpoint": "c16c"
+ },
+ {
+  "episode": "P2",
+  "rules": [
+   {
+    "rule": "R1",
+    "kind": "CUR",
+    "stage": 1,
+    "style": "aside",
+    "reinforced": false,
+    "params": {
+     "vendor": "Lindqvist Tools",
+     "currency": "SEK"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c1",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      1.0
+     ],
+     [
+      "c2",
+      1.0
+     ],
+     [
+      "c3",
+      1.0
+     ],
+     [
+      "c4",
+      1.0
+     ],
+     [
+      "c4c",
+      1.0
+     ],
+     [
+      "c5",
+      1.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c13c",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R2",
+    "kind": "SUB",
+    "stage": 2,
+    "style": "formal",
+    "reinforced": false,
+    "params": {
+     "client": "Fenwick Dairy line 3"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c2",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      1.0
+     ],
+     [
+      "c3",
+      1.0
+     ],
+     [
+      "c4",
+      1.0
+     ],
+     [
+      "c4c",
+      1.0
+     ],
+     [
+      "c5",
+      1.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c13c",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R3",
+    "kind": "SAFETY",
+    "stage": 3,
+    "style": "aside",
+    "reinforced": false,
+    "params": {
+     "cats": [
+      "fall-arrest harnesses",
+      "lifting gear"
+     ]
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c3",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      1.0
+     ],
+     [
+      "c4",
+      1.0
+     ],
+     [
+      "c4c",
+      1.0
+     ],
+     [
+      "c5",
+      1.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c13c",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R4",
+    "kind": "CUR",
+    "stage": 4,
+    "style": "aside",
+    "reinforced": false,
+    "params": {
+     "vendor": "Brandt Hydraulik",
+     "currency": "CHF"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c4",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      0.0
+     ],
+     [
+      "c4",
+      1.0
+     ],
+     [
+      "c4c",
+      1.0
+     ],
+     [
+      "c5",
+      1.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c13c",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R5",
+    "kind": "HARBOUR",
+    "stage": 5,
+    "style": "formal",
+    "reinforced": false,
+    "params": {
+     "site": "Dock 4"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c5",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      0.0
+     ],
+     [
+      "c4",
+      0.0
+     ],
+     [
+      "c4c",
+      0.0
+     ],
+     [
+      "c5",
+      1.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c13c",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R6",
+    "kind": "CARRIER",
+    "stage": 6,
+    "style": "aside",
+    "reinforced": true,
+    "params": {
+     "client": "Corvid Labs"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c6",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      0.0
+     ],
+     [
+      "c4",
+      0.0
+     ],
+     [
+      "c4c",
+      0.0
+     ],
+     [
+      "c5",
+      0.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c13c",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R7",
+    "kind": "COLD",
+    "stage": 7,
+    "style": "aside",
+    "reinforced": false,
+    "params": {
+     "cat": "adhesive cartridges"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c7",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      0.0
+     ],
+     [
+      "c4",
+      0.0
+     ],
+     [
+      "c4c",
+      0.0
+     ],
+     [
+      "c5",
+      0.0
+     ],
+     [
+      "c6",
+      0.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c13c",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ]
+    ]
+   }
+  ],
+  "compactions": 3,
+  "compaction_stages": [
+   4,
+   8,
+   13
+  ],
+  "mem_chars": [
+   1381,
+   1473,
+   1459
+  ],
+  "lifetime_full_accuracy": 1.0,
+  "final_checkpoint": "c16"
+ },
+ {
+  "episode": "P3",
+  "rules": [
+   {
+    "rule": "R1",
+    "kind": "SAFETY",
+    "stage": 1,
+    "style": "aside",
+    "reinforced": false,
+    "params": {
+     "cats": [
+      "lifting gear",
+      "fall-arrest harnesses"
+     ]
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c1",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      1.0
+     ],
+     [
+      "c2",
+      1.0
+     ],
+     [
+      "c3",
+      1.0
+     ],
+     [
+      "c4",
+      1.0
+     ],
+     [
+      "c4c",
+      1.0
+     ],
+     [
+      "c5",
+      1.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c12c",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ],
+     [
+      "c16c",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R2",
+    "kind": "HARBOUR",
+    "stage": 2,
+    "style": "formal",
+    "reinforced": true,
+    "params": {
+     "site": "Elsby container yard"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c2",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      1.0
+     ],
+     [
+      "c3",
+      1.0
+     ],
+     [
+      "c4",
+      1.0
+     ],
+     [
+      "c4c",
+      1.0
+     ],
+     [
+      "c5",
+      1.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c12c",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ],
+     [
+      "c16c",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R3",
+    "kind": "CUR",
+    "stage": 3,
+    "style": "formal",
+    "reinforced": false,
+    "params": {
+     "vendor": "Tidewater Polymers",
+     "currency": "USD"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c3",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      1.0
+     ],
+     [
+      "c4",
+      1.0
+     ],
+     [
+      "c4c",
+      1.0
+     ],
+     [
+      "c5",
+      1.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c12c",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ],
+     [
+      "c16c",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R4",
+    "kind": "COLD",
+    "stage": 4,
+    "style": "formal",
+    "reinforced": true,
+    "params": {
+     "cat": "sealant kits"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c4",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      0.0
+     ],
+     [
+      "c4",
+      1.0
+     ],
+     [
+      "c4c",
+      1.0
+     ],
+     [
+      "c5",
+      1.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c12c",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ],
+     [
+      "c16c",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R5",
+    "kind": "CARRIER",
+    "stage": 6,
+    "style": "aside",
+    "reinforced": true,
+    "params": {
+     "client": "Hollin Water treatment"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c6",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      0.0
+     ],
+     [
+      "c4",
+      0.0
+     ],
+     [
+      "c4c",
+      0.0
+     ],
+     [
+      "c5",
+      0.0
+     ],
+     [
+      "c6",
+      1.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c12c",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ],
+     [
+      "c16c",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R6",
+    "kind": "SUB",
+    "stage": 7,
+    "style": "aside",
+    "reinforced": false,
+    "params": {
+     "client": "Marrow Rail depot"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c7",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      0.0
+     ],
+     [
+      "c4",
+      0.0
+     ],
+     [
+      "c4c",
+      0.0
+     ],
+     [
+      "c5",
+      0.0
+     ],
+     [
+      "c6",
+      0.0
+     ],
+     [
+      "c7",
+      1.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c12c",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ],
+     [
+      "c16c",
+      1.0
+     ]
+    ]
+   },
+   {
+    "rule": "R7",
+    "kind": "CUR",
+    "stage": 8,
+    "style": "formal",
+    "reinforced": false,
+    "params": {
+     "vendor": "Saltash Castings",
+     "currency": "GBP"
+    },
+    "pre_intro_acc": 0.0,
+    "best_earlier": {
+     "checkpoint": "c8",
+     "acc": 1.0
+    },
+    "final_acc": 1.0,
+    "headroom": 0.0,
+    "retained_in_final_memory": true,
+    "curve": [
+     [
+      "c0",
+      0.0
+     ],
+     [
+      "c1",
+      0.0
+     ],
+     [
+      "c2",
+      0.0
+     ],
+     [
+      "c3",
+      0.0
+     ],
+     [
+      "c4",
+      0.0
+     ],
+     [
+      "c4c",
+      0.0
+     ],
+     [
+      "c5",
+      0.0
+     ],
+     [
+      "c6",
+      0.0
+     ],
+     [
+      "c7",
+      0.0
+     ],
+     [
+      "c8",
+      1.0
+     ],
+     [
+      "c8c",
+      1.0
+     ],
+     [
+      "c9",
+      1.0
+     ],
+     [
+      "c10",
+      1.0
+     ],
+     [
+      "c11",
+      1.0
+     ],
+     [
+      "c12",
+      1.0
+     ],
+     [
+      "c12c",
+      1.0
+     ],
+     [
+      "c13",
+      1.0
+     ],
+     [
+      "c14",
+      1.0
+     ],
+     [
+      "c15",
+      1.0
+     ],
+     [
+      "c16",
+      1.0
+     ],
+     [
+      "c16c",
+      1.0
+     ]
+    ]
+   }
+  ],
+  "compactions": 4,
+  "compaction_stages": [
+   4,
+   8,
+   12,
+   16
+  ],
+  "mem_chars": [
+   1528,
+   1404,
+   1483,
+   1471
+  ],
+  "lifetime_full_accuracy": 1.0,
+  "final_checkpoint": "c16c"
+ }
+]
