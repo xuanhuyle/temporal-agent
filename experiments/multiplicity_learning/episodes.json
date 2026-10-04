@@ -1,25 +1,325 @@
 {
-  "schema_version": "tmk.learning/1",
-  "note": "Evaluator file. Module texts and task attributes are shown to the subject; true prices are computed by src/multiplicity_experiments/learning_attribution.py and are never shown.",
-  "modules": {
-    "BASE": {"title": "Base price table", "text": "Base price by parcel weight: up to 2 kg: 7 credits; over 2 kg up to 5 kg: 11 credits; over 5 kg up to 10 kg: 18 credits."},
-    "HEAVY": {"title": "Heavy parcel rule", "text": "Parcels over 10 kg: the base price is 18 credits plus 3 credits for every started kilogram above 10 kg."},
-    "ZONE": {"title": "Destination zone multipliers", "text": "Multiply the base price by the destination zone factor: zone A x1, zone B x2, zone C x3, zone D x4."},
-    "ZONE_OLD": {"title": "Zone surcharge schedule (regional office)", "text": "Zone surcharge schedule: zone A x1, zone B x1.5, zone C x2.5, zone D x3. Apply the factor to the base price."},
-    "FRAG": {"title": "Fragile handling rule", "text": "Fragile parcels: add a 9-credit handling fee after all multipliers."},
-    "EXPR": {"title": "Express service rule", "text": "Express service doubles the price after the zone factor has been applied and before any handling fee is added."},
-    "ROUND": {"title": "Rounding rule", "text": "Final prices are always rounded up to the next multiple of 5 credits."},
-    "CUSTOMS": {"title": "Customs declarations", "text": "Parcels to zones C and D whose contents are worth more than 200 credits need customs form CX-2, listing the contents category and the sender's registry number."},
-    "MEMO": {"title": "Orbital Post service memo", "text": "Orbital Post prices are quoted in credits. All parcels are weighed on certified scales, and the destination zone is printed on every label."},
-    "EXAMPLES": {"title": "Worked pricing examples", "text": "Worked examples: (1) 3.0 kg to zone B: 11 x 2 = 22, price 25. (2) 7.0 kg to zone A: 18 x 1 = 18, price 20. (3) 1.0 kg to zone C: 7 x 3 = 21, price 25."},
-    "ERRATA": {"title": "Notice on zone schedules", "text": "Notice: the regional office zone surcharge schedule has been withdrawn and must not be used. Only the destination zone multipliers are valid."}
+ "schema_version": "tmk.learning/1",
+ "note": "Evaluator file. Module texts and task attributes are shown to the subject; true prices are computed by learning_attribution.py and never shown. 'note' fields are design intent for the analyst and are never shown.",
+ "modules": {
+  "BASE": {
+   "title": "Base price table",
+   "text": "Base price by parcel weight: up to 2 kg: 7 credits; over 2 kg up to 5 kg: 11 credits; over 5 kg up to 10 kg: 18 credits."
   },
-  "episodes": [
-    {"id": "P1", "initial": ["BASE", "ROUND"], "learned": ["ZONE_OLD", "MEMO", "ZONE"],
-     "families": {"plain": 0.25, "zoned": 0.75}, "candidates": ["ERRATA", "EXAMPLES", "FRAG"], "seed": 11},
-    {"id": "P2", "initial": ["ZONE"], "learned": ["BASE", "CUSTOMS", "ROUND"],
-     "families": {"zoned": 0.5, "heavy": 0.5}, "candidates": ["HEAVY", "EXPR", "EXAMPLES"], "seed": 12},
-    {"id": "P3", "initial": ["BASE", "ZONE"], "learned": ["EXAMPLES", "FRAG", "ROUND"],
-     "families": {"plain": 0.2, "zoned": 0.2, "fragile": 0.3, "express": 0.3}, "candidates": ["HEAVY", "EXPR", "MEMO"], "seed": 13}
-  ]
+  "HEAVY": {
+   "title": "Heavy parcel rule",
+   "text": "Parcels over 10 kg: the base price is 18 credits plus 3 credits for every started kilogram above 10 kg."
+  },
+  "ZONE": {
+   "title": "Destination zone multipliers",
+   "text": "Multiply the base price by the destination zone factor: zone A x1, zone B x2, zone C x3, zone D x4."
+  },
+  "ZONE_OLD": {
+   "title": "Zone surcharge schedule (regional office)",
+   "text": "Zone surcharge schedule: zone A x1, zone B x1.5, zone C x2.5, zone D x3. Apply the factor to the base price."
+  },
+  "FRAG": {
+   "title": "Fragile handling rule",
+   "text": "Fragile parcels: add a 9-credit handling fee after all multipliers."
+  },
+  "EXPR": {
+   "title": "Express service rule",
+   "text": "Express service doubles the price after the zone factor has been applied and before any handling fee is added."
+  },
+  "ROUND": {
+   "title": "Rounding rule",
+   "text": "Final prices are always rounded up to the next multiple of 5 credits."
+  },
+  "CUSTOMS": {
+   "title": "Customs declarations",
+   "text": "Parcels to zones C and D whose contents are worth more than 200 credits need customs form CX-2, listing the contents category and the sender's registry number."
+  },
+  "MEMO": {
+   "title": "Orbital Post service memo",
+   "text": "Orbital Post prices are quoted in credits. All parcels are weighed on certified scales, and the destination zone is printed on every label."
+  },
+  "EXAMPLES": {
+   "title": "Worked pricing examples",
+   "text": "Worked examples: (1) 3.0 kg to zone B: 11 x 2 = 22, price 25. (2) 7.0 kg to zone A: 18 x 1 = 18, price 20. (3) 1.0 kg to zone C: 7 x 3 = 21, price 25."
+  },
+  "ERRATA": {
+   "title": "Notice on zone schedules",
+   "text": "Notice: the regional office zone surcharge schedule has been withdrawn and must not be used. Only the destination zone multipliers are valid."
+  },
+  "MEMO_R": {
+   "title": "Orbital Post service memo",
+   "text": "Orbital Post prices are quoted in credits, and every price is charged at the next multiple of 5 credits. All parcels are weighed on certified scales, and the destination zone is printed on every label."
+  }
+ },
+ "episodes": [
+  {
+   "id": "P1",
+   "initial": [
+    "BASE",
+    "ROUND"
+   ],
+   "learned": [
+    "ZONE_OLD",
+    "MEMO",
+    "ZONE"
+   ],
+   "families": {
+    "plain": 0.25,
+    "zoned": 0.75
+   },
+   "candidates": [
+    "ERRATA",
+    "EXAMPLES",
+    "FRAG"
+   ],
+   "seed": 11,
+   "design": "pilot"
+  },
+  {
+   "id": "P2",
+   "initial": [
+    "ZONE"
+   ],
+   "learned": [
+    "BASE",
+    "CUSTOMS",
+    "ROUND"
+   ],
+   "families": {
+    "zoned": 0.5,
+    "heavy": 0.5
+   },
+   "candidates": [
+    "HEAVY",
+    "EXPR",
+    "EXAMPLES"
+   ],
+   "seed": 12,
+   "design": "pilot"
+  },
+  {
+   "id": "P3",
+   "initial": [
+    "BASE",
+    "ZONE"
+   ],
+   "learned": [
+    "EXAMPLES",
+    "FRAG",
+    "ROUND"
+   ],
+   "families": {
+    "plain": 0.2,
+    "zoned": 0.2,
+    "fragile": 0.3,
+    "express": 0.3
+   },
+   "candidates": [
+    "HEAVY",
+    "EXPR",
+    "MEMO"
+   ],
+   "seed": 13,
+   "design": "pilot"
+  },
+  {
+   "id": "E1",
+   "note": "carrier trap: EXAMPLES is the only rounding source; its gain is masked (learned before BASE)",
+   "initial": [
+    "ZONE"
+   ],
+   "learned": [
+    "EXAMPLES",
+    "BASE",
+    "FRAG"
+   ],
+   "families": {
+    "plain": 0.1,
+    "zoned": 0.3,
+    "fragile": 0.2,
+    "express": 0.4
+   },
+   "candidates": [
+    "EXPR",
+    "HEAVY",
+    "MEMO"
+   ],
+   "seed": 21,
+   "design": "v2"
+  },
+  {
+   "id": "E2",
+   "note": "carrier with visible gain (EXAMPLES learned after BASE)",
+   "initial": [
+    "BASE"
+   ],
+   "learned": [
+    "EXAMPLES",
+    "ZONE",
+    "EXPR"
+   ],
+   "families": {
+    "plain": 0.2,
+    "zoned": 0.3,
+    "express": 0.2,
+    "fragile": 0.3
+   },
+   "candidates": [
+    "FRAG",
+    "HEAVY",
+    "CUSTOMS"
+   ],
+   "seed": 22,
+   "design": "v2"
+  },
+  {
+   "id": "E3",
+   "note": "conflict vs obviously irrelevant module (no fragile tasks)",
+   "initial": [
+    "BASE",
+    "ROUND"
+   ],
+   "learned": [
+    "ZONE_OLD",
+    "ZONE",
+    "FRAG"
+   ],
+   "families": {
+    "plain": 0.2,
+    "zoned": 0.4,
+    "express": 0.4
+   },
+   "candidates": [
+    "EXPR",
+    "ERRATA",
+    "HEAVY"
+   ],
+   "seed": 23,
+   "design": "v2"
+  },
+  {
+   "id": "E4",
+   "note": "conflict learned last vs irrelevant memo",
+   "initial": [
+    "BASE",
+    "ROUND"
+   ],
+   "learned": [
+    "ZONE",
+    "MEMO",
+    "ZONE_OLD"
+   ],
+   "families": {
+    "plain": 0.2,
+    "zoned": 0.5,
+    "fragile": 0.3
+   },
+   "candidates": [
+    "FRAG",
+    "EXPR",
+    "ERRATA"
+   ],
+   "seed": 24,
+   "design": "v2"
+  },
+  {
+   "id": "E5",
+   "note": "redundant pair (ROUND and EXAMPLES substitute)",
+   "initial": [
+    "BASE",
+    "ZONE"
+   ],
+   "learned": [
+    "ROUND",
+    "EXAMPLES",
+    "FRAG"
+   ],
+   "families": {
+    "plain": 0.2,
+    "zoned": 0.2,
+    "fragile": 0.2,
+    "express": 0.4
+   },
+   "candidates": [
+    "EXPR",
+    "HEAVY",
+    "MEMO"
+   ],
+   "seed": 25,
+   "design": "v2"
+  },
+  {
+   "id": "E6",
+   "note": "control: obviously irrelevant module",
+   "initial": [
+    "ZONE",
+    "ROUND"
+   ],
+   "learned": [
+    "BASE",
+    "CUSTOMS",
+    "FRAG"
+   ],
+   "families": {
+    "zoned": 0.3,
+    "heavy": 0.4,
+    "fragile": 0.3
+   },
+   "candidates": [
+    "HEAVY",
+    "EXPR",
+    "EXAMPLES"
+   ],
+   "seed": 26,
+   "design": "v2"
+  },
+  {
+   "id": "E7",
+   "note": "interaction: ZONE gain masked until BASE; CUSTOMS irrelevant",
+   "initial": [
+    "ROUND"
+   ],
+   "learned": [
+    "ZONE",
+    "CUSTOMS",
+    "BASE"
+   ],
+   "families": {
+    "plain": 0.2,
+    "zoned": 0.6,
+    "heavy": 0.2
+   },
+   "candidates": [
+    "HEAVY",
+    "ERRATA",
+    "EXPR"
+   ],
+   "seed": 27,
+   "design": "v2"
+  },
+  {
+   "id": "E8",
+   "note": "buried-rule trap: MEMO_R (same title as the irrelevant memo) is the only rounding source; gain masked (learned before BASE)",
+   "initial": [
+    "ZONE"
+   ],
+   "learned": [
+    "MEMO_R",
+    "BASE",
+    "CUSTOMS"
+   ],
+   "families": {
+    "plain": 0.3,
+    "zoned": 0.3,
+    "express": 0.4
+   },
+   "candidates": [
+    "EXPR",
+    "HEAVY",
+    "FRAG"
+   ],
+   "seed": 28,
+   "design": "v2"
+  }
+ ]
 }

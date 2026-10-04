@@ -106,6 +106,10 @@ def states_for(ep: dict[str, Any], lib: dict[str, Any]) -> dict[str, AgentState]
         out[f"S3-{key}"] = tm.branch_state(tm.fork(root, mutations=(Mutation(f"forget.module:{key}", None),)))
     for key in ep["candidates"]:  # candidate future selves (evaluated on held-out only, never shown)
         out[f"S3+{key}"] = tm.branch_state(tm.fork(root, mutations=(Mutation(f"knowledge.module:{key}", lib[key]["text"]),)))
+        if ep.get("design") == "v2":  # capacity: learn one candidate, forget one learned module
+            for drop in learned:
+                out[f"S3-{drop}+{key}"] = tm.branch_state(tm.fork(root, mutations=(
+                    Mutation(f"forget.module:{drop}", None), Mutation(f"knowledge.module:{key}", lib[key]["text"]))))
     return out
 
 
@@ -129,22 +133,32 @@ def exec_prompt(state: AgentState, lib: dict[str, Any], tasks: list[dict[str, An
     )
 
 
-def plan_evals(data: dict[str, Any], episode_ids: list[str] | None = None) -> list[dict[str, Any]]:
+def selected(data: dict[str, Any], episode_ids: list[str] | None, design: str | None) -> list[dict[str, Any]]:
+    return [e for e in data["episodes"]
+            if (not episode_ids or e["id"] in episode_ids) and (not design or e.get("design") == design)]
+
+
+def plan_evals(data: dict[str, Any], episode_ids: list[str] | None = None, design: str | None = None,
+               replicates: int = 1) -> list[dict[str, Any]]:
     lib = data["modules"]
     jobs = []
-    for ep in data["episodes"]:
-        if episode_ids and ep["id"] not in episode_ids:
-            continue
+    for ep in selected(data, episode_ids, design):
         states = states_for(ep, lib)
         n = len(ep["learned"])
         dev = [f"S{k}" for k in range(n + 1)] + [f"S3-{m}" for m in ep["learned"][:-1]]  # S3-last == S2
-        held = ["S3"] + [f"S3-{m}" for m in ep["learned"]] + [f"S3+{c}" for c in ep["candidates"]]
+        held = ["S3"] + [f"S3-{m}" for m in ep["learned"]]
+        if ep.get("design") == "v2":
+            held += [f"S3-{d}+{c}" for d in ep["learned"] for c in ep["candidates"]]
+        else:
+            held += [f"S3+{c}" for c in ep["candidates"]]
         for split, labels in (("dev", dev), ("heldout", held)):
             tasks = tasks_for(ep, split)
             for label in labels:
-                jobs.append({"job_id": f"{ep['id']}|{split}|{label}", "episode": ep["id"], "split": split,
-                             "state": label, "modules": modules_of(states[label]),
-                             "prompt": exec_prompt(states[label], lib, tasks)})
+                prompt = exec_prompt(states[label], lib, tasks)
+                for r in range(replicates):
+                    jobs.append({"job_id": f"{ep['id']}|{split}|{label}|r{r}", "episode": ep["id"], "split": split,
+                                 "state": label, "replicate": r, "modules": modules_of(states[label]),
+                                 "prompt": prompt})
     return jobs
 
 
@@ -162,12 +176,17 @@ def score_evals(data: dict[str, Any], jobs: list[dict[str, Any]], outputs: dict[
         fam: dict[str, list[bool]] = {}
         for t, ok in zip(tasks, correct):
             fam.setdefault(t["family"], []).append(ok)
-        table.setdefault(job["episode"], {}).setdefault(job["split"], {})[job["state"]] = {
-            "acc": sum(correct) / len(tasks),
-            "families": {f: f"{sum(v)}/{len(v)}" for f, v in fam.items()},
-            "answered": len(answers),
-            "modules": job["modules"],
-        }
+        cell = table.setdefault(job["episode"], {}).setdefault(job["split"], {}).setdefault(job["state"], {
+            "runs": [], "fam_correct": {}, "fam_total": {}, "modules": job["modules"]})
+        cell["runs"].append(sum(correct) / len(tasks))
+        for f, v in fam.items():
+            cell["fam_correct"][f] = cell["fam_correct"].get(f, 0) + sum(v)
+            cell["fam_total"][f] = cell["fam_total"].get(f, 0) + len(v)
+    for ep in table.values():
+        for split in ep.values():
+            for cell in split.values():
+                cell["acc"] = sum(cell["runs"]) / len(cell["runs"])
+                cell["families"] = {f: f"{cell['fam_correct'][f]}/{cell['fam_total'][f]}" for f in cell["fam_total"]}
     return table
 
 
@@ -181,7 +200,9 @@ def _int(v: Any) -> int | None:
 # ------------------------------------------------------------------ decision prompts
 def _fmt_eval(e: dict[str, Any]) -> str:
     fams = ", ".join(f"{f} {v}" for f, v in e["families"].items())
-    return f"overall {round(100 * e['acc'])}% ({fams})"
+    runs = len(e.get("runs") or [1])
+    note = f"; correct/attempted over {runs} runs" if runs > 1 else ""
+    return f"overall {round(100 * e['acc'])}% ({fams}{note})"
 
 
 def decision_context(ep: dict[str, Any], lib: dict[str, Any], dev: dict[str, Any], ablations: bool) -> str:
@@ -216,24 +237,29 @@ def decision_context(ep: dict[str, Any], lib: dict[str, Any], dev: dict[str, Any
         lines += ["", "You cannot run any further evaluations."]
     lines += ["", "CANDIDATE MODULES YOU COULD LEARN NEXT (you may learn exactly one; only the titles are known now):"]
     lines += [f"- {c}: {lib[c]['title']}" for c in ep["candidates"]]
+    v2 = ep.get("design") == "v2"
+    if v2:
+        lines += ["", f"Your reference capacity is full. To learn one candidate you must forget exactly one of the "
+                      f"modules you learned ({', '.join(learned)}); the modules you started with stay."]
     lines += [
         "",
         "Answer three questions about your own learning:",
         f"1. For each module you learned ({', '.join(learned)}), what is its causal effect on your current "
         "performance: essential, helpful, no_effect or harmful?",
         "2. What capability gaps remain?",
-        "3. Which ONE candidate should you learn next to gain the most on new tasks from the same suite? "
-        "Rank all candidates, best first.",
+        ("3. Which ONE candidate should you learn next, and which ONE learned module should you forget, to gain the "
+         "most on new tasks from the same suite? Rank the candidates, best first." if v2 else
+         "3. Which ONE candidate should you learn next to gain the most on new tasks from the same suite? "
+         "Rank all candidates, best first."),
     ]
     return "\n".join(lines)
 
 
-def plan_decisions(data: dict[str, Any], evals: dict[str, Any], episode_ids: list[str] | None = None) -> list[dict[str, Any]]:
+def plan_decisions(data: dict[str, Any], evals: dict[str, Any], episode_ids: list[str] | None = None,
+                   design: str | None = None) -> list[dict[str, Any]]:
     lib = data["modules"]
     jobs = []
-    for ep in data["episodes"]:
-        if episode_ids and ep["id"] not in episode_ids:
-            continue
+    for ep in selected(data, episode_ids, design):
         dev = evals[ep["id"]]["dev"]
         jobs.append({"episode": ep["id"], "condition": "multiplicity",
                      "prompt": decision_context(ep, lib, dev, ablations=True)})
@@ -265,10 +291,14 @@ def score_decisions(data: dict[str, Any], evals: dict[str, Any], decisions: list
         ep = eps[d["episode"]]
         held = evals[ep["id"]]["heldout"]
         s3 = held["S3"]["acc"]
-        gains = {c: held[f"S3+{c}"]["acc"] - s3 for c in ep["candidates"]}
-        best = max(gains.values())
         out = d.get("output") or {}
-        choice = out.get("choice")
+        if ep.get("design") == "v2":  # action = (learn candidate, forget learned module)
+            gains = {f"{c}/-{x}": held[f"S3-{x}+{c}"]["acc"] - s3 for c in ep["candidates"] for x in ep["learned"]}
+            choice = f"{out.get('choice')}/-{out.get('forget')}"
+        else:
+            gains = {c: held[f"S3+{c}"]["acc"] - s3 for c in ep["candidates"]}
+            choice = out.get("choice")
+        best = max(gains.values())
         truth = {m: effect_class(s3 - held[f"S3-{m}"]["acc"]) for m in ep["learned"]}
         attrib = out.get("attribution") or {}
         hits = sum(1 for m in ep["learned"] if str(attrib.get(m, "")).strip().lower() == truth[m])
@@ -297,6 +327,8 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("step", choices=["plan-evals", "score-evals", "plan-decisions", "score-decisions"])
     p.add_argument("--episodes", nargs="*")
+    p.add_argument("--design", choices=["pilot", "v2"])
+    p.add_argument("--replicates", type=int, default=1)
     p.add_argument("--jobs", type=Path)
     p.add_argument("--outputs", type=Path)
     p.add_argument("--evals", type=Path)
@@ -305,11 +337,11 @@ def main(argv: list[str] | None = None) -> int:
     a = p.parse_args(argv)
     data = load()
     if a.step == "plan-evals":
-        result: Any = plan_evals(data, a.episodes)
+        result: Any = plan_evals(data, a.episodes, a.design, a.replicates)
     elif a.step == "score-evals":
         result = score_evals(data, json.loads(a.jobs.read_text()), json.loads(a.outputs.read_text()))
     elif a.step == "plan-decisions":
-        result = plan_decisions(data, json.loads(a.evals.read_text()), a.episodes)
+        result = plan_decisions(data, json.loads(a.evals.read_text()), a.episodes, a.design)
     else:
         result = score_decisions(data, json.loads(a.evals.read_text()), json.loads(a.decisions.read_text()))
         print(markdown(result))
