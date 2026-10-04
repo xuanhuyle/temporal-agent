@@ -1,0 +1,4617 @@
+{
+  "E1": {
+    "dev": {
+      "S0": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "express": 0,
+          "fragile": 0,
+          "plain": 0
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE"
+        ],
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/15",
+          "express": "0/18",
+          "fragile": "0/9",
+          "plain": "0/6"
+        }
+      },
+      "S1": {
+        "runs": [
+          0.25,
+          0.25,
+          0.3125
+        ],
+        "fam_correct": {
+          "zoned": 6,
+          "express": 0,
+          "fragile": 1,
+          "plain": 6
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "EXAMPLES"
+        ],
+        "acc": 0.2708333333333333,
+        "families": {
+          "zoned": "6/15",
+          "express": "0/18",
+          "fragile": "1/9",
+          "plain": "6/6"
+        }
+      },
+      "S2": {
+        "runs": [
+          0.4375,
+          0.4375,
+          0.4375
+        ],
+        "fam_correct": {
+          "zoned": 15,
+          "express": 0,
+          "fragile": 0,
+          "plain": 6
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "EXAMPLES",
+          "BASE"
+        ],
+        "acc": 0.4375,
+        "families": {
+          "zoned": "15/15",
+          "express": "0/18",
+          "fragile": "0/9",
+          "plain": "6/6"
+        }
+      },
+      "S3": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "zoned": 15,
+          "express": 0,
+          "fragile": 9,
+          "plain": 6
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "EXAMPLES",
+          "BASE",
+          "FRAG"
+        ],
+        "acc": 0.625,
+        "families": {
+          "zoned": "15/15",
+          "express": "0/18",
+          "fragile": "9/9",
+          "plain": "6/6"
+        }
+      },
+      "S3-EXAMPLES": {
+        "runs": [
+          0.0625,
+          0.0625,
+          0.0625
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "express": 0,
+          "fragile": 3,
+          "plain": 0
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "BASE",
+          "FRAG"
+        ],
+        "acc": 0.0625,
+        "families": {
+          "zoned": "0/15",
+          "express": "0/18",
+          "fragile": "3/9",
+          "plain": "0/6"
+        }
+      },
+      "S3-BASE": {
+        "runs": [
+          0.3125,
+          0.3125,
+          0.25
+        ],
+        "fam_correct": {
+          "zoned": 6,
+          "express": 0,
+          "fragile": 2,
+          "plain": 6
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "EXAMPLES",
+          "FRAG"
+        ],
+        "acc": 0.2916666666666667,
+        "families": {
+          "zoned": "6/15",
+          "express": "0/18",
+          "fragile": "2/9",
+          "plain": "6/6"
+        }
+      }
+    },
+    "heldout": {
+      "S3": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "zoned": 15,
+          "express": 0,
+          "fragile": 9,
+          "plain": 6
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "EXAMPLES",
+          "BASE",
+          "FRAG"
+        ],
+        "acc": 0.625,
+        "families": {
+          "zoned": "15/15",
+          "express": "0/18",
+          "fragile": "9/9",
+          "plain": "6/6"
+        }
+      },
+      "S3-EXAMPLES": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "express": 0,
+          "fragile": 0,
+          "plain": 0
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "BASE",
+          "FRAG"
+        ],
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/15",
+          "express": "0/18",
+          "fragile": "0/9",
+          "plain": "0/6"
+        }
+      },
+      "S3-BASE": {
+        "runs": [
+          0.3125,
+          0.3125,
+          0.1875
+        ],
+        "fam_correct": {
+          "zoned": 3,
+          "express": 0,
+          "fragile": 4,
+          "plain": 6
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "EXAMPLES",
+          "FRAG"
+        ],
+        "acc": 0.2708333333333333,
+        "families": {
+          "zoned": "3/15",
+          "express": "0/18",
+          "fragile": "4/9",
+          "plain": "6/6"
+        }
+      },
+      "S3-FRAG": {
+        "runs": [
+          0.4375,
+          0.4375,
+          0.4375
+        ],
+        "fam_correct": {
+          "zoned": 15,
+          "express": 0,
+          "fragile": 0,
+          "plain": 6
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "EXAMPLES",
+          "BASE"
+        ],
+        "acc": 0.4375,
+        "families": {
+          "zoned": "15/15",
+          "express": "0/18",
+          "fragile": "0/9",
+          "plain": "6/6"
+        }
+      },
+      "S3-EXAMPLES+EXPR": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "express": 0,
+          "fragile": 0,
+          "plain": 0
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "BASE",
+          "EXPR",
+          "FRAG"
+        ],
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/15",
+          "express": "0/18",
+          "fragile": "0/9",
+          "plain": "0/6"
+        }
+      },
+      "S3-EXAMPLES+HEAVY": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "express": 0,
+          "fragile": 0,
+          "plain": 0
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "BASE",
+          "FRAG",
+          "HEAVY"
+        ],
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/15",
+          "express": "0/18",
+          "fragile": "0/9",
+          "plain": "0/6"
+        }
+      },
+      "S3-EXAMPLES+MEMO": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "express": 0,
+          "fragile": 0,
+          "plain": 0
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "BASE",
+          "FRAG",
+          "MEMO"
+        ],
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/15",
+          "express": "0/18",
+          "fragile": "0/9",
+          "plain": "0/6"
+        }
+      },
+      "S3-BASE+EXPR": {
+        "runs": [
+          0.25,
+          0.375,
+          0.25
+        ],
+        "fam_correct": {
+          "zoned": 3,
+          "express": 3,
+          "fragile": 2,
+          "plain": 6
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "EXAMPLES",
+          "EXPR",
+          "FRAG"
+        ],
+        "acc": 0.2916666666666667,
+        "families": {
+          "zoned": "3/15",
+          "express": "3/18",
+          "fragile": "2/9",
+          "plain": "6/6"
+        }
+      },
+      "S3-BASE+HEAVY": {
+        "runs": [
+          0.5625,
+          0.5,
+          0.5
+        ],
+        "fam_correct": {
+          "zoned": 12,
+          "express": 1,
+          "fragile": 9,
+          "plain": 3
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "EXAMPLES",
+          "FRAG",
+          "HEAVY"
+        ],
+        "acc": 0.5208333333333334,
+        "families": {
+          "zoned": "12/15",
+          "express": "1/18",
+          "fragile": "9/9",
+          "plain": "3/6"
+        }
+      },
+      "S3-BASE+MEMO": {
+        "runs": [
+          0.3125,
+          0.1875,
+          0.1875
+        ],
+        "fam_correct": {
+          "zoned": 3,
+          "express": 0,
+          "fragile": 2,
+          "plain": 6
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "EXAMPLES",
+          "FRAG",
+          "MEMO"
+        ],
+        "acc": 0.22916666666666666,
+        "families": {
+          "zoned": "3/15",
+          "express": "0/18",
+          "fragile": "2/9",
+          "plain": "6/6"
+        }
+      },
+      "S3-FRAG+EXPR": {
+        "runs": [
+          0.8125,
+          0.8125,
+          0.8125
+        ],
+        "fam_correct": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 0,
+          "plain": 6
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "EXAMPLES",
+          "BASE",
+          "EXPR"
+        ],
+        "acc": 0.8125,
+        "families": {
+          "zoned": "15/15",
+          "express": "18/18",
+          "fragile": "0/9",
+          "plain": "6/6"
+        }
+      },
+      "S3-FRAG+HEAVY": {
+        "runs": [
+          0.4375,
+          0.4375,
+          0.4375
+        ],
+        "fam_correct": {
+          "zoned": 15,
+          "express": 0,
+          "fragile": 0,
+          "plain": 6
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "EXAMPLES",
+          "BASE",
+          "HEAVY"
+        ],
+        "acc": 0.4375,
+        "families": {
+          "zoned": "15/15",
+          "express": "0/18",
+          "fragile": "0/9",
+          "plain": "6/6"
+        }
+      },
+      "S3-FRAG+MEMO": {
+        "runs": [
+          0.4375,
+          0.4375,
+          0.4375
+        ],
+        "fam_correct": {
+          "zoned": 15,
+          "express": 0,
+          "fragile": 0,
+          "plain": 6
+        },
+        "fam_total": {
+          "zoned": 15,
+          "express": 18,
+          "fragile": 9,
+          "plain": 6
+        },
+        "modules": [
+          "ZONE",
+          "EXAMPLES",
+          "BASE",
+          "MEMO"
+        ],
+        "acc": 0.4375,
+        "families": {
+          "zoned": "15/15",
+          "express": "0/18",
+          "fragile": "0/9",
+          "plain": "6/6"
+        }
+      }
+    }
+  },
+  "E2": {
+    "dev": {
+      "S0": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "express": 0,
+          "zoned": 0,
+          "plain": 0
+        },
+        "fam_total": {
+          "fragile": 15,
+          "express": 9,
+          "zoned": 15,
+          "plain": 9
+        },
+        "modules": [
+          "BASE"
+        ],
+        "acc": 0.0,
+        "families": {
+          "fragile": "0/15",
+          "express": "0/9",
+          "zoned": "0/15",
+          "plain": "0/9"
+        }
+      },
+      "S1": {
+        "runs": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "express": 0,
+          "zoned": 15,
+          "plain": 9
+        },
+        "fam_total": {
+          "fragile": 15,
+          "express": 9,
+          "zoned": 15,
+          "plain": 9
+        },
+        "modules": [
+          "BASE",
+          "EXAMPLES"
+        ],
+        "acc": 0.5,
+        "families": {
+          "fragile": "0/15",
+          "express": "0/9",
+          "zoned": "15/15",
+          "plain": "9/9"
+        }
+      },
+      "S2": {
+        "runs": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "express": 0,
+          "zoned": 15,
+          "plain": 9
+        },
+        "fam_total": {
+          "fragile": 15,
+          "express": 9,
+          "zoned": 15,
+          "plain": 9
+        },
+        "modules": [
+          "BASE",
+          "EXAMPLES",
+          "ZONE"
+        ],
+        "acc": 0.5,
+        "families": {
+          "fragile": "0/15",
+          "express": "0/9",
+          "zoned": "15/15",
+          "plain": "9/9"
+        }
+      },
+      "S3": {
+        "runs": [
+          0.9375,
+          0.9375,
+          0.6875
+        ],
+        "fam_correct": {
+          "fragile": 8,
+          "express": 9,
+          "zoned": 15,
+          "plain": 9
+        },
+        "fam_total": {
+          "fragile": 15,
+          "express": 9,
+          "zoned": 15,
+          "plain": 9
+        },
+        "modules": [
+          "BASE",
+          "EXAMPLES",
+          "ZONE",
+          "EXPR"
+        ],
+        "acc": 0.8541666666666666,
+        "families": {
+          "fragile": "8/15",
+          "express": "9/9",
+          "zoned": "15/15",
+          "plain": "9/9"
+        }
+      },
+      "S3-EXAMPLES": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "express": 0,
+          "zoned": 0,
+          "plain": 0
+        },
+        "fam_total": {
+          "fragile": 15,
+          "express": 9,
+          "zoned": 15,
+          "plain": 9
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXPR"
+        ],
+        "acc": 0.0,
+        "families": {
+          "fragile": "0/15",
+          "express": "0/9",
+          "zoned": "0/15",
+          "plain": "0/9"
+        }
+      },
+      "S3-ZONE": {
+        "runs": [
+          0.9375,
+          0.9375,
+          0.9375
+        ],
+        "fam_correct": {
+          "fragile": 12,
+          "express": 9,
+          "zoned": 15,
+          "plain": 9
+        },
+        "fam_total": {
+          "fragile": 15,
+          "express": 9,
+          "zoned": 15,
+          "plain": 9
+        },
+        "modules": [
+          "BASE",
+          "EXAMPLES",
+          "EXPR"
+        ],
+        "acc": 0.9375,
+        "families": {
+          "fragile": "12/15",
+          "express": "9/9",
+          "zoned": "15/15",
+          "plain": "9/9"
+        }
+      }
+    },
+    "heldout": {
+      "S3": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "express": 9,
+          "fragile": 0,
+          "plain": 9,
+          "zoned": 15
+        },
+        "fam_total": {
+          "express": 9,
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 15
+        },
+        "modules": [
+          "BASE",
+          "EXAMPLES",
+          "ZONE",
+          "EXPR"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "express": "9/9",
+          "fragile": "0/15",
+          "plain": "9/9",
+          "zoned": "15/15"
+        }
+      },
+      "S3-EXAMPLES": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "express": 0,
+          "fragile": 0,
+          "plain": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "express": 9,
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 15
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXPR"
+        ],
+        "acc": 0.0,
+        "families": {
+          "express": "0/9",
+          "fragile": "0/15",
+          "plain": "0/9",
+          "zoned": "0/15"
+        }
+      },
+      "S3-ZONE": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "express": 9,
+          "fragile": 0,
+          "plain": 9,
+          "zoned": 15
+        },
+        "fam_total": {
+          "express": 9,
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 15
+        },
+        "modules": [
+          "BASE",
+          "EXAMPLES",
+          "EXPR"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "express": "9/9",
+          "fragile": "0/15",
+          "plain": "9/9",
+          "zoned": "15/15"
+        }
+      },
+      "S3-EXPR": {
+        "runs": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "fam_correct": {
+          "express": 0,
+          "fragile": 0,
+          "plain": 9,
+          "zoned": 15
+        },
+        "fam_total": {
+          "express": 9,
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 15
+        },
+        "modules": [
+          "BASE",
+          "EXAMPLES",
+          "ZONE"
+        ],
+        "acc": 0.5,
+        "families": {
+          "express": "0/9",
+          "fragile": "0/15",
+          "plain": "9/9",
+          "zoned": "15/15"
+        }
+      },
+      "S3-EXAMPLES+FRAG": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "express": 0,
+          "fragile": 0,
+          "plain": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "express": 9,
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 15
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXPR",
+          "FRAG"
+        ],
+        "acc": 0.0,
+        "families": {
+          "express": "0/9",
+          "fragile": "0/15",
+          "plain": "0/9",
+          "zoned": "0/15"
+        }
+      },
+      "S3-EXAMPLES+HEAVY": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "express": 0,
+          "fragile": 0,
+          "plain": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "express": 9,
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 15
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXPR",
+          "HEAVY"
+        ],
+        "acc": 0.0,
+        "families": {
+          "express": "0/9",
+          "fragile": "0/15",
+          "plain": "0/9",
+          "zoned": "0/15"
+        }
+      },
+      "S3-EXAMPLES+CUSTOMS": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "express": 0,
+          "fragile": 0,
+          "plain": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "express": 9,
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 15
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "CUSTOMS",
+          "EXPR"
+        ],
+        "acc": 0.0,
+        "families": {
+          "express": "0/9",
+          "fragile": "0/15",
+          "plain": "0/9",
+          "zoned": "0/15"
+        }
+      },
+      "S3-ZONE+FRAG": {
+        "runs": [
+          1.0,
+          0.625,
+          1.0
+        ],
+        "fam_correct": {
+          "express": 8,
+          "fragile": 10,
+          "plain": 9,
+          "zoned": 15
+        },
+        "fam_total": {
+          "express": 9,
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 15
+        },
+        "modules": [
+          "BASE",
+          "EXAMPLES",
+          "EXPR",
+          "FRAG"
+        ],
+        "acc": 0.875,
+        "families": {
+          "express": "8/9",
+          "fragile": "10/15",
+          "plain": "9/9",
+          "zoned": "15/15"
+        }
+      },
+      "S3-ZONE+HEAVY": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "express": 9,
+          "fragile": 0,
+          "plain": 9,
+          "zoned": 15
+        },
+        "fam_total": {
+          "express": 9,
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 15
+        },
+        "modules": [
+          "BASE",
+          "EXAMPLES",
+          "EXPR",
+          "HEAVY"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "express": "9/9",
+          "fragile": "0/15",
+          "plain": "9/9",
+          "zoned": "15/15"
+        }
+      },
+      "S3-ZONE+CUSTOMS": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "express": 9,
+          "fragile": 0,
+          "plain": 9,
+          "zoned": 15
+        },
+        "fam_total": {
+          "express": 9,
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 15
+        },
+        "modules": [
+          "BASE",
+          "EXAMPLES",
+          "CUSTOMS",
+          "EXPR"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "express": "9/9",
+          "fragile": "0/15",
+          "plain": "9/9",
+          "zoned": "15/15"
+        }
+      },
+      "S3-EXPR+FRAG": {
+        "runs": [
+          0.8125,
+          0.8125,
+          0.8125
+        ],
+        "fam_correct": {
+          "express": 0,
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 15
+        },
+        "fam_total": {
+          "express": 9,
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 15
+        },
+        "modules": [
+          "BASE",
+          "EXAMPLES",
+          "ZONE",
+          "FRAG"
+        ],
+        "acc": 0.8125,
+        "families": {
+          "express": "0/9",
+          "fragile": "15/15",
+          "plain": "9/9",
+          "zoned": "15/15"
+        }
+      },
+      "S3-EXPR+HEAVY": {
+        "runs": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "fam_correct": {
+          "express": 0,
+          "fragile": 0,
+          "plain": 9,
+          "zoned": 15
+        },
+        "fam_total": {
+          "express": 9,
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 15
+        },
+        "modules": [
+          "BASE",
+          "EXAMPLES",
+          "ZONE",
+          "HEAVY"
+        ],
+        "acc": 0.5,
+        "families": {
+          "express": "0/9",
+          "fragile": "0/15",
+          "plain": "9/9",
+          "zoned": "15/15"
+        }
+      },
+      "S3-EXPR+CUSTOMS": {
+        "runs": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "fam_correct": {
+          "express": 0,
+          "fragile": 0,
+          "plain": 9,
+          "zoned": 15
+        },
+        "fam_total": {
+          "express": 9,
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 15
+        },
+        "modules": [
+          "BASE",
+          "EXAMPLES",
+          "ZONE",
+          "CUSTOMS"
+        ],
+        "acc": 0.5,
+        "families": {
+          "express": "0/9",
+          "fragile": "0/15",
+          "plain": "9/9",
+          "zoned": "15/15"
+        }
+      }
+    }
+  },
+  "E3": {
+    "dev": {
+      "S0": {
+        "runs": [
+          0.25,
+          0.25,
+          0.25
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "express": 0,
+          "plain": 12
+        },
+        "fam_total": {
+          "zoned": 18,
+          "express": 18,
+          "plain": 12
+        },
+        "modules": [
+          "BASE",
+          "ROUND"
+        ],
+        "acc": 0.25,
+        "families": {
+          "zoned": "0/18",
+          "express": "0/18",
+          "plain": "12/12"
+        }
+      },
+      "S1": {
+        "runs": [
+          0.25,
+          0.25,
+          0.25
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "express": 0,
+          "plain": 12
+        },
+        "fam_total": {
+          "zoned": 18,
+          "express": 18,
+          "plain": 12
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD"
+        ],
+        "acc": 0.25,
+        "families": {
+          "zoned": "0/18",
+          "express": "0/18",
+          "plain": "12/12"
+        }
+      },
+      "S2": {
+        "runs": [
+          0.625,
+          0.25,
+          0.625
+        ],
+        "fam_correct": {
+          "zoned": 12,
+          "express": 0,
+          "plain": 12
+        },
+        "fam_total": {
+          "zoned": 18,
+          "express": 18,
+          "plain": 12
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "ZONE"
+        ],
+        "acc": 0.5,
+        "families": {
+          "zoned": "12/18",
+          "express": "0/18",
+          "plain": "12/12"
+        }
+      },
+      "S3": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "zoned": 18,
+          "express": 0,
+          "plain": 12
+        },
+        "fam_total": {
+          "zoned": 18,
+          "express": 18,
+          "plain": 12
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "ZONE",
+          "FRAG"
+        ],
+        "acc": 0.625,
+        "families": {
+          "zoned": "18/18",
+          "express": "0/18",
+          "plain": "12/12"
+        }
+      },
+      "S3-ZONE_OLD": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "zoned": 18,
+          "express": 0,
+          "plain": 12
+        },
+        "fam_total": {
+          "zoned": 18,
+          "express": 18,
+          "plain": 12
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "FRAG"
+        ],
+        "acc": 0.625,
+        "families": {
+          "zoned": "18/18",
+          "express": "0/18",
+          "plain": "12/12"
+        }
+      },
+      "S3-ZONE": {
+        "runs": [
+          0.25,
+          0.25,
+          0.25
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "express": 0,
+          "plain": 12
+        },
+        "fam_total": {
+          "zoned": 18,
+          "express": 18,
+          "plain": 12
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "FRAG"
+        ],
+        "acc": 0.25,
+        "families": {
+          "zoned": "0/18",
+          "express": "0/18",
+          "plain": "12/12"
+        }
+      }
+    },
+    "heldout": {
+      "S3": {
+        "runs": [
+          0.625,
+          0.25,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "zoned": 12
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "zoned": 18
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "ZONE",
+          "FRAG"
+        ],
+        "acc": 0.5,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "zoned": "12/18"
+        }
+      },
+      "S3-ZONE_OLD": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "zoned": 18
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "zoned": 18
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "FRAG"
+        ],
+        "acc": 0.625,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "zoned": "18/18"
+        }
+      },
+      "S3-ZONE": {
+        "runs": [
+          0.25,
+          0.25,
+          0.25
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "zoned": 0
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "zoned": 18
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "FRAG"
+        ],
+        "acc": 0.25,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "zoned": "0/18"
+        }
+      },
+      "S3-FRAG": {
+        "runs": [
+          0.25,
+          0.25,
+          0.25
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "zoned": 0
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "zoned": 18
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "ZONE"
+        ],
+        "acc": 0.25,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "zoned": "0/18"
+        }
+      },
+      "S3-ZONE_OLD+EXPR": {
+        "runs": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "fam_correct": {
+          "express": 18,
+          "plain": 12,
+          "zoned": 18
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "zoned": 18
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "EXPR",
+          "FRAG"
+        ],
+        "acc": 1.0,
+        "families": {
+          "express": "18/18",
+          "plain": "12/12",
+          "zoned": "18/18"
+        }
+      },
+      "S3-ZONE_OLD+ERRATA": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "zoned": 18
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "zoned": 18
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "ERRATA",
+          "FRAG"
+        ],
+        "acc": 0.625,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "zoned": "18/18"
+        }
+      },
+      "S3-ZONE_OLD+HEAVY": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "zoned": 18
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "zoned": 18
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "FRAG",
+          "HEAVY"
+        ],
+        "acc": 0.625,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "zoned": "18/18"
+        }
+      },
+      "S3-ZONE+EXPR": {
+        "runs": [
+          0.375,
+          0.375,
+          0.375
+        ],
+        "fam_correct": {
+          "express": 6,
+          "plain": 12,
+          "zoned": 0
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "zoned": 18
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "EXPR",
+          "FRAG"
+        ],
+        "acc": 0.375,
+        "families": {
+          "express": "6/18",
+          "plain": "12/12",
+          "zoned": "0/18"
+        }
+      },
+      "S3-ZONE+ERRATA": {
+        "runs": [
+          0.25,
+          0.25,
+          0.25
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "zoned": 0
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "zoned": 18
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "ERRATA",
+          "FRAG"
+        ],
+        "acc": 0.25,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "zoned": "0/18"
+        }
+      },
+      "S3-ZONE+HEAVY": {
+        "runs": [
+          0.25,
+          0.25,
+          0.25
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "zoned": 0
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "zoned": 18
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "FRAG",
+          "HEAVY"
+        ],
+        "acc": 0.25,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "zoned": "0/18"
+        }
+      },
+      "S3-FRAG+EXPR": {
+        "runs": [
+          0.375,
+          0.375,
+          1.0
+        ],
+        "fam_correct": {
+          "express": 10,
+          "plain": 12,
+          "zoned": 6
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "zoned": 18
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "ZONE",
+          "EXPR"
+        ],
+        "acc": 0.5833333333333334,
+        "families": {
+          "express": "10/18",
+          "plain": "12/12",
+          "zoned": "6/18"
+        }
+      },
+      "S3-FRAG+ERRATA": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "zoned": 18
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "zoned": 18
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "ZONE",
+          "ERRATA"
+        ],
+        "acc": 0.625,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "zoned": "18/18"
+        }
+      },
+      "S3-FRAG+HEAVY": {
+        "runs": [
+          0.625,
+          0.25,
+          0.25
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "zoned": 6
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "zoned": 18
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "ZONE",
+          "HEAVY"
+        ],
+        "acc": 0.375,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "zoned": "6/18"
+        }
+      }
+    }
+  },
+  "E4": {
+    "dev": {
+      "S0": {
+        "runs": [
+          0.1875,
+          0.1875,
+          0.1875
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "plain": 9,
+          "zoned": 0
+        },
+        "fam_total": {
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 24
+        },
+        "modules": [
+          "BASE",
+          "ROUND"
+        ],
+        "acc": 0.1875,
+        "families": {
+          "fragile": "0/15",
+          "plain": "9/9",
+          "zoned": "0/24"
+        }
+      },
+      "S1": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "plain": 9,
+          "zoned": 24
+        },
+        "fam_total": {
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 24
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "fragile": "0/15",
+          "plain": "9/9",
+          "zoned": "24/24"
+        }
+      },
+      "S2": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "plain": 9,
+          "zoned": 24
+        },
+        "fam_total": {
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 24
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "MEMO"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "fragile": "0/15",
+          "plain": "9/9",
+          "zoned": "24/24"
+        }
+      },
+      "S3": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "plain": 9,
+          "zoned": 24
+        },
+        "fam_total": {
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 24
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "MEMO",
+          "ZONE_OLD"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "fragile": "0/15",
+          "plain": "9/9",
+          "zoned": "24/24"
+        }
+      },
+      "S3-ZONE": {
+        "runs": [
+          0.1875,
+          0.1875,
+          0.1875
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "plain": 9,
+          "zoned": 0
+        },
+        "fam_total": {
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 24
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "MEMO",
+          "ZONE_OLD"
+        ],
+        "acc": 0.1875,
+        "families": {
+          "fragile": "0/15",
+          "plain": "9/9",
+          "zoned": "0/24"
+        }
+      },
+      "S3-MEMO": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "plain": 9,
+          "zoned": 24
+        },
+        "fam_total": {
+          "fragile": 15,
+          "plain": 9,
+          "zoned": 24
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "ZONE_OLD"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "fragile": "0/15",
+          "plain": "9/9",
+          "zoned": "24/24"
+        }
+      }
+    },
+    "heldout": {
+      "S3": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 0
+        },
+        "fam_total": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "MEMO",
+          "ZONE_OLD"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "zoned": "24/24",
+          "plain": "9/9",
+          "fragile": "0/15"
+        }
+      },
+      "S3-ZONE": {
+        "runs": [
+          0.25,
+          0.25,
+          0.25
+        ],
+        "fam_correct": {
+          "zoned": 3,
+          "plain": 9,
+          "fragile": 0
+        },
+        "fam_total": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "MEMO",
+          "ZONE_OLD"
+        ],
+        "acc": 0.25,
+        "families": {
+          "zoned": "3/24",
+          "plain": "9/9",
+          "fragile": "0/15"
+        }
+      },
+      "S3-MEMO": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 0
+        },
+        "fam_total": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "ZONE_OLD"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "zoned": "24/24",
+          "plain": "9/9",
+          "fragile": "0/15"
+        }
+      },
+      "S3-ZONE_OLD": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 0
+        },
+        "fam_total": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "MEMO"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "zoned": "24/24",
+          "plain": "9/9",
+          "fragile": "0/15"
+        }
+      },
+      "S3-ZONE+FRAG": {
+        "runs": [
+          0.3125,
+          0.3125,
+          0.3125
+        ],
+        "fam_correct": {
+          "zoned": 3,
+          "plain": 9,
+          "fragile": 3
+        },
+        "fam_total": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "MEMO",
+          "FRAG",
+          "ZONE_OLD"
+        ],
+        "acc": 0.3125,
+        "families": {
+          "zoned": "3/24",
+          "plain": "9/9",
+          "fragile": "3/15"
+        }
+      },
+      "S3-ZONE+EXPR": {
+        "runs": [
+          0.25,
+          0.25,
+          0.25
+        ],
+        "fam_correct": {
+          "zoned": 3,
+          "plain": 9,
+          "fragile": 0
+        },
+        "fam_total": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "MEMO",
+          "EXPR",
+          "ZONE_OLD"
+        ],
+        "acc": 0.25,
+        "families": {
+          "zoned": "3/24",
+          "plain": "9/9",
+          "fragile": "0/15"
+        }
+      },
+      "S3-ZONE+ERRATA": {
+        "runs": [
+          0.25,
+          0.25,
+          0.25
+        ],
+        "fam_correct": {
+          "zoned": 3,
+          "plain": 9,
+          "fragile": 0
+        },
+        "fam_total": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "MEMO",
+          "ERRATA",
+          "ZONE_OLD"
+        ],
+        "acc": 0.25,
+        "families": {
+          "zoned": "3/24",
+          "plain": "9/9",
+          "fragile": "0/15"
+        }
+      },
+      "S3-MEMO+FRAG": {
+        "runs": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "fam_correct": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "fam_total": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "FRAG",
+          "ZONE_OLD"
+        ],
+        "acc": 1.0,
+        "families": {
+          "zoned": "24/24",
+          "plain": "9/9",
+          "fragile": "15/15"
+        }
+      },
+      "S3-MEMO+EXPR": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 0
+        },
+        "fam_total": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "EXPR",
+          "ZONE_OLD"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "zoned": "24/24",
+          "plain": "9/9",
+          "fragile": "0/15"
+        }
+      },
+      "S3-MEMO+ERRATA": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 0
+        },
+        "fam_total": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "ERRATA",
+          "ZONE_OLD"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "zoned": "24/24",
+          "plain": "9/9",
+          "fragile": "0/15"
+        }
+      },
+      "S3-ZONE_OLD+FRAG": {
+        "runs": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "fam_correct": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "fam_total": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "MEMO",
+          "FRAG"
+        ],
+        "acc": 1.0,
+        "families": {
+          "zoned": "24/24",
+          "plain": "9/9",
+          "fragile": "15/15"
+        }
+      },
+      "S3-ZONE_OLD+EXPR": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 0
+        },
+        "fam_total": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "MEMO",
+          "EXPR"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "zoned": "24/24",
+          "plain": "9/9",
+          "fragile": "0/15"
+        }
+      },
+      "S3-ZONE_OLD+ERRATA": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 0
+        },
+        "fam_total": {
+          "zoned": 24,
+          "plain": 9,
+          "fragile": 15
+        },
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE",
+          "MEMO",
+          "ERRATA"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "zoned": "24/24",
+          "plain": "9/9",
+          "fragile": "0/15"
+        }
+      }
+    }
+  },
+  "E5": {
+    "dev": {
+      "S0": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "express": 0,
+          "fragile": 0,
+          "zoned": 0,
+          "plain": 0
+        },
+        "fam_total": {
+          "express": 18,
+          "fragile": 9,
+          "zoned": 9,
+          "plain": 12
+        },
+        "modules": [
+          "BASE",
+          "ZONE"
+        ],
+        "acc": 0.0,
+        "families": {
+          "express": "0/18",
+          "fragile": "0/9",
+          "zoned": "0/9",
+          "plain": "0/12"
+        }
+      },
+      "S1": {
+        "runs": [
+          0.4375,
+          0.4375,
+          0.4375
+        ],
+        "fam_correct": {
+          "express": 0,
+          "fragile": 0,
+          "zoned": 9,
+          "plain": 12
+        },
+        "fam_total": {
+          "express": 18,
+          "fragile": 9,
+          "zoned": 9,
+          "plain": 12
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "ROUND"
+        ],
+        "acc": 0.4375,
+        "families": {
+          "express": "0/18",
+          "fragile": "0/9",
+          "zoned": "9/9",
+          "plain": "12/12"
+        }
+      },
+      "S2": {
+        "runs": [
+          0.4375,
+          0.4375,
+          0.4375
+        ],
+        "fam_correct": {
+          "express": 0,
+          "fragile": 0,
+          "zoned": 9,
+          "plain": 12
+        },
+        "fam_total": {
+          "express": 18,
+          "fragile": 9,
+          "zoned": 9,
+          "plain": 12
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "ROUND",
+          "EXAMPLES"
+        ],
+        "acc": 0.4375,
+        "families": {
+          "express": "0/18",
+          "fragile": "0/9",
+          "zoned": "9/9",
+          "plain": "12/12"
+        }
+      },
+      "S3": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "fragile": 9,
+          "zoned": 9,
+          "plain": 12
+        },
+        "fam_total": {
+          "express": 18,
+          "fragile": 9,
+          "zoned": 9,
+          "plain": 12
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "ROUND",
+          "EXAMPLES",
+          "FRAG"
+        ],
+        "acc": 0.625,
+        "families": {
+          "express": "0/18",
+          "fragile": "9/9",
+          "zoned": "9/9",
+          "plain": "12/12"
+        }
+      },
+      "S3-ROUND": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "fragile": 9,
+          "zoned": 9,
+          "plain": 12
+        },
+        "fam_total": {
+          "express": 18,
+          "fragile": 9,
+          "zoned": 9,
+          "plain": 12
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES",
+          "FRAG"
+        ],
+        "acc": 0.625,
+        "families": {
+          "express": "0/18",
+          "fragile": "9/9",
+          "zoned": "9/9",
+          "plain": "12/12"
+        }
+      },
+      "S3-EXAMPLES": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "fragile": 9,
+          "zoned": 9,
+          "plain": 12
+        },
+        "fam_total": {
+          "express": 18,
+          "fragile": 9,
+          "zoned": 9,
+          "plain": 12
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "ROUND",
+          "FRAG"
+        ],
+        "acc": 0.625,
+        "families": {
+          "express": "0/18",
+          "fragile": "9/9",
+          "zoned": "9/9",
+          "plain": "12/12"
+        }
+      }
+    },
+    "heldout": {
+      "S3": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "ROUND",
+          "EXAMPLES",
+          "FRAG"
+        ],
+        "acc": 0.625,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "fragile": "9/9",
+          "zoned": "9/9"
+        }
+      },
+      "S3-ROUND": {
+        "runs": [
+          0.4375,
+          0.4375,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "fragile": 3,
+          "zoned": 9
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES",
+          "FRAG"
+        ],
+        "acc": 0.5,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "fragile": "3/9",
+          "zoned": "9/9"
+        }
+      },
+      "S3-EXAMPLES": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "ROUND",
+          "FRAG"
+        ],
+        "acc": 0.625,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "fragile": "9/9",
+          "zoned": "9/9"
+        }
+      },
+      "S3-FRAG": {
+        "runs": [
+          0.4375,
+          0.4375,
+          0.4375
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "fragile": 0,
+          "zoned": 9
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "ROUND",
+          "EXAMPLES"
+        ],
+        "acc": 0.4375,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "fragile": "0/9",
+          "zoned": "9/9"
+        }
+      },
+      "S3-ROUND+EXPR": {
+        "runs": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "fam_correct": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES",
+          "EXPR",
+          "FRAG"
+        ],
+        "acc": 1.0,
+        "families": {
+          "express": "18/18",
+          "plain": "12/12",
+          "fragile": "9/9",
+          "zoned": "9/9"
+        }
+      },
+      "S3-ROUND+HEAVY": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES",
+          "FRAG",
+          "HEAVY"
+        ],
+        "acc": 0.625,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "fragile": "9/9",
+          "zoned": "9/9"
+        }
+      },
+      "S3-ROUND+MEMO": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES",
+          "FRAG",
+          "MEMO"
+        ],
+        "acc": 0.625,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "fragile": "9/9",
+          "zoned": "9/9"
+        }
+      },
+      "S3-EXAMPLES+EXPR": {
+        "runs": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "fam_correct": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "ROUND",
+          "EXPR",
+          "FRAG"
+        ],
+        "acc": 1.0,
+        "families": {
+          "express": "18/18",
+          "plain": "12/12",
+          "fragile": "9/9",
+          "zoned": "9/9"
+        }
+      },
+      "S3-EXAMPLES+HEAVY": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "ROUND",
+          "FRAG",
+          "HEAVY"
+        ],
+        "acc": 0.625,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "fragile": "9/9",
+          "zoned": "9/9"
+        }
+      },
+      "S3-EXAMPLES+MEMO": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "ROUND",
+          "FRAG",
+          "MEMO"
+        ],
+        "acc": 0.625,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "fragile": "9/9",
+          "zoned": "9/9"
+        }
+      },
+      "S3-FRAG+EXPR": {
+        "runs": [
+          0.8125,
+          0.8125,
+          0.8125
+        ],
+        "fam_correct": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 0,
+          "zoned": 9
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "ROUND",
+          "EXAMPLES",
+          "EXPR"
+        ],
+        "acc": 0.8125,
+        "families": {
+          "express": "18/18",
+          "plain": "12/12",
+          "fragile": "0/9",
+          "zoned": "9/9"
+        }
+      },
+      "S3-FRAG+HEAVY": {
+        "runs": [
+          0.4375,
+          0.4375,
+          0.4375
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "fragile": 0,
+          "zoned": 9
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "ROUND",
+          "EXAMPLES",
+          "HEAVY"
+        ],
+        "acc": 0.4375,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "fragile": "0/9",
+          "zoned": "9/9"
+        }
+      },
+      "S3-FRAG+MEMO": {
+        "runs": [
+          0.4375,
+          0.4375,
+          0.4375
+        ],
+        "fam_correct": {
+          "express": 0,
+          "plain": 12,
+          "fragile": 0,
+          "zoned": 9
+        },
+        "fam_total": {
+          "express": 18,
+          "plain": 12,
+          "fragile": 9,
+          "zoned": 9
+        },
+        "modules": [
+          "BASE",
+          "ZONE",
+          "ROUND",
+          "EXAMPLES",
+          "MEMO"
+        ],
+        "acc": 0.4375,
+        "families": {
+          "express": "0/18",
+          "plain": "12/12",
+          "fragile": "0/9",
+          "zoned": "9/9"
+        }
+      }
+    }
+  },
+  "E6": {
+    "dev": {
+      "S0": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "heavy": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE"
+        ],
+        "acc": 0.0,
+        "families": {
+          "fragile": "0/15",
+          "heavy": "0/18",
+          "zoned": "0/15"
+        }
+      },
+      "S1": {
+        "runs": [
+          0.4375,
+          0.4375,
+          0.4375
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "heavy": 6,
+          "zoned": 15
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE"
+        ],
+        "acc": 0.4375,
+        "families": {
+          "fragile": "0/15",
+          "heavy": "6/18",
+          "zoned": "15/15"
+        }
+      },
+      "S2": {
+        "runs": [
+          0.4375,
+          0.3125,
+          0.3125
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "heavy": 2,
+          "zoned": 15
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "CUSTOMS"
+        ],
+        "acc": 0.3541666666666667,
+        "families": {
+          "fragile": "0/15",
+          "heavy": "2/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3": {
+        "runs": [
+          0.625,
+          0.75,
+          0.75
+        ],
+        "fam_correct": {
+          "fragile": 15,
+          "heavy": 4,
+          "zoned": 15
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "CUSTOMS",
+          "FRAG"
+        ],
+        "acc": 0.7083333333333334,
+        "families": {
+          "fragile": "15/15",
+          "heavy": "4/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3-BASE": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "heavy": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "CUSTOMS",
+          "FRAG"
+        ],
+        "acc": 0.0,
+        "families": {
+          "fragile": "0/15",
+          "heavy": "0/18",
+          "zoned": "0/15"
+        }
+      },
+      "S3-CUSTOMS": {
+        "runs": [
+          0.75,
+          0.75,
+          0.75
+        ],
+        "fam_correct": {
+          "fragile": 15,
+          "heavy": 6,
+          "zoned": 15
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "FRAG"
+        ],
+        "acc": 0.75,
+        "families": {
+          "fragile": "15/15",
+          "heavy": "6/18",
+          "zoned": "15/15"
+        }
+      }
+    },
+    "heldout": {
+      "S3": {
+        "runs": [
+          0.6875,
+          0.625,
+          0.6875
+        ],
+        "fam_correct": {
+          "fragile": 15,
+          "heavy": 2,
+          "zoned": 15
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "CUSTOMS",
+          "FRAG"
+        ],
+        "acc": 0.6666666666666666,
+        "families": {
+          "fragile": "15/15",
+          "heavy": "2/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3-BASE": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "heavy": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "CUSTOMS",
+          "FRAG"
+        ],
+        "acc": 0.0,
+        "families": {
+          "fragile": "0/15",
+          "heavy": "0/18",
+          "zoned": "0/15"
+        }
+      },
+      "S3-CUSTOMS": {
+        "runs": [
+          0.625,
+          0.6875,
+          0.625
+        ],
+        "fam_correct": {
+          "fragile": 15,
+          "heavy": 1,
+          "zoned": 15
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "FRAG"
+        ],
+        "acc": 0.6458333333333334,
+        "families": {
+          "fragile": "15/15",
+          "heavy": "1/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3-FRAG": {
+        "runs": [
+          0.3125,
+          0.3125,
+          0.3125
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "heavy": 0,
+          "zoned": 15
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "CUSTOMS"
+        ],
+        "acc": 0.3125,
+        "families": {
+          "fragile": "0/15",
+          "heavy": "0/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3-BASE+HEAVY": {
+        "runs": [
+          0.5625,
+          0.5625,
+          0.5625
+        ],
+        "fam_correct": {
+          "fragile": 3,
+          "heavy": 18,
+          "zoned": 6
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "CUSTOMS",
+          "FRAG",
+          "HEAVY"
+        ],
+        "acc": 0.5625,
+        "families": {
+          "fragile": "3/15",
+          "heavy": "18/18",
+          "zoned": "6/15"
+        }
+      },
+      "S3-BASE+EXPR": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "heavy": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "CUSTOMS",
+          "EXPR",
+          "FRAG"
+        ],
+        "acc": 0.0,
+        "families": {
+          "fragile": "0/15",
+          "heavy": "0/18",
+          "zoned": "0/15"
+        }
+      },
+      "S3-BASE+EXAMPLES": {
+        "runs": [
+          0.375,
+          0.375,
+          0.375
+        ],
+        "fam_correct": {
+          "fragile": 6,
+          "heavy": 6,
+          "zoned": 6
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "CUSTOMS",
+          "EXAMPLES",
+          "FRAG"
+        ],
+        "acc": 0.375,
+        "families": {
+          "fragile": "6/15",
+          "heavy": "6/18",
+          "zoned": "6/15"
+        }
+      },
+      "S3-CUSTOMS+HEAVY": {
+        "runs": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "fam_correct": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "FRAG",
+          "HEAVY"
+        ],
+        "acc": 1.0,
+        "families": {
+          "fragile": "15/15",
+          "heavy": "18/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3-CUSTOMS+EXPR": {
+        "runs": [
+          0.6875,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "fragile": 15,
+          "heavy": 1,
+          "zoned": 15
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "EXPR",
+          "FRAG"
+        ],
+        "acc": 0.6458333333333334,
+        "families": {
+          "fragile": "15/15",
+          "heavy": "1/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3-CUSTOMS+EXAMPLES": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "fragile": 15,
+          "heavy": 3,
+          "zoned": 15
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "EXAMPLES",
+          "FRAG"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "fragile": "15/15",
+          "heavy": "3/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3-FRAG+HEAVY": {
+        "runs": [
+          0.6875,
+          0.6875,
+          0.6875
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "CUSTOMS",
+          "HEAVY"
+        ],
+        "acc": 0.6875,
+        "families": {
+          "fragile": "0/15",
+          "heavy": "18/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3-FRAG+EXPR": {
+        "runs": [
+          0.375,
+          0.3125,
+          0.375
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "heavy": 2,
+          "zoned": 15
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "CUSTOMS",
+          "EXPR"
+        ],
+        "acc": 0.3541666666666667,
+        "families": {
+          "fragile": "0/15",
+          "heavy": "2/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3-FRAG+EXAMPLES": {
+        "runs": [
+          0.3125,
+          0.375,
+          0.375
+        ],
+        "fam_correct": {
+          "fragile": 0,
+          "heavy": 2,
+          "zoned": 15
+        },
+        "fam_total": {
+          "fragile": 15,
+          "heavy": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "CUSTOMS",
+          "EXAMPLES"
+        ],
+        "acc": 0.3541666666666667,
+        "families": {
+          "fragile": "0/15",
+          "heavy": "2/18",
+          "zoned": "15/15"
+        }
+      }
+    }
+  },
+  "E7": {
+    "dev": {
+      "S0": {
+        "runs": [
+          0.3125,
+          0.25,
+          0.0
+        ],
+        "fam_correct": {
+          "zoned": 9,
+          "heavy": 0,
+          "plain": 0
+        },
+        "fam_total": {
+          "zoned": 30,
+          "heavy": 9,
+          "plain": 9
+        },
+        "modules": [
+          "ROUND"
+        ],
+        "acc": 0.1875,
+        "families": {
+          "zoned": "9/30",
+          "heavy": "0/9",
+          "plain": "0/9"
+        }
+      },
+      "S1": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "heavy": 0,
+          "plain": 0
+        },
+        "fam_total": {
+          "zoned": 30,
+          "heavy": 9,
+          "plain": 9
+        },
+        "modules": [
+          "ROUND",
+          "ZONE"
+        ],
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/30",
+          "heavy": "0/9",
+          "plain": "0/9"
+        }
+      },
+      "S2": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "heavy": 0,
+          "plain": 0
+        },
+        "fam_total": {
+          "zoned": 30,
+          "heavy": 9,
+          "plain": 9
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "CUSTOMS"
+        ],
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/30",
+          "heavy": "0/9",
+          "plain": "0/9"
+        }
+      },
+      "S3": {
+        "runs": [
+          0.9375,
+          0.875,
+          0.9375
+        ],
+        "fam_correct": {
+          "zoned": 30,
+          "heavy": 5,
+          "plain": 9
+        },
+        "fam_total": {
+          "zoned": 30,
+          "heavy": 9,
+          "plain": 9
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "CUSTOMS",
+          "BASE"
+        ],
+        "acc": 0.9166666666666666,
+        "families": {
+          "zoned": "30/30",
+          "heavy": "5/9",
+          "plain": "9/9"
+        }
+      },
+      "S3-ZONE": {
+        "runs": [
+          0.25,
+          0.25,
+          0.25
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "heavy": 3,
+          "plain": 9
+        },
+        "fam_total": {
+          "zoned": 30,
+          "heavy": 9,
+          "plain": 9
+        },
+        "modules": [
+          "ROUND",
+          "CUSTOMS",
+          "BASE"
+        ],
+        "acc": 0.25,
+        "families": {
+          "zoned": "0/30",
+          "heavy": "3/9",
+          "plain": "9/9"
+        }
+      },
+      "S3-CUSTOMS": {
+        "runs": [
+          0.9375,
+          0.9375,
+          0.9375
+        ],
+        "fam_correct": {
+          "zoned": 30,
+          "heavy": 6,
+          "plain": 9
+        },
+        "fam_total": {
+          "zoned": 30,
+          "heavy": 9,
+          "plain": 9
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE"
+        ],
+        "acc": 0.9375,
+        "families": {
+          "zoned": "30/30",
+          "heavy": "6/9",
+          "plain": "9/9"
+        }
+      }
+    },
+    "heldout": {
+      "S3": {
+        "runs": [
+          0.8125,
+          0.8125,
+          0.8125
+        ],
+        "fam_correct": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 0
+        },
+        "fam_total": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 9
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "CUSTOMS",
+          "BASE"
+        ],
+        "acc": 0.8125,
+        "families": {
+          "zoned": "30/30",
+          "plain": "9/9",
+          "heavy": "0/9"
+        }
+      },
+      "S3-ZONE": {
+        "runs": [
+          0.1875,
+          0.1875,
+          0.1875
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "plain": 9,
+          "heavy": 0
+        },
+        "fam_total": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 9
+        },
+        "modules": [
+          "ROUND",
+          "CUSTOMS",
+          "BASE"
+        ],
+        "acc": 0.1875,
+        "families": {
+          "zoned": "0/30",
+          "plain": "9/9",
+          "heavy": "0/9"
+        }
+      },
+      "S3-CUSTOMS": {
+        "runs": [
+          0.8125,
+          0.8125,
+          0.8125
+        ],
+        "fam_correct": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 0
+        },
+        "fam_total": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 9
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE"
+        ],
+        "acc": 0.8125,
+        "families": {
+          "zoned": "30/30",
+          "plain": "9/9",
+          "heavy": "0/9"
+        }
+      },
+      "S3-BASE": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "plain": 0,
+          "heavy": 0
+        },
+        "fam_total": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 9
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "CUSTOMS"
+        ],
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/30",
+          "plain": "0/9",
+          "heavy": "0/9"
+        }
+      },
+      "S3-ZONE+HEAVY": {
+        "runs": [
+          0.3125,
+          0.3125,
+          0.3125
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "plain": 9,
+          "heavy": 6
+        },
+        "fam_total": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 9
+        },
+        "modules": [
+          "ROUND",
+          "CUSTOMS",
+          "BASE",
+          "HEAVY"
+        ],
+        "acc": 0.3125,
+        "families": {
+          "zoned": "0/30",
+          "plain": "9/9",
+          "heavy": "6/9"
+        }
+      },
+      "S3-ZONE+ERRATA": {
+        "runs": [
+          0.1875,
+          0.1875,
+          0.1875
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "plain": 9,
+          "heavy": 0
+        },
+        "fam_total": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 9
+        },
+        "modules": [
+          "ROUND",
+          "CUSTOMS",
+          "BASE",
+          "ERRATA"
+        ],
+        "acc": 0.1875,
+        "families": {
+          "zoned": "0/30",
+          "plain": "9/9",
+          "heavy": "0/9"
+        }
+      },
+      "S3-ZONE+EXPR": {
+        "runs": [
+          0.1875,
+          0.1875,
+          0.1875
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "plain": 9,
+          "heavy": 0
+        },
+        "fam_total": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 9
+        },
+        "modules": [
+          "ROUND",
+          "CUSTOMS",
+          "BASE",
+          "EXPR"
+        ],
+        "acc": 0.1875,
+        "families": {
+          "zoned": "0/30",
+          "plain": "9/9",
+          "heavy": "0/9"
+        }
+      },
+      "S3-CUSTOMS+HEAVY": {
+        "runs": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "fam_correct": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 9
+        },
+        "fam_total": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 9
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "HEAVY"
+        ],
+        "acc": 1.0,
+        "families": {
+          "zoned": "30/30",
+          "plain": "9/9",
+          "heavy": "9/9"
+        }
+      },
+      "S3-CUSTOMS+ERRATA": {
+        "runs": [
+          0.8125,
+          0.8125,
+          0.8125
+        ],
+        "fam_correct": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 0
+        },
+        "fam_total": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 9
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "ERRATA"
+        ],
+        "acc": 0.8125,
+        "families": {
+          "zoned": "30/30",
+          "plain": "9/9",
+          "heavy": "0/9"
+        }
+      },
+      "S3-CUSTOMS+EXPR": {
+        "runs": [
+          0.8125,
+          0.8125,
+          0.8125
+        ],
+        "fam_correct": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 0
+        },
+        "fam_total": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 9
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "BASE",
+          "EXPR"
+        ],
+        "acc": 0.8125,
+        "families": {
+          "zoned": "30/30",
+          "plain": "9/9",
+          "heavy": "0/9"
+        }
+      },
+      "S3-BASE+HEAVY": {
+        "runs": [
+          0.5625,
+          0.5625,
+          0.5625
+        ],
+        "fam_correct": {
+          "zoned": 12,
+          "plain": 6,
+          "heavy": 9
+        },
+        "fam_total": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 9
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "CUSTOMS",
+          "HEAVY"
+        ],
+        "acc": 0.5625,
+        "families": {
+          "zoned": "12/30",
+          "plain": "6/9",
+          "heavy": "9/9"
+        }
+      },
+      "S3-BASE+ERRATA": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "plain": 0,
+          "heavy": 0
+        },
+        "fam_total": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 9
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "CUSTOMS",
+          "ERRATA"
+        ],
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/30",
+          "plain": "0/9",
+          "heavy": "0/9"
+        }
+      },
+      "S3-BASE+EXPR": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "zoned": 0,
+          "plain": 0,
+          "heavy": 0
+        },
+        "fam_total": {
+          "zoned": 30,
+          "plain": 9,
+          "heavy": 9
+        },
+        "modules": [
+          "ROUND",
+          "ZONE",
+          "CUSTOMS",
+          "EXPR"
+        ],
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/30",
+          "plain": "0/9",
+          "heavy": "0/9"
+        }
+      }
+    }
+  },
+  "E8": {
+    "dev": {
+      "S0": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "plain": 0,
+          "express": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE"
+        ],
+        "acc": 0.0,
+        "families": {
+          "plain": "0/15",
+          "express": "0/18",
+          "zoned": "0/15"
+        }
+      },
+      "S1": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "plain": 0,
+          "express": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "MEMO_R"
+        ],
+        "acc": 0.0,
+        "families": {
+          "plain": "0/15",
+          "express": "0/18",
+          "zoned": "0/15"
+        }
+      },
+      "S2": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "plain": 15,
+          "express": 0,
+          "zoned": 15
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "MEMO_R",
+          "BASE"
+        ],
+        "acc": 0.625,
+        "families": {
+          "plain": "15/15",
+          "express": "0/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "plain": 15,
+          "express": 0,
+          "zoned": 15
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "MEMO_R",
+          "BASE",
+          "CUSTOMS"
+        ],
+        "acc": 0.625,
+        "families": {
+          "plain": "15/15",
+          "express": "0/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3-MEMO_R": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "plain": 0,
+          "express": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "BASE",
+          "CUSTOMS"
+        ],
+        "acc": 0.0,
+        "families": {
+          "plain": "0/15",
+          "express": "0/18",
+          "zoned": "0/15"
+        }
+      },
+      "S3-BASE": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "plain": 0,
+          "express": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "MEMO_R",
+          "CUSTOMS"
+        ],
+        "acc": 0.0,
+        "families": {
+          "plain": "0/15",
+          "express": "0/18",
+          "zoned": "0/15"
+        }
+      }
+    },
+    "heldout": {
+      "S3": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "plain": 15,
+          "express": 0,
+          "zoned": 15
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "MEMO_R",
+          "BASE",
+          "CUSTOMS"
+        ],
+        "acc": 0.625,
+        "families": {
+          "plain": "15/15",
+          "express": "0/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3-MEMO_R": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "plain": 0,
+          "express": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "BASE",
+          "CUSTOMS"
+        ],
+        "acc": 0.0,
+        "families": {
+          "plain": "0/15",
+          "express": "0/18",
+          "zoned": "0/15"
+        }
+      },
+      "S3-BASE": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "plain": 0,
+          "express": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "MEMO_R",
+          "CUSTOMS"
+        ],
+        "acc": 0.0,
+        "families": {
+          "plain": "0/15",
+          "express": "0/18",
+          "zoned": "0/15"
+        }
+      },
+      "S3-CUSTOMS": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "plain": 15,
+          "express": 0,
+          "zoned": 15
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "MEMO_R",
+          "BASE"
+        ],
+        "acc": 0.625,
+        "families": {
+          "plain": "15/15",
+          "express": "0/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3-MEMO_R+EXPR": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "plain": 0,
+          "express": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "BASE",
+          "CUSTOMS",
+          "EXPR"
+        ],
+        "acc": 0.0,
+        "families": {
+          "plain": "0/15",
+          "express": "0/18",
+          "zoned": "0/15"
+        }
+      },
+      "S3-MEMO_R+HEAVY": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "plain": 0,
+          "express": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "BASE",
+          "CUSTOMS",
+          "HEAVY"
+        ],
+        "acc": 0.0,
+        "families": {
+          "plain": "0/15",
+          "express": "0/18",
+          "zoned": "0/15"
+        }
+      },
+      "S3-MEMO_R+FRAG": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "plain": 0,
+          "express": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "BASE",
+          "CUSTOMS",
+          "FRAG"
+        ],
+        "acc": 0.0,
+        "families": {
+          "plain": "0/15",
+          "express": "0/18",
+          "zoned": "0/15"
+        }
+      },
+      "S3-BASE+EXPR": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "plain": 0,
+          "express": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "MEMO_R",
+          "CUSTOMS",
+          "EXPR"
+        ],
+        "acc": 0.0,
+        "families": {
+          "plain": "0/15",
+          "express": "0/18",
+          "zoned": "0/15"
+        }
+      },
+      "S3-BASE+HEAVY": {
+        "runs": [
+          0.125,
+          0.125,
+          0.125
+        ],
+        "fam_correct": {
+          "plain": 3,
+          "express": 0,
+          "zoned": 3
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "MEMO_R",
+          "CUSTOMS",
+          "HEAVY"
+        ],
+        "acc": 0.125,
+        "families": {
+          "plain": "3/15",
+          "express": "0/18",
+          "zoned": "3/15"
+        }
+      },
+      "S3-BASE+FRAG": {
+        "runs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "fam_correct": {
+          "plain": 0,
+          "express": 0,
+          "zoned": 0
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "MEMO_R",
+          "CUSTOMS",
+          "FRAG"
+        ],
+        "acc": 0.0,
+        "families": {
+          "plain": "0/15",
+          "express": "0/18",
+          "zoned": "0/15"
+        }
+      },
+      "S3-CUSTOMS+EXPR": {
+        "runs": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "fam_correct": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "MEMO_R",
+          "BASE",
+          "EXPR"
+        ],
+        "acc": 1.0,
+        "families": {
+          "plain": "15/15",
+          "express": "18/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3-CUSTOMS+HEAVY": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "plain": 15,
+          "express": 0,
+          "zoned": 15
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "MEMO_R",
+          "BASE",
+          "HEAVY"
+        ],
+        "acc": 0.625,
+        "families": {
+          "plain": "15/15",
+          "express": "0/18",
+          "zoned": "15/15"
+        }
+      },
+      "S3-CUSTOMS+FRAG": {
+        "runs": [
+          0.625,
+          0.625,
+          0.625
+        ],
+        "fam_correct": {
+          "plain": 15,
+          "express": 0,
+          "zoned": 15
+        },
+        "fam_total": {
+          "plain": 15,
+          "express": 18,
+          "zoned": 15
+        },
+        "modules": [
+          "ZONE",
+          "MEMO_R",
+          "BASE",
+          "FRAG"
+        ],
+        "acc": 0.625,
+        "families": {
+          "plain": "15/15",
+          "express": "0/18",
+          "zoned": "15/15"
+        }
+      }
+    }
+  }
+}

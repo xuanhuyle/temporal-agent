@@ -1,0 +1,594 @@
+{
+  "P1": {
+    "dev": {
+      "S0": {
+        "acc": 0.25,
+        "families": {
+          "zoned": "0/12",
+          "plain": "4/4"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ROUND"
+        ]
+      },
+      "S1": {
+        "acc": 0.375,
+        "families": {
+          "zoned": "2/12",
+          "plain": "4/4"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD"
+        ]
+      },
+      "S2": {
+        "acc": 0.375,
+        "families": {
+          "zoned": "2/12",
+          "plain": "4/4"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "MEMO"
+        ]
+      },
+      "S3": {
+        "acc": 1.0,
+        "families": {
+          "zoned": "12/12",
+          "plain": "4/4"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "MEMO",
+          "ZONE"
+        ]
+      },
+      "S3-ZONE_OLD": {
+        "acc": 1.0,
+        "families": {
+          "zoned": "12/12",
+          "plain": "4/4"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ROUND",
+          "MEMO",
+          "ZONE"
+        ]
+      },
+      "S3-MEMO": {
+        "acc": 0.375,
+        "families": {
+          "zoned": "2/12",
+          "plain": "4/4"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "ZONE"
+        ]
+      }
+    },
+    "heldout": {
+      "S3": {
+        "acc": 0.25,
+        "families": {
+          "plain": "4/4",
+          "zoned": "0/12"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "MEMO",
+          "ZONE"
+        ]
+      },
+      "S3-ZONE_OLD": {
+        "acc": 1.0,
+        "families": {
+          "plain": "4/4",
+          "zoned": "12/12"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ROUND",
+          "MEMO",
+          "ZONE"
+        ]
+      },
+      "S3-MEMO": {
+        "acc": 1.0,
+        "families": {
+          "plain": "4/4",
+          "zoned": "12/12"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "ZONE"
+        ]
+      },
+      "S3-ZONE": {
+        "acc": 0.25,
+        "families": {
+          "plain": "4/4",
+          "zoned": "0/12"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "MEMO"
+        ]
+      },
+      "S3+ERRATA": {
+        "acc": 1.0,
+        "families": {
+          "plain": "4/4",
+          "zoned": "12/12"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "MEMO",
+          "ERRATA",
+          "ZONE"
+        ]
+      },
+      "S3+EXAMPLES": {
+        "acc": 1.0,
+        "families": {
+          "plain": "4/4",
+          "zoned": "12/12"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "MEMO",
+          "EXAMPLES",
+          "ZONE"
+        ]
+      },
+      "S3+FRAG": {
+        "acc": 1.0,
+        "families": {
+          "plain": "4/4",
+          "zoned": "12/12"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ROUND",
+          "ZONE_OLD",
+          "MEMO",
+          "FRAG",
+          "ZONE"
+        ]
+      }
+    }
+  },
+  "P2": {
+    "dev": {
+      "S0": {
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/8",
+          "heavy": "0/8"
+        },
+        "answered": 16,
+        "modules": [
+          "ZONE"
+        ]
+      },
+      "S1": {
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/8",
+          "heavy": "0/8"
+        },
+        "answered": 16,
+        "modules": [
+          "ZONE",
+          "BASE"
+        ]
+      },
+      "S2": {
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/8",
+          "heavy": "0/8"
+        },
+        "answered": 16,
+        "modules": [
+          "ZONE",
+          "BASE",
+          "CUSTOMS"
+        ]
+      },
+      "S3": {
+        "acc": 0.5625,
+        "families": {
+          "zoned": "8/8",
+          "heavy": "1/8"
+        },
+        "answered": 16,
+        "modules": [
+          "ZONE",
+          "BASE",
+          "CUSTOMS",
+          "ROUND"
+        ]
+      },
+      "S3-BASE": {
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/8",
+          "heavy": "0/8"
+        },
+        "answered": 16,
+        "modules": [
+          "ZONE",
+          "CUSTOMS",
+          "ROUND"
+        ]
+      },
+      "S3-CUSTOMS": {
+        "acc": 0.5625,
+        "families": {
+          "zoned": "8/8",
+          "heavy": "1/8"
+        },
+        "answered": 16,
+        "modules": [
+          "ZONE",
+          "BASE",
+          "ROUND"
+        ]
+      }
+    },
+    "heldout": {
+      "S3": {
+        "acc": 0.5625,
+        "families": {
+          "zoned": "8/8",
+          "heavy": "1/8"
+        },
+        "answered": 16,
+        "modules": [
+          "ZONE",
+          "BASE",
+          "CUSTOMS",
+          "ROUND"
+        ]
+      },
+      "S3-BASE": {
+        "acc": 0.0625,
+        "families": {
+          "zoned": "1/8",
+          "heavy": "0/8"
+        },
+        "answered": 16,
+        "modules": [
+          "ZONE",
+          "CUSTOMS",
+          "ROUND"
+        ]
+      },
+      "S3-CUSTOMS": {
+        "acc": 0.5625,
+        "families": {
+          "zoned": "8/8",
+          "heavy": "1/8"
+        },
+        "answered": 16,
+        "modules": [
+          "ZONE",
+          "BASE",
+          "ROUND"
+        ]
+      },
+      "S3-ROUND": {
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/8",
+          "heavy": "0/8"
+        },
+        "answered": 16,
+        "modules": [
+          "ZONE",
+          "BASE",
+          "CUSTOMS"
+        ]
+      },
+      "S3+HEAVY": {
+        "acc": 1.0,
+        "families": {
+          "zoned": "8/8",
+          "heavy": "8/8"
+        },
+        "answered": 16,
+        "modules": [
+          "ZONE",
+          "BASE",
+          "CUSTOMS",
+          "HEAVY",
+          "ROUND"
+        ]
+      },
+      "S3+EXPR": {
+        "acc": 0.5625,
+        "families": {
+          "zoned": "8/8",
+          "heavy": "1/8"
+        },
+        "answered": 16,
+        "modules": [
+          "ZONE",
+          "BASE",
+          "CUSTOMS",
+          "EXPR",
+          "ROUND"
+        ]
+      },
+      "S3+EXAMPLES": {
+        "acc": 0.5625,
+        "families": {
+          "zoned": "8/8",
+          "heavy": "1/8"
+        },
+        "answered": 16,
+        "modules": [
+          "ZONE",
+          "BASE",
+          "CUSTOMS",
+          "EXAMPLES",
+          "ROUND"
+        ]
+      }
+    }
+  },
+  "P3": {
+    "dev": {
+      "S0": {
+        "acc": 0.0,
+        "families": {
+          "zoned": "0/3",
+          "fragile": "0/5",
+          "plain": "0/3",
+          "express": "0/5"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ZONE"
+        ]
+      },
+      "S1": {
+        "acc": 0.375,
+        "families": {
+          "zoned": "3/3",
+          "fragile": "0/5",
+          "plain": "3/3",
+          "express": "0/5"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES"
+        ]
+      },
+      "S2": {
+        "acc": 0.6875,
+        "families": {
+          "zoned": "3/3",
+          "fragile": "5/5",
+          "plain": "3/3",
+          "express": "0/5"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES",
+          "FRAG"
+        ]
+      },
+      "S3": {
+        "acc": 0.6875,
+        "families": {
+          "zoned": "3/3",
+          "fragile": "5/5",
+          "plain": "3/3",
+          "express": "0/5"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES",
+          "FRAG",
+          "ROUND"
+        ]
+      },
+      "S3-EXAMPLES": {
+        "acc": 0.6875,
+        "families": {
+          "zoned": "3/3",
+          "fragile": "5/5",
+          "plain": "3/3",
+          "express": "0/5"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ZONE",
+          "FRAG",
+          "ROUND"
+        ]
+      },
+      "S3-FRAG": {
+        "acc": 0.375,
+        "families": {
+          "zoned": "3/3",
+          "fragile": "0/5",
+          "plain": "3/3",
+          "express": "0/5"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES",
+          "ROUND"
+        ]
+      }
+    },
+    "heldout": {
+      "S3": {
+        "acc": 0.6875,
+        "families": {
+          "fragile": "5/5",
+          "express": "0/5",
+          "plain": "3/3",
+          "zoned": "3/3"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES",
+          "FRAG",
+          "ROUND"
+        ]
+      },
+      "S3-EXAMPLES": {
+        "acc": 0.6875,
+        "families": {
+          "fragile": "5/5",
+          "express": "0/5",
+          "plain": "3/3",
+          "zoned": "3/3"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ZONE",
+          "FRAG",
+          "ROUND"
+        ]
+      },
+      "S3-FRAG": {
+        "acc": 0.375,
+        "families": {
+          "fragile": "0/5",
+          "express": "0/5",
+          "plain": "3/3",
+          "zoned": "3/3"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES",
+          "ROUND"
+        ]
+      },
+      "S3-ROUND": {
+        "acc": 0.6875,
+        "families": {
+          "fragile": "5/5",
+          "express": "0/5",
+          "plain": "3/3",
+          "zoned": "3/3"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES",
+          "FRAG"
+        ]
+      },
+      "S3+HEAVY": {
+        "acc": 0.6875,
+        "families": {
+          "fragile": "5/5",
+          "express": "0/5",
+          "plain": "3/3",
+          "zoned": "3/3"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES",
+          "FRAG",
+          "HEAVY",
+          "ROUND"
+        ]
+      },
+      "S3+EXPR": {
+        "acc": 1.0,
+        "families": {
+          "fragile": "5/5",
+          "express": "5/5",
+          "plain": "3/3",
+          "zoned": "3/3"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES",
+          "FRAG",
+          "EXPR",
+          "ROUND"
+        ]
+      },
+      "S3+MEMO": {
+        "acc": 0.6875,
+        "families": {
+          "fragile": "5/5",
+          "express": "0/5",
+          "plain": "3/3",
+          "zoned": "3/3"
+        },
+        "answered": 16,
+        "modules": [
+          "BASE",
+          "ZONE",
+          "EXAMPLES",
+          "FRAG",
+          "MEMO",
+          "ROUND"
+        ]
+      }
+    }
+  }
+}

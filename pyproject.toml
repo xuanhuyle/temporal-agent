@@ -11,6 +11,7 @@ dependencies = []
 
 [project.scripts]
 tab-bench = "harness.cli:main"
+tmk-hindsight = "multiplicity_experiments.hindsight_eval:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]

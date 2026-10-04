@@ -15,6 +15,20 @@ This repository is intentionally a **benchmark first**. The Tesseract implementa
 > [docs/m2.5-decision-record.md](docs/m2.5-decision-record.md) and
 > [docs/residual-hypotheses.md](docs/residual-hypotheses.md).
 
+## Fresh research branch: temporal multiplicity
+
+A new, deliberately separate experiment now tests a smaller primitive: explicit agent state as a copyable and executable object.
+
+The v0 kernel implements snapshot, fork, run and compare. Its first model-backed test compares strong full-history prompting against mechanically enforced epistemic isolation on hindsight-sensitive historical decisions.
+
+Product framing: this is a **model-agnostic cognitive capability** injected into an agent runtime. The LLM provides reasoning; the capability provides operations over executable versions of agent state.
+
+See [docs/temporal-multiplicity-kernel-v0.md](docs/temporal-multiplicity-kernel-v0.md). This does not reverse the Milestone 2.5 stop decision on the earlier Tesseract architecture.
+
+The governing research map is [docs/temporal-multiplicity-capability-map.md](docs/temporal-multiplicity-capability-map.md). Future experiments should test whether executable self-state is a real cognitive primitive, not indefinitely optimize narrow benchmark details.
+
+The first real-model test (protocol v0.1, frozen and pre-registered; not yet run, because it must run outside Claude Code) and its exact command are in [docs/experiments/tmk-hindsight-v0-results.md](docs/experiments/tmk-hindsight-v0-results.md).
+
 ## Core question
 
 > When a new event changes the significance of an earlier decision, can an agent autonomously identify the affected historical decision, reconstruct what it knew at the time, reconsider it, and return to the present with a better action?
