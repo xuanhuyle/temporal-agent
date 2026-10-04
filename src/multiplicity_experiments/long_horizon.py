@@ -14,6 +14,7 @@ with the existing primitive, and scores everything.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import random
 from dataclasses import replace
@@ -686,8 +687,18 @@ def load_result(path: Path) -> Any:
 # ------------------------------------------------------------------ CLI
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    p.add_argument("step", choices=["episodes", "trajectory-scripts", "headroom"])
+    p.add_argument("step", choices=["episodes", "trajectory-scripts", "headroom", "case-scripts", "heldout-scripts",
+                                     "score"])
     p.add_argument("--trajectories", nargs="+", type=Path)
+    p.add_argument("--headroom", type=Path)
+    p.add_argument("--conds", nargs="+", default=["A", "B", "C"])
+    p.add_argument("--steps", nargs="+", type=int, default=[8, 8, 4], help="steps for each of --conds")
+    p.add_argument("--max-exec", type=int, default=4)
+    p.add_argument("--repeats", type=int, default=1)
+    p.add_argument("--investigations", nargs="+", type=Path)
+    p.add_argument("--heldout-runs", nargs="+", type=Path)
+    p.add_argument("--reps", type=int, default=3)
+    p.add_argument("--tag", default="main")
     p.add_argument("--ids", nargs="+")
     p.add_argument("--seeds", nargs="+", type=int)
     p.add_argument("--episodes", type=Path)
@@ -699,6 +710,44 @@ def main(argv: list[str] | None = None) -> int:
         eps = [make_episode(i, s) for i, s in zip(a.ids, a.seeds)]
         a.out.write_text(json.dumps({"ctx_max": CTX_MAX, "mem_max": MEM_MAX, "s0_memory": S0_MEMORY, "episodes": eps},
                                     indent=1) + "\n")
+    elif a.step == "case-scripts":  # one workflow script per episode (all its cases x conditions x repeats)
+        eps = {e["id"]: e for e in json.loads(a.episodes.read_text())["episodes"]}
+        trajs = {t["episode"]: t for t in (load_result(x) for x in a.trajectories)}
+        hrs = {h["episode"]: h for h in json.loads(a.headroom.read_text())}
+        a.out.mkdir(parents=True, exist_ok=True)
+        for eid, traj in trajs.items():
+            cases = make_cases(eps[eid], traj, hrs[eid], tuple(a.conds), dict(zip(a.conds, a.steps)), a.max_exec)
+            cases = [dict(c, id=f"{c['id']}#{k}") for c in cases for k in range(a.repeats)]
+            if cases:
+                (a.out / f"investigate_{a.tag}_{eid}.js").write_text(
+                    investigation_script(cases, f"tmk-lh-investigate-{a.tag}-{eid.lower()}"))
+                print(eid, len(cases), "case runs")
+    elif a.step == "heldout-scripts":  # current state, every chosen repair and every offline candidate repair
+        eps = {e["id"]: e for e in json.loads(a.episodes.read_text())["episodes"]}
+        trajs = {t["episode"]: t for t in (load_result(x) for x in a.trajectories)}
+        chosen = [tr for x in (a.investigations or []) for tr in load_result(x)]
+        a.out.mkdir(parents=True, exist_ok=True)
+        for eid, traj in trajs.items():
+            final = traj["checkpoints"][-1]
+            states, plan = [dict(final, id=f"{eid}:current")], {}
+            rule_ids = sorted({tr["case"].split("#")[0].split("-")[1] for tr in chosen if tr["case"].startswith(eid + "-")})
+            for rid in rule_ids:
+                cands = candidate_entries(eps[eid], traj, rid)
+                cands += [dict((tr["final"] or {}).get("repair") or {}, case=tr["case"]) for tr in chosen
+                          if tr["case"].startswith(f"{eid}-{rid}#") and tr.get("final")]
+                for cand in cands:
+                    text = resolve_repair(traj, cand) if "text" not in cand else cand["text"]
+                    if text is None:
+                        continue
+                    rk = replace_key(final, cand)
+                    sid = f"{eid}:{rid}:" + hashlib.sha1(json.dumps([text, rk]).encode()).hexdigest()[:10]
+                    if sid not in plan:
+                        plan[sid] = {"rule": rid, "text": text, "replace": rk}
+                        states.append(dict(repaired(final, text, rk), id=sid))
+            (a.out / f"heldout_{a.tag}_{eid}.js").write_text(heldout_script(eps[eid], states, a.reps,
+                                                                              f"tmk-lh-heldout-{a.tag}-{eid.lower()}"))
+            (a.out / f"heldout_{a.tag}_{eid}.plan.json").write_text(json.dumps(plan, indent=1))
+            print(eid, len(states), "states x", a.reps, "reps")
     elif a.step == "headroom":
         eps = {e["id"]: e for e in json.loads(a.episodes.read_text())["episodes"]}
         trajs = [load_result(t) for t in a.trajectories]
