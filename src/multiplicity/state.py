@@ -92,6 +92,9 @@ def apply_mutations(state: AgentState, mutations: tuple[Mutation, ...]) -> Agent
                 known_at=out.seq,
                 source="branch-mutation",
             )
+        elif mutation.path.startswith("forget."):
+            key = mutation.path.removeprefix("forget.")
+            out = replace(out, knowledge=tuple(f for f in out.knowledge if f.key != key))
         elif mutation.path == "seq":
             out = out.with_seq(int(mutation.value))
         else:

@@ -114,3 +114,16 @@ def test_cutoff_cannot_exceed_parent_time():
         assert "later than parent" in str(exc)
     else:
         raise AssertionError("expected ValueError")
+
+
+def test_fork_can_ablate_one_learned_module_and_keep_the_parent():
+    from multiplicity import Mutation
+
+    state = AgentState(seq=3)
+    for i, key in enumerate(("module:A", "module:B", "module:C"), start=1):
+        state = state.with_fact(key, f"text {key}", known_at=i)
+    kernel = TemporalMultiplicityKernel()
+    root = kernel.snapshot(state)
+    branch = kernel.fork(root.state_id, mutations=(Mutation("forget.module:B", None),))
+    assert sorted(branch.state.known_facts()) == ["module:A", "module:C"]
+    assert sorted(kernel.get_state(root.state_id).known_facts()) == ["module:A", "module:B", "module:C"]
