@@ -61,16 +61,23 @@ async function runTrajectory(ep, evalReps) {
   const evalCp = (cp) => { for (let r = 0; r < evalReps; r++) evals.push(
     callAgent(decidePrompt(cp, ep.dev_probes), DECISIONS, `probe:${ep.id}:${cp.id}:r${r}`, 'Probe checkpoints')
       .then((out) => ({ checkpoint: cp.id, replicate: r, output: out }), () => ({ checkpoint: cp.id, replicate: r, output: null }))) }
-  evalCp(cps[0])
-  for (const sg of ep.stages) {
+  // probe_policy 'all' (default, PR #6): probe every checkpoint. 'precompaction' (calibration): probe only the
+  // stage-end checkpoint right before each compaction and the final checkpoint; stages without requests make no call.
+  const all = (DATA.probe_policy || 'all') === 'all'
+  if (all) evalCp(cps[0])
+  for (const [i, sg] of ep.stages.entries()) {
+    const last = i === ep.stages.length - 1
     for (const m of sg.messages) st.context.push({ id: m.id, text: m.text })
-    const out = await callAgent(decidePrompt(st, sg.requests), DECISIONS, `stage:${ep.id}:${sg.stage}`, 'Lifetime')
-    const dm = byId(out)
-    for (const r of sg.requests) st.context.push({ id: r.id, text: `[${sg.date}] ${r.text}\n  => ${fmtDecision(dm[r.id])}` })
-    log.push({ stage: sg.stage, kind: 'decide', output: out, ctx_chars: ctxLen(st.context) })
+    if (all || sg.requests.length) {
+      const out = await callAgent(decidePrompt(st, sg.requests), DECISIONS, `stage:${ep.id}:${sg.stage}`, 'Lifetime')
+      const dm = byId(out)
+      for (const r of sg.requests) st.context.push({ id: r.id, text: `[${sg.date}] ${r.text}\n  => ${fmtDecision(dm[r.id])}` })
+      log.push({ stage: sg.stage, kind: 'decide', output: out, ctx_chars: ctxLen(st.context) })
+    }
     const cp = { id: `c${sg.stage}`, stage: sg.stage, kind: 'stage_end', memory: clone(st.memory), context: clone(st.context) }
-    cps.push(cp); evalCp(cp)
-    if (ctxLen(st.context) > DATA.ctx_max) {
+    const willCompact = ctxLen(st.context) > DATA.ctx_max
+    cps.push(cp); if (all || willCompact || last) evalCp(cp)
+    if (willCompact) {
       let mem = await callAgent(compactPrompt(st), MEMORY, `compact:${ep.id}:${sg.stage}`, 'Lifetime')
       let retried = false
       if (mem && memLen(mem) > DATA.mem_max * 1.1) {
@@ -84,7 +91,7 @@ async function runTrajectory(ep, evalReps) {
       log.push({ stage: sg.stage, kind: 'compact', memory: mem, mem_chars: memLen(mem), retried, ctx_chars_before: ctxLen(st.context) })
       st.memory = mem; st.context = []
       const cpc = { id: `c${sg.stage}c`, stage: sg.stage, kind: 'post_compaction', memory: clone(mem), context: [] }
-      cps.push(cpc); evalCp(cpc)
+      cps.push(cpc); if (all || last) evalCp(cpc)
     }
   }
   return { episode: ep.id, checkpoints: cps, log, probe_runs: await Promise.all(evals) }
