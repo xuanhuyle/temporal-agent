@@ -34,8 +34,10 @@
    "expected_incremental": 7,
    "expected_max": 10,
    "expected_cumulative": 28,
-   "actual": null,
-   "cumulative": null
+   "actual": 7,
+   "cumulative": 28
   }
- ]
+ ],
+ "stopped": "after Q1: knob 2 (the one allowed pressure increase) also at ceiling; no crossover to replicate and no failure to classify or retrieve. Stage B and the retrieval check spent 0 calls.",
+ "total_subject_calls": 28
 }

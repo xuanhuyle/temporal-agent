@@ -1,0 +1,1197 @@
+{
+"episode": "A2",
+"checkpoints": [
+{
+"id": "c0",
+"stage": 0,
+"kind": "start",
+"memory": {
+"rules": [
+"Default payment currency is EUR.",
+"Ops approves every PO; Finance co-approves POs of EUR 20,000 or more.",
+"Default carrier is standard.",
+"Put a request on hold only if there is an active hold instruction for that vendor."
+],
+"commitments": [],
+"open_items": [],
+"notes": [
+"Role: procurement desk agent for Larkspur Robotics. Decide each purchase request."
+]
+}
+},
+{
+"id": "c1",
+"stage": 1,
+"kind": "stage_end"
+},
+{
+"id": "c2",
+"stage": 2,
+"kind": "stage_end"
+},
+{
+"id": "c3",
+"stage": 3,
+"kind": "stage_end"
+},
+{
+"id": "c4",
+"stage": 4,
+"kind": "stage_end"
+},
+{
+"id": "c4c",
+"stage": 4,
+"kind": "post_compaction",
+"memory": {
+"rules": [
+"Pay EUR except: Fothergill Pneumatics NOK, Glenister Optics USD, Ashdown Fasteners JPY, Netherton Cables HUF, Mallory Bearings SEK, Whitcombe Drives USD, Sandoval Tooling NOK, Jardine Pneumatics AUD, Arkwright Polymers DKK, Garroway Bearings AUD, Zielinski Fasteners CHF, Abernethy Drives PLN, Ravenscroft Motion JPY.",
+"Ops approves every PO; Finance co-approves POs >= EUR 20,000.",
+"Carrier default standard; ColdLink for silicone/precision/tempered dampers, magnetic sealants, hardened brackets.",
+"Brightway Freight for every delivery to Nightjar plant, Yellowhammer campus, Bittern terminal.",
+"Safety officer co-sign on POs for tungsten manifolds, electrical couplings, knurled sleeves, glass-filled linings, fibreglass adhesives, machined fillers.",
+"Notify harbour master on PO for deliveries to Hawser Jetty, Coxswain Jetty, Bowsprit Wharf.",
+"Part substitution: notify site lead 48h ahead for Redshank plant, Egret campus, Chiffchaff depot, Mallard programme, Kestrel terminal.",
+"Hold only if active hold instruction for that vendor; none active (invoice queries are not holds)."
+],
+"commitments": [
+"If a Rowan Cable Co truck comes, ask it to take back our 40 empty pallets."
+],
+"open_items": [
+"Expect M8 fastener top-up request from Tomas Varga (Assembly Line 2).",
+"Apr price rises (existing POs honoured): Thackeray Cables +9%, check Ellery Optics; Gatehouse Bearings +6%, check Kirkland Valves."
+],
+"notes": [
+"Role: Larkspur Robotics procurement desk; decide each purchase request."
+]
+}
+},
+{
+"id": "c5",
+"stage": 5,
+"kind": "stage_end"
+},
+{
+"id": "c6",
+"stage": 6,
+"kind": "stage_end"
+},
+{
+"id": "c7",
+"stage": 7,
+"kind": "stage_end"
+},
+{
+"id": "c8",
+"stage": 8,
+"kind": "stage_end"
+},
+{
+"id": "c8c",
+"stage": 8,
+"kind": "post_compaction",
+"memory": {
+"rules": [
+"Pay EUR except NOK Fothergill/Sandoval;USD Glenister/Whitcombe;JPY Ashdown/Ravenscroft/Stainforth;HUF Netherton/Mortensen;SEK Mallory/Vasquez/Lomax;AUD Jardine/Garroway;DKK Arkwright;CHF Zielinski;PLN Abernethy;GBP Treharne/Underhill;CAD Hallworth/Yardley",
+"Ops approves all POs; Finance also if >= EUR 20,000",
+"Std carrier; ColdLink: silicone/precision/tempered dampers,magnetic sealants,hardened brackets,flexible fillers,composite fittings,braided manifolds",
+"Brightway Freight: Nightjar/Goldcrest plant,Yellowhammer/Turnstone campus,Bittern terminal,Knot/Wryneck retrofit,Linnet works,Lapwing depot",
+"Safety co-sign: tungsten manifolds,electrical/marine couplings,knurled/borosilicate sleeves,glass-filled linings,fibreglass adhesives,machined/nitrile fillers,carbon-fibre housings,welded/titanium clamps,anodised fittings,lubricated coatings,ceramic gaskets,cryogenic brackets",
+"Harbour master on PO: Hawser/Coxswain/Oar Jetty,Bowsprit/Driftwood/Breakwater Wharf,Lighthouse/Spinnaker Berth",
+"Substitution: 48h site-lead notice: Redshank plant,Egret/Albatross campus,Chiffchaff depot,Mallard programme,Kestrel/Firecrest/Brambling terminal,Crossbill/Bluethroat retrofit",
+"No holds active; invoice queries aren't holds"
+],
+"commitments": [
+"Rowan Cable Co truck: ask it to take back 40 empty pallets"
+],
+"open_items": [
+"M8 fastener top-up due: Tomas Varga, Line 2",
+"Apr rises (old POs honoured): Thackeray +9%, check Ellery Optics; Gatehouse +6%, check Kirkland Valves"
+],
+"notes": []
+}
+},
+{
+"id": "c9",
+"stage": 9,
+"kind": "stage_end"
+},
+{
+"id": "c10",
+"stage": 10,
+"kind": "stage_end"
+},
+{
+"id": "c11",
+"stage": 11,
+"kind": "stage_end"
+},
+{
+"id": "c12",
+"stage": 12,
+"kind": "stage_end"
+},
+{
+"id": "c12c",
+"stage": 12,
+"kind": "post_compaction",
+"memory": {
+"rules": [
+"EUR unless: NOK Fothergill/Sandoval;USD Glenister/Whitcombe/Quintero/Coldridge;JPY Ashdown/Ravenscroft/Stainforth;HUF Netherton/Mortensen;SEK Mallory/Vasquez/Lomax/Wetherall/Illingworth;AUD Jardine/Garroway;DKK Arkwright/Eskildsen;CHF Zielinski/Blaxland/Ulverston;PLN Abernethy;GBP Treharne/Underhill/Nakamura;CAD Hallworth/Yardley",
+"Ops OKs all POs; +Finance if >=EUR20,000",
+"ColdLink:silicone/precision/tempered dampers,magnetic sealants,hardened brackets,flexible fillers,composite/industrial fittings,braided manifolds,polymer coatings,heat-treated membranes",
+"Brightway:Nightjar/Goldcrest/Dunlin plant,Yellowhammer/Turnstone campus,Bittern/Moorhen term,Knot/Wryneck/Smew retro,Linnet/Usher works,Lapwing/Osprey depot,Eider/Nuthatch/Hobby line",
+"Safety co-sign:tungsten manifolds,electrical/marine couplings,knurled/borosilicate sleeves,glass-filled linings,fibreglass adhesives,machined/nitrile fillers,carbon-fibre housings,welded/titanium clamps,anodised fittings,lubricated coatings,ceramic gaskets,cryogenic brackets",
+"Harbourmaster on PO:Hawser/Coxswain/Oar Jetty,Bowsprit/Driftwood/Breakwater/Windlass Wharf,Lighthouse/Spinnaker/Starboard Berth,Gangway/Beacon/Portside Quay",
+"Subst 48h site-lead notice:Redshank plant,Egret/Albatross/Pintail campus,Chiffchaff/Twite/Petrel depot,Mallard/Bunting prog,Kestrel/Firecrest/Brambling/Jackdaw term,Crossbill/Bluethroat retro,Vireo line,Siskin works",
+"No holds; invoice queries\u2260holds"
+],
+"commitments": [
+"Rowan Cable truck: return 40 empty pallets"
+],
+"open_items": [
+"M8 top-up due: Tomas Varga, Line 2"
+],
+"notes": []
+}
+}
+],
+"log": [
+{
+"stage": 4,
+"kind": "compact",
+"memory": {
+"rules": [
+"Pay EUR except: Fothergill Pneumatics NOK, Glenister Optics USD, Ashdown Fasteners JPY, Netherton Cables HUF, Mallory Bearings SEK, Whitcombe Drives USD, Sandoval Tooling NOK, Jardine Pneumatics AUD, Arkwright Polymers DKK, Garroway Bearings AUD, Zielinski Fasteners CHF, Abernethy Drives PLN, Ravenscroft Motion JPY.",
+"Ops approves every PO; Finance co-approves POs >= EUR 20,000.",
+"Carrier default standard; ColdLink for silicone/precision/tempered dampers, magnetic sealants, hardened brackets.",
+"Brightway Freight for every delivery to Nightjar plant, Yellowhammer campus, Bittern terminal.",
+"Safety officer co-sign on POs for tungsten manifolds, electrical couplings, knurled sleeves, glass-filled linings, fibreglass adhesives, machined fillers.",
+"Notify harbour master on PO for deliveries to Hawser Jetty, Coxswain Jetty, Bowsprit Wharf.",
+"Part substitution: notify site lead 48h ahead for Redshank plant, Egret campus, Chiffchaff depot, Mallard programme, Kestrel terminal.",
+"Hold only if active hold instruction for that vendor; none active (invoice queries are not holds)."
+],
+"commitments": [
+"If a Rowan Cable Co truck comes, ask it to take back our 40 empty pallets."
+],
+"open_items": [
+"Expect M8 fastener top-up request from Tomas Varga (Assembly Line 2).",
+"Apr price rises (existing POs honoured): Thackeray Cables +9%, check Ellery Optics; Gatehouse Bearings +6%, check Kirkland Valves."
+],
+"notes": [
+"Role: Larkspur Robotics procurement desk; decide each purchase request."
+]
+},
+"mem_chars": 1406,
+"retried": false,
+"ctx_chars_before": 7606
+},
+{
+"stage": 8,
+"kind": "compact",
+"memory": {
+"rules": [
+"Pay EUR except NOK Fothergill/Sandoval;USD Glenister/Whitcombe;JPY Ashdown/Ravenscroft/Stainforth;HUF Netherton/Mortensen;SEK Mallory/Vasquez/Lomax;AUD Jardine/Garroway;DKK Arkwright;CHF Zielinski;PLN Abernethy;GBP Treharne/Underhill;CAD Hallworth/Yardley",
+"Ops approves all POs; Finance also if >= EUR 20,000",
+"Std carrier; ColdLink: silicone/precision/tempered dampers,magnetic sealants,hardened brackets,flexible fillers,composite fittings,braided manifolds",
+"Brightway Freight: Nightjar/Goldcrest plant,Yellowhammer/Turnstone campus,Bittern terminal,Knot/Wryneck retrofit,Linnet works,Lapwing depot",
+"Safety co-sign: tungsten manifolds,electrical/marine couplings,knurled/borosilicate sleeves,glass-filled linings,fibreglass adhesives,machined/nitrile fillers,carbon-fibre housings,welded/titanium clamps,anodised fittings,lubricated coatings,ceramic gaskets,cryogenic brackets",
+"Harbour master on PO: Hawser/Coxswain/Oar Jetty,Bowsprit/Driftwood/Breakwater Wharf,Lighthouse/Spinnaker Berth",
+"Substitution: 48h site-lead notice: Redshank plant,Egret/Albatross campus,Chiffchaff depot,Mallard programme,Kestrel/Firecrest/Brambling terminal,Crossbill/Bluethroat retrofit",
+"No holds active; invoice queries aren't holds"
+],
+"commitments": [
+"Rowan Cable Co truck: ask it to take back 40 empty pallets"
+],
+"open_items": [
+"M8 fastener top-up due: Tomas Varga, Line 2",
+"Apr rises (old POs honoured): Thackeray +9%, check Ellery Optics; Gatehouse +6%, check Kirkland Valves"
+],
+"notes": []
+},
+"mem_chars": 1402,
+"retried": false,
+"ctx_chars_before": 7752
+},
+{
+"stage": 12,
+"kind": "compact",
+"memory": {
+"rules": [
+"EUR unless: NOK Fothergill/Sandoval;USD Glenister/Whitcombe/Quintero/Coldridge;JPY Ashdown/Ravenscroft/Stainforth;HUF Netherton/Mortensen;SEK Mallory/Vasquez/Lomax/Wetherall/Illingworth;AUD Jardine/Garroway;DKK Arkwright/Eskildsen;CHF Zielinski/Blaxland/Ulverston;PLN Abernethy;GBP Treharne/Underhill/Nakamura;CAD Hallworth/Yardley",
+"Ops OKs all POs; +Finance if >=EUR20,000",
+"ColdLink:silicone/precision/tempered dampers,magnetic sealants,hardened brackets,flexible fillers,composite/industrial fittings,braided manifolds,polymer coatings,heat-treated membranes",
+"Brightway:Nightjar/Goldcrest/Dunlin plant,Yellowhammer/Turnstone campus,Bittern/Moorhen term,Knot/Wryneck/Smew retro,Linnet/Usher works,Lapwing/Osprey depot,Eider/Nuthatch/Hobby line",
+"Safety co-sign:tungsten manifolds,electrical/marine couplings,knurled/borosilicate sleeves,glass-filled linings,fibreglass adhesives,machined/nitrile fillers,carbon-fibre housings,welded/titanium clamps,anodised fittings,lubricated coatings,ceramic gaskets,cryogenic brackets",
+"Harbourmaster on PO:Hawser/Coxswain/Oar Jetty,Bowsprit/Driftwood/Breakwater/Windlass Wharf,Lighthouse/Spinnaker/Starboard Berth,Gangway/Beacon/Portside Quay",
+"Subst 48h site-lead notice:Redshank plant,Egret/Albatross/Pintail campus,Chiffchaff/Twite/Petrel depot,Mallard/Bunting prog,Kestrel/Firecrest/Brambling/Jackdaw term,Crossbill/Bluethroat retro,Vireo line,Siskin works",
+"No holds; invoice queries\u2260holds"
+],
+"commitments": [
+"Rowan Cable truck: return 40 empty pallets"
+],
+"open_items": [
+"M8 top-up due: Tomas Varga, Line 2"
+],
+"notes": []
+},
+"mem_chars": 1491,
+"retried": false,
+"ctx_chars_before": 7737
+}
+],
+"probe_runs": [
+{
+"checkpoint": "c4",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Tungsten manifolds need the safety officer's co-sign."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Electrical couplings need the safety officer's co-sign."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant contract clause: ships via Brightway Freight."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant contract clause: ships via Brightway Freight."
+},
+{
+"request_id": "REQ-8005",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory Bearings paid in SEK."
+},
+{
+"request_id": "REQ-8006",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory Bearings paid in SEK."
+},
+{
+"request_id": "REQ-8007",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy Drives paid in PLN."
+},
+{
+"request_id": "REQ-8008",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy Drives paid in PLN."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply; nitrile fillers are not machined fillers."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8015",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below EUR 20,000; no Finance co-approval needed."
+},
+{
+"request_id": "REQ-8016",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Vireo line has no notification commitment."
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Vireo line has no notification commitment."
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply; invoice query open, no hold instructed."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply; invoice query open, no hold instructed."
+}
+]
+}
+},
+{
+"checkpoint": "c8",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Tungsten manifolds need a safety co-sign. Check for an Ellery April price rise."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Electrical couplings need a safety co-sign. Delacroix invoice query is not a hold."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant goes by Brightway. Thackeray April price +9% stays under 20k."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant delivery goes by Brightway Freight."
+},
+{
+"request_id": "REQ-8005",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory Bearings is paid in SEK."
+},
+{
+"request_id": "REQ-8006",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory Bearings is paid in SEK."
+},
+{
+"request_id": "REQ-8007",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy Drives is paid in PLN."
+},
+{
+"request_id": "REQ-8008",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy Drives is paid in PLN."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Borosilicate sleeves need a safety co-sign. Kerridge invoice query is not a hold."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Nitrile fillers need a safety co-sign. Check for a Kirkland April price rise."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lighthouse Berth delivery: notify the harbour master."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lighthouse Berth delivery: notify the harbour master."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Titanium clamps need a safety co-sign. Kerridge invoice query is not a hold."
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Lubricated coatings need a safety co-sign."
+},
+{
+"request_id": "REQ-8015",
+"currency": "CAD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Yardley Castings is paid in CAD since 22 Apr."
+},
+{
+"request_id": "REQ-8016",
+"currency": "CAD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Yardley Castings is paid in CAD since 22 Apr."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Vireo line has no substitution-notice clause, so no notice is needed."
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Vireo line has no substitution-notice clause, so no notice is needed."
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Gatehouse April price +6% applies and stays under 20k."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Thackeray April price +9% applies and stays under 20k."
+}
+]
+}
+},
+{
+"checkpoint": "c12",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Tungsten manifolds need safety co-sign."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Electrical couplings need safety co-sign."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant contract clause: ship via Brightway Freight."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant contract clause: ship via Brightway Freight."
+},
+{
+"request_id": "REQ-8005",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory Bearings paid in SEK."
+},
+{
+"request_id": "REQ-8006",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory Bearings paid in SEK."
+},
+{
+"request_id": "REQ-8007",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy Drives paid in PLN."
+},
+{
+"request_id": "REQ-8008",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy Drives paid in PLN."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Borosilicate sleeves need safety co-sign."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Nitrile fillers need safety co-sign."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lighthouse Berth delivery: harbour master notified on PO."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lighthouse Berth delivery: harbour master notified on PO."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Titanium clamps need safety co-sign."
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Lubricated coatings need safety co-sign."
+},
+{
+"request_id": "REQ-8015",
+"currency": "CAD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Yardley Castings paid in CAD."
+},
+{
+"request_id": "REQ-8016",
+"currency": "CAD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Yardley Castings paid in CAD."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Vireo line substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Vireo line substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Industrial fittings ship via ColdLink."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Industrial fittings ship via ColdLink."
+}
+]
+}
+},
+{
+"checkpoint": "c12c",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Tungsten manifolds require safety co-sign."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Electrical couplings require safety co-sign."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant ships via Brightway Freight."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant ships via Brightway Freight."
+},
+{
+"request_id": "REQ-8005",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory vendor paid in SEK."
+},
+{
+"request_id": "REQ-8006",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory vendor paid in SEK."
+},
+{
+"request_id": "REQ-8007",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy vendor paid in PLN."
+},
+{
+"request_id": "REQ-8008",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy vendor paid in PLN."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Borosilicate sleeves require safety co-sign."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Nitrile fillers require safety co-sign."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lighthouse Berth delivery: harbourmaster on PO."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lighthouse Berth delivery: harbourmaster on PO."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Titanium clamps require safety co-sign."
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Lubricated coatings require safety co-sign."
+},
+{
+"request_id": "REQ-8015",
+"currency": "CAD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Yardley vendor paid in CAD."
+},
+{
+"request_id": "REQ-8016",
+"currency": "CAD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Yardley vendor paid in CAD."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Vireo line substitution: 48h site-lead notice required."
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Vireo line substitution: 48h site-lead notice required."
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Industrial fittings ship via ColdLink."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Industrial fittings ship via ColdLink."
+}
+]
+}
+}
+]
+}

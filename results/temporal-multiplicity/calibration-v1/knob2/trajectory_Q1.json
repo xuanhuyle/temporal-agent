@@ -1,0 +1,1145 @@
+{
+"episode": "Q1",
+"checkpoints": [
+{
+"id": "c0",
+"stage": 0,
+"kind": "start",
+"memory": {
+"rules": [
+"Default payment currency is EUR.",
+"Ops approves every PO; Finance co-approves POs of EUR 20,000 or more.",
+"Default carrier is standard.",
+"Put a request on hold only if there is an active hold instruction for that vendor."
+],
+"commitments": [],
+"open_items": [],
+"notes": [
+"Role: procurement desk agent for Larkspur Robotics. Decide each purchase request."
+]
+}
+},
+{
+"id": "c1",
+"stage": 1,
+"kind": "stage_end"
+},
+{
+"id": "c2",
+"stage": 2,
+"kind": "stage_end"
+},
+{
+"id": "c3",
+"stage": 3,
+"kind": "stage_end"
+},
+{
+"id": "c4",
+"stage": 4,
+"kind": "stage_end"
+},
+{
+"id": "c4c",
+"stage": 4,
+"kind": "post_compaction",
+"memory": {
+"rules": [
+"Numbers below are kEUR thresholds; a rule applies if the PO is >= that value.",
+"Defaults: pay in EUR, carrier standard.",
+"Ops approves all POs; Finance co-approves POs >= 20.",
+"Hold only if there is an active hold instruction for that vendor.",
+"Pay currency: Fothergill SEK3.5, Iveson SEK10.6, Arkwright JPY11, Netherton AUD9.8, Venables GBP6.1, Oyelaran NOK10.8, Abernethy HUF6.9, Kirkland USD9.1, Falkner JPY5.2, Mallory CZK8.7, Dunmore USD11.4, Treharne JPY9.9, Lomax CHF8, Yardley DKK2.5, Delacroix CZK8.7, Bjornsen HUF9.3, Ulverston DKK5.2",
+"Client deliveries via Brightway Freight: Moorhen11.6, Waxwing7.5, Yellowhammer3.5, Bunting7.8, Lapwing4.8, Bluethroat8.9, Wheatear11.6, Jackdaw5.5, Scaup5.1, Shrike7.1, Redstart5.6",
+"Ship via ColdLink: overmoulded spacers8.7, aluminium panels10.7, heat-treated couplings10.7, knurled adhesives4.9, machined adhesives10.5, welded housings7.2, pneumatic coatings2.3",
+"Safety officer co-sign: magnetic fittings9, zinc-plated sealants9, acoustic manifolds7.9, perforated couplings7.9, quenched fittings5.9, flexible panels5.9, borosilicate membranes9.2, electrical couplings9.2",
+"Notify harbour master on PO: Rudder Quay10.8, Saltmarsh Wharf7.4, Tiller Berth11.4, Hawser Berth4, Anchor Quay7.1",
+"If substituting a part, notify client site lead 48h ahead: Dotterel11.8, Nuthatch6.7, Woodlark7.5, Brambling5.1, Pipit2.4, Bittern9.3, Dipper11.4, Vireo3.1"
+],
+"commitments": [],
+"open_items": [],
+"notes": [
+"Role: procurement desk agent, Larkspur Robotics; decide each purchase request."
+]
+}
+},
+{
+"id": "c5",
+"stage": 5,
+"kind": "stage_end"
+},
+{
+"id": "c6",
+"stage": 6,
+"kind": "stage_end"
+},
+{
+"id": "c7",
+"stage": 7,
+"kind": "stage_end"
+},
+{
+"id": "c8",
+"stage": 8,
+"kind": "stage_end"
+},
+{
+"id": "c8c",
+"stage": 8,
+"kind": "post_compaction",
+"memory": {
+"rules": [
+"Rule if PO>=N, N in 100EUR (35=3500). Names/parts abbreviated. Default EUR, carrier standard.",
+"Ops approves all; Finance too if >=200. Hold only if active vendor hold.",
+"Pay: SEK Fother35Iveson106Ashdown96Whitco119;JPY Arkwri110Falkner52Trehar99;AUD Nether98Jessop109Ingers26Sandov66;GBP Venabl61Kerrid22;NOK Oyelar108;HUF Aberne69Bjorns93Castel63Zielin36;USD Kirkla91Dunmore114Hallwo54Lindley71;CZK Mallory87Delacr87;CHF Lomax80Glenis85;DKK Yardley25Ulvers52Radcli92Dimmock59;CAD Kenward22Carrow73Quinte110",
+"Brightway: Moorhen116Waxwing75Yellow35Bunting78Lapwing48Blueth89Wheate116Jackdaw55Scaup51Shrike71Redsta56Mallard55Knot42Ibis41Hobby81Goldcr39Crossb21Linnet108Merlin84Smew54Heron72",
+"Harbour master: Rudder108Saltma74Tiller114Hawser40Anchor71Jetsam116Coxswa117Windla117Keel114Tidega41Lantern46Starbo100Marlin58Quarte79Halyard89",
+"Subst->site lead 48h: Dotter118Nuthat67Woodla75Brambl51Pipit24Bittern93Dipper114Vireo31Wigeon65Quail95Twite55Oriole81Fulmar48Kestrel75Teal94",
+"ColdLink: overmld spacer87,alu panel107,heat-tr coupl107,knurl adhes49,mach adhes105,weld housing72,pneu coat23,vulc lining99,polymer sealant74,tungst coat41,nitrile filler43,elastomer fixture50,reinf coat118",
+"Safety cosign: magnet fitting/zinc-pl sealant90,acoust manifold/perf coupl79,quench fitting/flex panel59,borosil membrane/electrical coupl92,anod fixture/compos spacer103,lubric sealant/fibregl sleeve44,struct sleeve/cryo filler82"
+],
+"commitments": [],
+"open_items": [],
+"notes": []
+}
+},
+{
+"id": "c9",
+"stage": 9,
+"kind": "stage_end"
+},
+{
+"id": "c10",
+"stage": 10,
+"kind": "stage_end"
+},
+{
+"id": "c11",
+"stage": 11,
+"kind": "stage_end"
+},
+{
+"id": "c12",
+"stage": 12,
+"kind": "stage_end"
+},
+{
+"id": "c12c",
+"stage": 12,
+"kind": "post_compaction",
+"memory": {
+"rules": [
+"Name35=applies if PO>=EUR3500. Dflt EUR, std carrier. Ops approves all; +Finance if>=EUR20k. Hold only on vendor hold.",
+"Pay SEKFoth35Ives106Ashd96Whit119Merr115;JPYArkw110Falk52Treh99Pemb48Elle36Thac69;AUDNeth98Jess109Inge26Sand66;GBPVena61Kerr22;NOKOyel108;HUFAber69Bjor93Cast63Ziel36Ethe96Illi116;USDKirk91Dunm114Hall54Lind71;CZKMall87Dela87Lock88;CHFLoma80Glen85Nort29;DKKYard25Ulve52Radc92Dimm59;CADKenw22Carr73Quin110Holl23Gate100Fair99Blax69;PLNEske43",
+"Brightway Moor116Waxw75Yell35Bunt78Lapw48Blue89Whea116Jack55Scau51Shri71Redst56Mall55Knot42Ibis41Hobb81Gold39Cros21Linn108Merl84Smew54Hero72Ospr68Pint85Turn98Eide103Ruff63Rook104Ushe112",
+"HarbourMstr Rudd108Salt74Till114Haws40Anch71Jets116Coxs117Wind117Keel114Tide41Lant46Star100Marl58Quar79Haly89Inle24Beac110Caps73Gall36Unde73Oar23",
+"Subst->lead48h Dott118Nuth67Wood75Bram51Pipi24Bitt93Dipp114Vire31Wige65Quai95Twit55Orio81Fulm48Kest75Teal94Gann89Dunl88Curl54Sisk113Sand39Hawf60Redsh98Nigh110Avoc76Fire107Kitt67Ston96Whim49",
+"ColdLink adh(knurl49mach105indus84modul96)coat(pneu23tung41reinf118)membr(forg88braid50silic39),overm spacer87,alu panel107,heattr coupl107,weld housing72,vulc lining99,polym seal74,nitr filler43,elast fixt50",
+"Safety cosign fit(magn90quench59dcast108)seal(zinc90lubric44precis51)manif(acoust79induct51therm108)coupl(perf79elec92marine112diel89)sleeve(fibgl44struct82)clamp(galv112lamin89),flex panel59,borosil membr92,anod fixt103,compos spacer103,cryo filler82,epoxy housing59,glassf damper59"
+],
+"commitments": [],
+"open_items": [],
+"notes": []
+}
+}
+],
+"log": [
+{
+"stage": 4,
+"kind": "compact",
+"memory": {
+"rules": [
+"Numbers below are kEUR thresholds; a rule applies if the PO is >= that value.",
+"Defaults: pay in EUR, carrier standard.",
+"Ops approves all POs; Finance co-approves POs >= 20.",
+"Hold only if there is an active hold instruction for that vendor.",
+"Pay currency: Fothergill SEK3.5, Iveson SEK10.6, Arkwright JPY11, Netherton AUD9.8, Venables GBP6.1, Oyelaran NOK10.8, Abernethy HUF6.9, Kirkland USD9.1, Falkner JPY5.2, Mallory CZK8.7, Dunmore USD11.4, Treharne JPY9.9, Lomax CHF8, Yardley DKK2.5, Delacroix CZK8.7, Bjornsen HUF9.3, Ulverston DKK5.2",
+"Client deliveries via Brightway Freight: Moorhen11.6, Waxwing7.5, Yellowhammer3.5, Bunting7.8, Lapwing4.8, Bluethroat8.9, Wheatear11.6, Jackdaw5.5, Scaup5.1, Shrike7.1, Redstart5.6",
+"Ship via ColdLink: overmoulded spacers8.7, aluminium panels10.7, heat-treated couplings10.7, knurled adhesives4.9, machined adhesives10.5, welded housings7.2, pneumatic coatings2.3",
+"Safety officer co-sign: magnetic fittings9, zinc-plated sealants9, acoustic manifolds7.9, perforated couplings7.9, quenched fittings5.9, flexible panels5.9, borosilicate membranes9.2, electrical couplings9.2",
+"Notify harbour master on PO: Rudder Quay10.8, Saltmarsh Wharf7.4, Tiller Berth11.4, Hawser Berth4, Anchor Quay7.1",
+"If substituting a part, notify client site lead 48h ahead: Dotterel11.8, Nuthatch6.7, Woodlark7.5, Brambling5.1, Pipit2.4, Bittern9.3, Dipper11.4, Vireo3.1"
+],
+"commitments": [],
+"open_items": [],
+"notes": [
+"Role: procurement desk agent, Larkspur Robotics; decide each purchase request."
+]
+},
+"mem_chars": 1445,
+"retried": false,
+"ctx_chars_before": 8421
+},
+{
+"stage": 8,
+"kind": "compact",
+"memory": {
+"rules": [
+"Rule if PO>=N, N in 100EUR (35=3500). Names/parts abbreviated. Default EUR, carrier standard.",
+"Ops approves all; Finance too if >=200. Hold only if active vendor hold.",
+"Pay: SEK Fother35Iveson106Ashdown96Whitco119;JPY Arkwri110Falkner52Trehar99;AUD Nether98Jessop109Ingers26Sandov66;GBP Venabl61Kerrid22;NOK Oyelar108;HUF Aberne69Bjorns93Castel63Zielin36;USD Kirkla91Dunmore114Hallwo54Lindley71;CZK Mallory87Delacr87;CHF Lomax80Glenis85;DKK Yardley25Ulvers52Radcli92Dimmock59;CAD Kenward22Carrow73Quinte110",
+"Brightway: Moorhen116Waxwing75Yellow35Bunting78Lapwing48Blueth89Wheate116Jackdaw55Scaup51Shrike71Redsta56Mallard55Knot42Ibis41Hobby81Goldcr39Crossb21Linnet108Merlin84Smew54Heron72",
+"Harbour master: Rudder108Saltma74Tiller114Hawser40Anchor71Jetsam116Coxswa117Windla117Keel114Tidega41Lantern46Starbo100Marlin58Quarte79Halyard89",
+"Subst->site lead 48h: Dotter118Nuthat67Woodla75Brambl51Pipit24Bittern93Dipper114Vireo31Wigeon65Quail95Twite55Oriole81Fulmar48Kestrel75Teal94",
+"ColdLink: overmld spacer87,alu panel107,heat-tr coupl107,knurl adhes49,mach adhes105,weld housing72,pneu coat23,vulc lining99,polymer sealant74,tungst coat41,nitrile filler43,elastomer fixture50,reinf coat118",
+"Safety cosign: magnet fitting/zinc-pl sealant90,acoust manifold/perf coupl79,quench fitting/flex panel59,borosil membrane/electrical coupl92,anod fixture/compos spacer103,lubric sealant/fibregl sleeve44,struct sleeve/cryo filler82"
+],
+"commitments": [],
+"open_items": [],
+"notes": []
+},
+"mem_chars": 1402,
+"retried": false,
+"ctx_chars_before": 8713
+},
+{
+"stage": 12,
+"kind": "compact",
+"memory": {
+"rules": [
+"Name35=applies if PO>=EUR3500. Dflt EUR, std carrier. Ops approves all; +Finance if>=EUR20k. Hold only on vendor hold.",
+"Pay SEKFoth35Ives106Ashd96Whit119Merr115;JPYArkw110Falk52Treh99Pemb48Elle36Thac69;AUDNeth98Jess109Inge26Sand66;GBPVena61Kerr22;NOKOyel108;HUFAber69Bjor93Cast63Ziel36Ethe96Illi116;USDKirk91Dunm114Hall54Lind71;CZKMall87Dela87Lock88;CHFLoma80Glen85Nort29;DKKYard25Ulve52Radc92Dimm59;CADKenw22Carr73Quin110Holl23Gate100Fair99Blax69;PLNEske43",
+"Brightway Moor116Waxw75Yell35Bunt78Lapw48Blue89Whea116Jack55Scau51Shri71Redst56Mall55Knot42Ibis41Hobb81Gold39Cros21Linn108Merl84Smew54Hero72Ospr68Pint85Turn98Eide103Ruff63Rook104Ushe112",
+"HarbourMstr Rudd108Salt74Till114Haws40Anch71Jets116Coxs117Wind117Keel114Tide41Lant46Star100Marl58Quar79Haly89Inle24Beac110Caps73Gall36Unde73Oar23",
+"Subst->lead48h Dott118Nuth67Wood75Bram51Pipi24Bitt93Dipp114Vire31Wige65Quai95Twit55Orio81Fulm48Kest75Teal94Gann89Dunl88Curl54Sisk113Sand39Hawf60Redsh98Nigh110Avoc76Fire107Kitt67Ston96Whim49",
+"ColdLink adh(knurl49mach105indus84modul96)coat(pneu23tung41reinf118)membr(forg88braid50silic39),overm spacer87,alu panel107,heattr coupl107,weld housing72,vulc lining99,polym seal74,nitr filler43,elast fixt50",
+"Safety cosign fit(magn90quench59dcast108)seal(zinc90lubric44precis51)manif(acoust79induct51therm108)coupl(perf79elec92marine112diel89)sleeve(fibgl44struct82)clamp(galv112lamin89),flex panel59,borosil membr92,anod fixt103,compos spacer103,cryo filler82,epoxy housing59,glassf damper59"
+],
+"commitments": [],
+"open_items": [],
+"notes": []
+},
+"mem_chars": 1465,
+"retried": false,
+"ctx_chars_before": 8438
+}
+],
+"probe_runs": [
+{
+"checkpoint": "c4",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "GBP",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Venables Pneumatics paid in GBP (PO >= EUR 6,100)."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below Venables GBP threshold; defaults apply."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Machined adhesives ship via ColdLink (PO >= EUR 10,500)."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below machined adhesives ColdLink threshold; defaults apply."
+},
+{
+"request_id": "REQ-8005",
+"currency": "CZK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Delacroix Drives paid in CZK (PO >= EUR 8,700)."
+},
+{
+"request_id": "REQ-8006",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below Delacroix CZK threshold; defaults apply."
+},
+{
+"request_id": "REQ-8007",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Vireo programme substitution: notify site lead 48 h ahead (PO >= EUR 3,100)."
+},
+{
+"request_id": "REQ-8008",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Vireo substitution below EUR 3,100 threshold; no notice needed."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply; below EUR 20,000 finance threshold."
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8015",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply; below EUR 20,000 finance threshold."
+},
+{
+"request_id": "REQ-8016",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply; below EUR 20,000 finance threshold."
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply; below EUR 20,000 finance threshold."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+}
+]
+}
+},
+{
+"checkpoint": "c8",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "GBP",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Venables paid in GBP (PO >= EUR 6,100)."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below Venables GBP threshold; default EUR."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Machined adhesives >= EUR 10,500 ship via ColdLink."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below ColdLink threshold for machined adhesives."
+},
+{
+"request_id": "REQ-8005",
+"currency": "CZK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Delacroix paid in CZK (PO >= EUR 8,700)."
+},
+{
+"request_id": "REQ-8006",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below Delacroix CZK threshold; default EUR."
+},
+{
+"request_id": "REQ-8007",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Vireo substitution >= EUR 3,100: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8008",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution below Vireo EUR 3,100 threshold; no notice needed."
+},
+{
+"request_id": "REQ-8009",
+"currency": "USD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Hallworth paid in USD (PO >= EUR 5,400)."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below Hallworth USD threshold; default EUR."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lantern Quay delivery >= EUR 4,600: notify harbour master."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below Lantern Quay harbour master threshold."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Nitrile fillers >= EUR 4,300 ship via ColdLink."
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below ColdLink threshold for nitrile fillers."
+},
+{
+"request_id": "REQ-8015",
+"currency": "DKK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Dimmock paid in DKK (PO >= EUR 5,900)."
+},
+{
+"request_id": "REQ-8016",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below Dimmock DKK threshold; default EUR."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "All defaults apply."
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "All defaults apply."
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "All defaults apply."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "All defaults apply."
+}
+]
+}
+},
+{
+"checkpoint": "c12",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "GBP",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Venables Pneumatics paid in GBP (PO >= EUR 6,100)."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Machined adhesives ship via ColdLink (PO >= EUR 10,500)."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8005",
+"currency": "CZK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Delacroix Drives paid in CZK (PO >= EUR 8,700)."
+},
+{
+"request_id": "REQ-8006",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8007",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Substitution for Vireo programme: notify site lead 48h ahead (PO >= EUR 3,100)."
+},
+{
+"request_id": "REQ-8008",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution below Vireo EUR 3,100 notice threshold."
+},
+{
+"request_id": "REQ-8009",
+"currency": "USD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Hallworth Pneumatics paid in USD (PO >= EUR 5,400)."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lantern Quay delivery: notify harbour master (PO >= EUR 4,600)."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Nitrile fillers ship via ColdLink (PO >= EUR 4,300)."
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8015",
+"currency": "DKK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Dimmock Drives paid in DKK (PO >= EUR 5,900)."
+},
+{
+"request_id": "REQ-8016",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Osprey retrofit contract clause: Brightway Freight (PO >= EUR 6,800)."
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Pintail terminal contract clause: Brightway Freight (PO >= EUR 8,500)."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+}
+]
+}
+},
+{
+"checkpoint": "c12c",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "GBP",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Venables paid in GBP (PO >= EUR6,100)."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below Venables GBP threshold; default EUR."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "ColdLink: machined adhesives PO >= EUR10,500."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Default; below ColdLink machined adhesives threshold."
+},
+{
+"request_id": "REQ-8005",
+"currency": "CZK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Delacroix paid in CZK (PO >= EUR8,700)."
+},
+{
+"request_id": "REQ-8006",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below Delacroix CZK threshold; default EUR."
+},
+{
+"request_id": "REQ-8007",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Vireo substitution >= EUR3,100: notify client site lead within 48h."
+},
+{
+"request_id": "REQ-8008",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution below Vireo EUR3,100 threshold; no lead notice."
+},
+{
+"request_id": "REQ-8009",
+"currency": "USD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Hallworth paid in USD (PO >= EUR5,400)."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below Hallworth USD threshold; default EUR."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lantern Quay delivery >= EUR4,600: notify harbour master."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below Lantern Quay harbour master threshold; default."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "ColdLink: nitrile fillers PO >= EUR4,300."
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below ColdLink nitrile fillers threshold; default."
+},
+{
+"request_id": "REQ-8015",
+"currency": "DKK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Dimmock paid in DKK (PO >= EUR5,900)."
+},
+{
+"request_id": "REQ-8016",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below Dimmock DKK threshold; default EUR."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Osprey project PO >= EUR6,800: ship via Brightway Freight."
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below Osprey Brightway threshold; default."
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Pintail project PO >= EUR8,500: ship via Brightway Freight."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below Pintail Brightway threshold; default."
+}
+]
+}
+}
+]
+}
