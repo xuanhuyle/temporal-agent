@@ -88,6 +88,11 @@ Do not use total raw transcript length as `L`; filler/noise alone should not def
 
 Use a deterministic canonical representation so `R` is measurable before any model call.
 
+**Critical anti-rigging requirement: future relevance must be hidden at compaction time.**
+All generated semantic units in `L` must be plausible future-relevant state. The subset ultimately scored should be selected by a separate fixed holdout seed/procedure that is determined before model execution but not exposed to the subject or compactor. Do not choose probes after seeing what the compactor forgot. This converts the problem into genuine information triage rather than hand-selecting "important" facts.
+
+The raw immutable archive must retain all source records, including units not selected for final scoring.
+
 The old PR #6 environment was approximately `R ~= 0.42`.
 
 Calibrate a small pressure sweep around and beyond the capacity boundary.
@@ -223,7 +228,9 @@ This calibration must be cheap.
 
 Hard target:
 
-> **20–40 subject-model calls total.**
+> **20–40 subject-model calls total across the entire calibration, including compactions, probes, and retrieval sanity checks.**
+
+Before launching each batch, print/record the expected incremental and cumulative call count.
 
 Hard maximum without explicit user authorization:
 
@@ -250,11 +257,11 @@ Use a coarse-to-fine procedure.
 
 ## Stage A — coarse sweep
 
-Use one seed per pressure level.
+Use one seed per pressure level, but stop levels as soon as the crossover is bracketed.
 
-Run approximately:
+Begin approximately at two separated points such as `R ~= 0.75` and `R ~= 2.5`. If both are on the same side of the transition, move one boundary once. If they bracket it, test a midpoint. This adaptive search is preferred to blindly running every level.
 
-`R = 0.5, 1, 2, 4`
+A four-point sequence such as `R = 0.5, 1, 2, 4` is a fallback only if the adaptive bracket is unclear.
 
 Measure final capability and inspect failures.
 
@@ -300,6 +307,8 @@ Classify each into:
 - **D6 benchmark flaw** — ambiguous wording, contradictory ground truth, probe artifact, evaluator issue.
 
 A future Temporal Multiplicity test is justified only if the candidate regime contains several D1–D5 failures and is not dominated by D6.
+
+Also distinguish whether an earlier checkpoint actually had the capability. A failure is useful for the later experiment only when the same frozen post-hoc probe is answered materially better by at least one earlier checkpoint than by the final compacted state.
 
 We do not require any specific failure type.
 
