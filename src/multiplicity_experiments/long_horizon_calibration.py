@@ -309,9 +309,70 @@ def analyse(ep: dict[str, Any], traj: dict[str, Any]) -> dict[str, Any]:
             "null_probe_outputs": sum(1 for x in traj["probe_runs"] if not x["output"])}
 
 
+# ------------------------------------------------------------------ retrieval sanity check (brief section 9)
+def select_failures(rows: list[dict[str, Any]], k: int) -> list[tuple[str, str]]:
+    """Fixed rule, written before any failure was seen: regression units in holdout (scored) order, taken
+    round-robin across trajectories so no single seed supplies the sample; at most k."""
+    queues = [[(r["episode"], u["rule"]) for u in r["units"] if u["regression"]] for r in rows]
+    out: list[tuple[str, str]] = []
+    while len(out) < k and any(queues):
+        for q in queues:
+            if q and len(out) < k:
+                out.append(q.pop(0))
+    return out
+
+
+def retrieval_script(items: list[tuple[dict[str, Any], dict[str, Any], str]], name: str) -> str:
+    """Per failure: query = the failed probe's request text -> existing model-ranked archive search -> append the
+    top-1 raw record to the final memory -> re-run the decision once on the unit's probes. 2 calls per failure."""
+    units = []
+    for ep, traj, rid in items:
+        final = traj["checkpoints"][-1]
+        finals = [run for run in traj["probe_runs"] if run["checkpoint"] == final["id"]]
+        rule = next(r for r in ep["rules"] if r["id"] == rid)
+        probes = lh.unit_probes(ep, (rid, "main"))
+        failing = next((t for t in probes for run in finals if not lh.field_ok(
+            ep, t, lh.decisions_by_id(run["output"]).get(t["id"]), lh.target_field(rule), lh.N_STAGES)), probes[0])
+        units.append({"unit": f"{ep['id']}:{rid}", "final": final, "query": failing["text"],
+                      "probes": [{"id": t["id"], "text": t["text"]} for t in probes], "archive": lh.archive_of(traj)})
+    data = {"ctx_max": lh.CTX_MAX, "mem_max": lh.MEM_MAX, "s0_memory": lh.S0_MEMORY, "units": units}
+    body = lh.INVESTIGATE.read_text() + """
+return await parallel(DATA.units.map((u) => async () => {
+  const ids = await search({ archive: u.archive }, u.query, `retrieval:${u.unit}:search`)
+  const rec = u.archive.find((x) => x.id === ids[0])
+  const st = { ...u.final, memory: { ...u.final.memory, rules: [...(u.final.memory.rules || []), rec ? rec.text : ''] } }
+  const out = await callAgent(decidePrompt(st, u.probes), DECISIONS, `retrieval:${u.unit}:rerun`, 'Rerun')
+  return { unit: u.unit, retrieved: ids, output: out }
+}))"""
+    return lh.workflow_script(name, "Calibration retrieval sanity check: top-1 archive record appended, decision re-run once",
+                              ["Retrieval", "Rerun"], data, body)
+
+
+def retrieval_analyse(eps: dict[str, dict[str, Any]], results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    out = []
+    for res in results:
+        if not res:
+            continue
+        epid, rid = res["unit"].split(":")
+        ep = eps[epid]
+        rule = next(r for r in ep["rules"] if r["id"] == rid)
+        acc = lh.unit_accuracy(ep, [{"output": res["output"]}], (rid, "main")) or 0.0
+        top = (res["retrieved"] or [None])[0]
+        rule_msg = next((m["id"] for s in ep["stages"] for m in s["messages"] if canonical_entity(rule) in m["text"]),
+                        None)
+        out.append({"unit": res["unit"], "retrieved": res["retrieved"], "top1_is_rule_message": top == rule_msg,
+                    "rule_message": rule_msg, "accuracy_after_retrieval": acc, "repaired": acc > 0.5})
+    return out
+
+
+def canonical_entity(rule: dict[str, Any]) -> str:
+    p = rule["params"]
+    return p["cats"][0] if "cats" in p else next(p[k] for k in ("vendor", "client", "site", "cat") if k in p)
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    p.add_argument("step", choices=["validate", "episode", "analyse"])
+    p.add_argument("step", choices=["validate", "episode", "analyse", "retrieval", "retrieval-analyse"])
     p.add_argument("--targets", nargs="+", type=float, default=[0.5, 0.75, 1.0, 1.5, 2.0, 2.5, 4.0])
     p.add_argument("--seeds", nargs="+", type=int, default=list(range(1, 201)))
     p.add_argument("--id")
@@ -320,6 +381,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--episodes", nargs="+", type=Path)
     p.add_argument("--trajectories", nargs="+", type=Path)
     p.add_argument("--out", type=Path)
+    p.add_argument("--analyses", nargs="+", type=Path)
+    p.add_argument("--k", type=int, default=3)
+    p.add_argument("--results", type=Path)
     a = p.parse_args(argv)
     if a.step == "validate":
         report = []
@@ -345,6 +409,20 @@ def main(argv: list[str] | None = None) -> int:
         (a.out / f"trajectory_{a.id}.js").write_text(trajectory_script(ep))
         print(a.id, "R", ep["R"], "rules", a.n_rules, "scored", ep["scored"],
               "stage chars", [sum(len(m["text"]) for m in s["messages"]) for s in ep["stages"]])
+    elif a.step == "retrieval":
+        eps = {e["id"]: e for e in (json.loads(x.read_text()) for x in a.episodes)}
+        trajs = {t["episode"]: t for t in (lh.load_result(x) for x in a.trajectories)}
+        rows = [r for x in a.analyses for r in json.loads(x.read_text())]
+        picked = select_failures(rows, a.k)
+        print("selected failures:", picked)
+        a.out.write_text(retrieval_script([(eps[e], trajs[e], rid) for e, rid in picked], "tmk-calib-retrieval"))
+    elif a.step == "retrieval-analyse":
+        eps = {e["id"]: e for e in (json.loads(x.read_text()) for x in a.episodes)}
+        rows = retrieval_analyse(eps, lh.load_result(a.results))
+        for r in rows:
+            print(r)
+        if a.out:
+            a.out.write_text(json.dumps(rows, indent=1) + "\n")
     else:
         eps = {e["id"]: e for e in (json.loads(x.read_text()) for x in a.episodes)}
         rows = [analyse(eps[t["episode"]], t) for t in (lh.load_result(x) for x in a.trajectories)]
