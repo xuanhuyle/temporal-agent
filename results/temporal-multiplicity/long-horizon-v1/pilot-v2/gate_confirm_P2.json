@@ -1,0 +1,366 @@
+[
+ {
+  "unit": "P2:R2:main",
+  "retrieved": [
+   "M-009",
+   "M-017",
+   "REQ-0503",
+   "REQ-0434",
+   "M-074"
+  ],
+  "runs": [
+   {
+    "tag": "best",
+    "replicate": 0,
+    "output": {
+     "decisions": [
+      {
+       "request_id": "REQ-8021",
+       "currency": "CHF",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt Hydraulik paid in CHF per Logistics 10 Mar; below EUR 20,000."
+      },
+      {
+       "request_id": "REQ-8022",
+       "currency": "CHF",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt Hydraulik paid in CHF per Logistics 10 Mar; below EUR 20,000."
+      }
+     ]
+    }
+   },
+   {
+    "tag": "best",
+    "replicate": 1,
+    "output": {
+     "decisions": [
+      {
+       "request_id": "REQ-8021",
+       "currency": "CHF",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt Hydraulik is paid in CHF per Logistics notice of 10 Mar. Ops only."
+      },
+      {
+       "request_id": "REQ-8022",
+       "currency": "CHF",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt Hydraulik is paid in CHF per Logistics notice of 10 Mar. Ops only."
+      }
+     ]
+    }
+   },
+   {
+    "tag": "best",
+    "replicate": 2,
+    "output": {
+     "decisions": [
+      {
+       "request_id": "REQ-8021",
+       "currency": "CHF",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt Hydraulik paid in CHF per Logistics 10 Mar. Below EUR 20,000."
+      },
+      {
+       "request_id": "REQ-8022",
+       "currency": "CHF",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt Hydraulik paid in CHF per Logistics 10 Mar. Below EUR 20,000."
+      }
+     ]
+    }
+   },
+   {
+    "tag": "best",
+    "replicate": 3,
+    "output": {
+     "decisions": [
+      {
+       "request_id": "REQ-8021",
+       "currency": "CHF",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt Hydraulik paid in CHF per Logistics 10 Mar; below EUR 20,000."
+      },
+      {
+       "request_id": "REQ-8022",
+       "currency": "CHF",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt Hydraulik paid in CHF per Logistics 10 Mar; below EUR 20,000."
+      }
+     ]
+    }
+   },
+   {
+    "tag": "final",
+    "replicate": 0,
+    "output": {
+     "decisions": [
+      {
+       "request_id": "REQ-8021",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt currency open: Finance EUR vs Logistics CHF; confirm with Priya before PO.",
+       "decision_basis": "Under 50k so ops only; not Pier 7/Dock 4; customer Port of Elsby, not Hollin Water; no substitution; no vendor hold."
+      },
+      {
+       "request_id": "REQ-8022",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt currency open: Finance EUR vs Logistics CHF; confirm with Priya before PO."
+      }
+     ]
+    }
+   },
+   {
+    "tag": "final",
+    "replicate": 1,
+    "output": {
+     "decisions": [
+      {
+       "request_id": "REQ-8021",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt EUR/CHF conflict open, confirm with Priya; check tubing qty with Freya.",
+       "note_len_check": ""
+      }
+     ]
+    }
+   },
+   {
+    "tag": "final",
+    "replicate": 2,
+    "output": {
+     "decisions": [
+      {
+       "request_id": "REQ-8021",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt currency EUR per Finance; CHF conflict with Logistics still open, confirm with Priya."
+      },
+      {
+       "request_id": "REQ-8022",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt currency EUR per Finance; CHF conflict with Logistics still open, confirm with Priya."
+      }
+     ]
+    }
+   },
+   {
+    "tag": "final",
+    "replicate": 3,
+    "output": {
+     "decisions": [
+      {
+       "request_id": "REQ-8021",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt currency EUR (Finance) vs CHF (Logistics) unresolved; confirm with Priya. Check tubing qty with planner.",
+       "_note_check": ""
+      },
+      {
+       "request_id": "REQ-8022",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt currency EUR (Finance) vs CHF (Logistics) unresolved; confirm with Priya before sending PO."
+      }
+     ]
+    }
+   },
+   {
+    "tag": "retrieval",
+    "replicate": 0,
+    "output": {
+     "decisions": [
+      {
+       "request_id": "REQ-8021",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt CHF switch came via Logistics only; paying EUR until Priya (Finance) confirms."
+      },
+      {
+       "request_id": "REQ-8022",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt CHF switch came via Logistics only; paying EUR until Priya (Finance) confirms."
+      }
+     ]
+    }
+   },
+   {
+    "tag": "retrieval",
+    "replicate": 1,
+    "output": {
+     "decisions": [
+      {
+       "request_id": "REQ-8021",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt kept on EUR per Finance; Logistics' CHF switch unverified, confirm with Priya."
+      },
+      {
+       "request_id": "REQ-8022",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Brandt kept on EUR per Finance; Logistics' CHF switch unverified, confirm with Priya."
+      }
+     ]
+    }
+   },
+   {
+    "tag": "retrieval",
+    "replicate": 2,
+    "output": {
+     "decisions": [
+      {
+       "request_id": "REQ-8021",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Paying EUR per Finance; Logistics' Brandt CHF switch unconfirmed, verify with Priya first."
+      },
+      {
+       "request_id": "REQ-8022",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "Paying EUR per Finance; Logistics' Brandt CHF switch unconfirmed, verify with Priya first."
+      }
+     ]
+    }
+   },
+   {
+    "tag": "retrieval",
+    "replicate": 3,
+    "output": {
+     "decisions": [
+      {
+       "request_id": "REQ-8021",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "EUR per Finance; Logistics' CHF switch unconfirmed, verify with Priya. Gate B no notice."
+      },
+      {
+       "request_id": "REQ-8022",
+       "currency": "EUR",
+       "approvers": [
+        "ops"
+       ],
+       "carrier": "standard",
+       "notify": [],
+       "hold": false,
+       "note": "EUR per Finance; Logistics' CHF switch unconfirmed, verify with Priya before payment."
+      }
+     ]
+    }
+   }
+  ]
+ }
+]

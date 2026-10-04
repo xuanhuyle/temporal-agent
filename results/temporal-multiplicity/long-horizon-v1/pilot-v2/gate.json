@@ -1,0 +1,20 @@
+{
+ "units": {
+  "P2": [
+   {
+    "unit": "P2:R2:main",
+    "fresh_best": 1.0,
+    "fresh_final": 0.0,
+    "fresh_retrieval_repair": 0.0,
+    "confirmed": true,
+    "trivial": false,
+    "retrieved": "M-009",
+    "retrieved_mentions_entity": true
+   }
+  ]
+ },
+ "passing": [
+  "P2"
+ ],
+ "gate": "NO_HEADROOM"
+}
