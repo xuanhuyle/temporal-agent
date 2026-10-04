@@ -8,8 +8,11 @@ are real model behaviour, not stipulated numbers.
 Conditions (same model, same history, same module contents, same candidate list):
 - multiplicity: also sees evaluations of forks of S3 with one learned module removed
   (TemporalMultiplicity.fork with a ``forget.`` mutation), i.e. controlled self-ablation;
-- baseline: spends the matching extra calls on two independent self-reflections plus a synthesis.
-Primary outcome: held-out accuracy gain of S3 + chosen module, and regret against the best candidate.
+- baseline: spends the matching extra calls on independent self-reflections plus a synthesis
+  (pilot: 2 reflections; v2: 6, matching the 6 ablation executions multiplicity consumes).
+Primary outcome: held-out accuracy gain of the chosen action, and regret against the best action.
+Pilot action: learn one candidate (S3 + C). v2 action (capacity full): learn one candidate and forget one
+learned module (S3 - X + C), so the decision depends on knowing which learned module actually matters.
 
 The subject never sees true prices, held-out results or candidate evaluations.
 
@@ -268,7 +271,8 @@ def plan_decisions(data: dict[str, Any], evals: dict[str, Any], episode_ids: lis
     return jobs
 
 
-SYNTHESIS = ("\n\nTWO INDEPENDENT ANALYSES YOU WROTE EARLIER ABOUT THIS SAME SITUATION:\n{analyses}\n\n"
+# Baseline synthesis suffix (pilot: n=TWO reflections; v2: n=6 to match multiplicity's 6 ablation executions).
+SYNTHESIS = ("\n\n{n} INDEPENDENT ANALYSES YOU WROTE EARLIER ABOUT THIS SAME SITUATION:\n{analyses}\n\n"
              "Weigh them critically and give your final answers.")
 
 
