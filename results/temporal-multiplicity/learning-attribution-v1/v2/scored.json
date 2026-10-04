@@ -1,0 +1,5380 @@
+{
+  "rows": [
+    {
+      "episode": "E1",
+      "condition": "multiplicity",
+      "repeat": 0,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "EXPR",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "baseline",
+      "repeat": 0,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "EXPR",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "reflection0",
+      "repeat": 0,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "Learn EXPR, forget FRAG",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "reflection1",
+      "repeat": 0,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "Learn EXPR; forget FRAG.",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "reflection2",
+      "repeat": 0,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "Learn EXPR and forget FRAG.",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "reflection3",
+      "repeat": 0,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "Learn EXPR and forget FRAG.",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "helpful",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "reflection4",
+      "repeat": 0,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "Learn EXPR, forget FRAG",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "reflection5",
+      "repeat": 0,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "EXPR",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "multiplicity",
+      "repeat": 1,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "EXPR",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "helpful",
+        "FRAG": "helpful"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "baseline",
+      "repeat": 1,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "EXPR",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "reflection0",
+      "repeat": 1,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "Learn EXPR and forget FRAG.",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "helpful",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "reflection1",
+      "repeat": 1,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "EXPR",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "reflection2",
+      "repeat": 1,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "EXPR",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "reflection3",
+      "repeat": 1,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "EXPR",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "reflection4",
+      "repeat": 1,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "EXPR",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E1",
+      "condition": "reflection5",
+      "repeat": 1,
+      "choice": "EXPR/-FRAG",
+      "raw_choice": [
+        "Learn EXPR, forget FRAG",
+        "FRAG"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-EXAMPLES": -0.625,
+        "EXPR/-BASE": -0.3333333333333333,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-EXAMPLES": -0.625,
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-EXAMPLES": -0.625,
+        "MEMO/-BASE": -0.39583333333333337,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "BASE": "helpful",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "BASE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "multiplicity",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "FRAG",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "harmful",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "baseline",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "FRAG",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "reflection0",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "Learn FRAG; forget ZONE",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "reflection1",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "FRAG",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "reflection2",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "FRAG",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "reflection3",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "FRAG",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "reflection4",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "FRAG",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "reflection5",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "Learn FRAG and forget ZONE.",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "multiplicity",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "Learn FRAG and forget ZONE",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "harmful",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "baseline",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "FRAG",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "reflection0",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "FRAG",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "reflection1",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "Learn FRAG and forget ZONE.",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "reflection2",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "FRAG",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "reflection3",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "Learn FRAG and forget ZONE.",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "reflection4",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "Learn FRAG, forget ZONE",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E2",
+      "condition": "reflection5",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE",
+      "raw_choice": [
+        "FRAG",
+        "ZONE"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-EXAMPLES": -0.6875,
+        "FRAG/-ZONE": 0.1875,
+        "FRAG/-EXPR": 0.125,
+        "HEAVY/-EXAMPLES": -0.6875,
+        "HEAVY/-ZONE": 0.0,
+        "HEAVY/-EXPR": -0.1875,
+        "CUSTOMS/-EXAMPLES": -0.6875,
+        "CUSTOMS/-ZONE": 0.0,
+        "CUSTOMS/-EXPR": -0.1875
+      },
+      "attribution": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "essential"
+      },
+      "attribution_truth": {
+        "EXAMPLES": "essential",
+        "ZONE": "no_effect",
+        "EXPR": "helpful"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "HEAVY",
+        "CUSTOMS"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "multiplicity",
+      "repeat": 0,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "Learn EXPR; forget ZONE_OLD",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "no_effect",
+        "ZONE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "baseline",
+      "repeat": 0,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "EXPR",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "no_effect",
+        "ZONE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "reflection0",
+      "repeat": 0,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "Learn EXPR; forget ZONE_OLD",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "reflection1",
+      "repeat": 0,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "Learn EXPR; forget ZONE_OLD",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "no_effect",
+        "ZONE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "reflection2",
+      "repeat": 0,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "EXPR",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "reflection3",
+      "repeat": 0,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "EXPR",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "reflection4",
+      "repeat": 0,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "EXPR",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "reflection5",
+      "repeat": 0,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "EXPR",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "multiplicity",
+      "repeat": 1,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "Learn EXPR and forget ZONE_OLD.",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "no_effect",
+        "ZONE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "baseline",
+      "repeat": 1,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "Learn EXPR",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "no_effect",
+        "ZONE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "reflection0",
+      "repeat": 1,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "Learn EXPR; forget ZONE_OLD",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "reflection1",
+      "repeat": 1,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "EXPR",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "no_effect",
+        "ZONE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "reflection2",
+      "repeat": 1,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "Learn EXPR, forget ZONE_OLD",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "reflection3",
+      "repeat": 1,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "EXPR",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "no_effect",
+        "ZONE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "reflection4",
+      "repeat": 1,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "Learn EXPR and forget ZONE_OLD.",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "no_effect",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E3",
+      "condition": "reflection5",
+      "repeat": 1,
+      "choice": "EXPR/-ZONE_OLD",
+      "raw_choice": [
+        "EXPR",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.5,
+      "best_gain": 0.5,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ZONE_OLD": 0.5,
+        "EXPR/-ZONE": -0.125,
+        "EXPR/-FRAG": 0.08333333333333337,
+        "ERRATA/-ZONE_OLD": 0.125,
+        "ERRATA/-ZONE": -0.25,
+        "ERRATA/-FRAG": 0.125,
+        "HEAVY/-ZONE_OLD": 0.125,
+        "HEAVY/-ZONE": -0.25,
+        "HEAVY/-FRAG": -0.125
+      },
+      "attribution": {
+        "ZONE_OLD": "no_effect",
+        "ZONE": "essential",
+        "FRAG": "helpful"
+      },
+      "attribution_truth": {
+        "ZONE_OLD": "harmful",
+        "ZONE": "essential",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "ERRATA",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "multiplicity",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "FRAG",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "baseline",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "FRAG",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "reflection0",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "FRAG",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "reflection1",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "FRAG",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "reflection2",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "FRAG",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "reflection3",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "Learn FRAG and forget ZONE_OLD.",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "reflection4",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "Learn FRAG and forget ZONE_OLD.",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "reflection5",
+      "repeat": 0,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "FRAG",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "multiplicity",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "FRAG",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "baseline",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "FRAG",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "reflection0",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "FRAG",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "reflection1",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "FRAG",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "reflection2",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "Learn FRAG; forget ZONE_OLD",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "reflection3",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "FRAG",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "reflection4",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "Learn FRAG; forget ZONE_OLD",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E4",
+      "condition": "reflection5",
+      "repeat": 1,
+      "choice": "FRAG/-ZONE_OLD",
+      "raw_choice": [
+        "Learn FRAG; forget ZONE_OLD",
+        "ZONE_OLD"
+      ],
+      "choice_gain": 0.3125,
+      "best_gain": 0.3125,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "FRAG/-ZONE": -0.375,
+        "FRAG/-MEMO": 0.3125,
+        "FRAG/-ZONE_OLD": 0.3125,
+        "EXPR/-ZONE": -0.4375,
+        "EXPR/-MEMO": 0.0,
+        "EXPR/-ZONE_OLD": 0.0,
+        "ERRATA/-ZONE": -0.4375,
+        "ERRATA/-MEMO": 0.0,
+        "ERRATA/-ZONE_OLD": 0.0
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "MEMO": "no_effect",
+        "ZONE_OLD": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "FRAG",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "multiplicity",
+      "repeat": 0,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "Learn EXPR and forget EXAMPLES.",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "no_effect",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "baseline",
+      "repeat": 0,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "EXPR",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "essential",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "reflection0",
+      "repeat": 0,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "EXPR",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "essential",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "reflection1",
+      "repeat": 0,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "Learn EXPR and forget EXAMPLES.",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "essential",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "reflection2",
+      "repeat": 0,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "EXPR",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "essential",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "reflection3",
+      "repeat": 0,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "EXPR",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "essential",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "reflection4",
+      "repeat": 0,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "Learn EXPR and forget EXAMPLES.",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "essential",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "reflection5",
+      "repeat": 0,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "Learn EXPR and forget EXAMPLES.",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "essential",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "multiplicity",
+      "repeat": 1,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "Learn EXPR; forget EXAMPLES",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "no_effect",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "baseline",
+      "repeat": 1,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "EXPR",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "essential",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "reflection0",
+      "repeat": 1,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "Learn EXPR and forget EXAMPLES.",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "essential",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "reflection1",
+      "repeat": 1,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "EXPR",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "essential",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "reflection2",
+      "repeat": 1,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "EXPR",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "essential",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "reflection3",
+      "repeat": 1,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "EXPR",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "essential",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "reflection4",
+      "repeat": 1,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "Learn EXPR and forget EXAMPLES.",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "essential",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E5",
+      "condition": "reflection5",
+      "repeat": 1,
+      "choice": "EXPR/-EXAMPLES",
+      "raw_choice": [
+        "Learn EXPR and forget EXAMPLES.",
+        "EXAMPLES"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-ROUND": 0.375,
+        "EXPR/-EXAMPLES": 0.375,
+        "EXPR/-FRAG": 0.1875,
+        "HEAVY/-ROUND": 0.0,
+        "HEAVY/-EXAMPLES": 0.0,
+        "HEAVY/-FRAG": -0.1875,
+        "MEMO/-ROUND": 0.0,
+        "MEMO/-EXAMPLES": 0.0,
+        "MEMO/-FRAG": -0.1875
+      },
+      "attribution": {
+        "ROUND": "essential",
+        "EXAMPLES": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "ROUND": "helpful",
+        "EXAMPLES": "no_effect",
+        "FRAG": "helpful"
+      },
+      "attribution_hits": 1,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "MEMO",
+        "HEAVY"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "multiplicity",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "HEAVY",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "harmful",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "baseline",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "reflection0",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "reflection1",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "reflection2",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY, forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "reflection3",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY, forget CUSTOMS",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "reflection4",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "reflection5",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "multiplicity",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "HEAVY",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "harmful",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 2,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "baseline",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "HEAVY",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "reflection0",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "reflection1",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY, forget CUSTOMS",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "reflection2",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "reflection3",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "HEAVY",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "reflection4",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E6",
+      "condition": "reflection5",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.33333333333333337,
+      "best_gain": 0.33333333333333337,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-BASE": -0.10416666666666663,
+        "HEAVY/-CUSTOMS": 0.33333333333333337,
+        "HEAVY/-FRAG": 0.02083333333333337,
+        "EXPR/-BASE": -0.6666666666666666,
+        "EXPR/-CUSTOMS": -0.02083333333333326,
+        "EXPR/-FRAG": -0.31249999999999994,
+        "EXAMPLES/-BASE": -0.29166666666666663,
+        "EXAMPLES/-CUSTOMS": 0.02083333333333337,
+        "EXAMPLES/-FRAG": -0.31249999999999994
+      },
+      "attribution": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_truth": {
+        "BASE": "essential",
+        "CUSTOMS": "no_effect",
+        "FRAG": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXAMPLES",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "multiplicity",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "baseline",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "HEAVY",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "reflection0",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "ERRATA",
+        "EXPR"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "reflection1",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "BASE": "essential",
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "reflection2",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "HEAVY",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "reflection3",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "reflection4",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "reflection5",
+      "repeat": 0,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "multiplicity",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY, forget CUSTOMS",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "baseline",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "HEAVY",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "reflection0",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "reflection1",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "reflection2",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "reflection3",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "reflection4",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E7",
+      "condition": "reflection5",
+      "repeat": 1,
+      "choice": "HEAVY/-CUSTOMS",
+      "raw_choice": [
+        "Learn HEAVY and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.1875,
+      "best_gain": 0.1875,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "HEAVY/-ZONE": -0.5,
+        "HEAVY/-CUSTOMS": 0.1875,
+        "HEAVY/-BASE": -0.25,
+        "ERRATA/-ZONE": -0.625,
+        "ERRATA/-CUSTOMS": 0.0,
+        "ERRATA/-BASE": -0.8125,
+        "EXPR/-ZONE": -0.625,
+        "EXPR/-CUSTOMS": 0.0,
+        "EXPR/-BASE": -0.8125
+      },
+      "attribution": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_truth": {
+        "ZONE": "essential",
+        "CUSTOMS": "no_effect",
+        "BASE": "essential"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "HEAVY",
+        "EXPR",
+        "ERRATA"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "multiplicity",
+      "repeat": 0,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "EXPR",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "baseline",
+      "repeat": 0,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "EXPR",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "reflection0",
+      "repeat": 0,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "EXPR",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "reflection1",
+      "repeat": 0,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "EXPR",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "reflection2",
+      "repeat": 0,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "Learn EXPR and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "reflection3",
+      "repeat": 0,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "EXPR",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "reflection4",
+      "repeat": 0,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "Learn EXPR and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "reflection5",
+      "repeat": 0,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "EXPR",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "multiplicity",
+      "repeat": 1,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "Learn EXPR and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "baseline",
+      "repeat": 1,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "EXPR",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "reflection0",
+      "repeat": 1,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "EXPR",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "reflection1",
+      "repeat": 1,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "Learn EXPR; forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "reflection2",
+      "repeat": 1,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "Learn EXPR and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "reflection3",
+      "repeat": 1,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "EXPR",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "reflection4",
+      "repeat": 1,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "Learn EXPR, forget CUSTOMS",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    },
+    {
+      "episode": "E8",
+      "condition": "reflection5",
+      "repeat": 1,
+      "choice": "EXPR/-CUSTOMS",
+      "raw_choice": [
+        "Learn EXPR and forget CUSTOMS.",
+        "CUSTOMS"
+      ],
+      "choice_gain": 0.375,
+      "best_gain": 0.375,
+      "regret": 0.0,
+      "chose_best": true,
+      "gains": {
+        "EXPR/-MEMO_R": -0.625,
+        "EXPR/-BASE": -0.625,
+        "EXPR/-CUSTOMS": 0.375,
+        "HEAVY/-MEMO_R": -0.625,
+        "HEAVY/-BASE": -0.5,
+        "HEAVY/-CUSTOMS": 0.0,
+        "FRAG/-MEMO_R": -0.625,
+        "FRAG/-BASE": -0.625,
+        "FRAG/-CUSTOMS": 0.0
+      },
+      "attribution": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_truth": {
+        "MEMO_R": "essential",
+        "BASE": "essential",
+        "CUSTOMS": "no_effect"
+      },
+      "attribution_hits": 3,
+      "attribution_n": 3,
+      "ranking": [
+        "EXPR",
+        "HEAVY",
+        "FRAG"
+      ]
+    }
+  ]
+}
