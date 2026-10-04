@@ -614,6 +614,126 @@ def retained(rule: dict[str, Any], memory: dict[str, Any]) -> bool:
     return all(k.lower() in text for k in RETENTION_KEYS[rule["kind"]](rule["params"]))
 
 
+# ------------------------------------------------------------------ investigation cases (conditions A / B / C)
+INVESTIGATE = EXP_DIR / "investigate.js"
+
+
+def archive_of(traj: dict[str, Any]) -> list[dict[str, str]]:
+    """Immutable raw record: every message, request and decision the agent ever had in its working context."""
+    seen: dict[str, str] = {}
+    for cp in traj["checkpoints"]:
+        for r in cp["context"]:
+            seen.setdefault(r["id"], r["text"])
+    return [{"id": k, "text": v} for k, v in seen.items()]
+
+
+def make_cases(ep: dict[str, Any], traj: dict[str, Any], units: list[tuple[str, str]],
+               conds: tuple[str, ...] = ("A", "B", "C"), steps: dict[str, int] | None = None,
+               max_exec: int = 4) -> list[dict[str, Any]]:
+    """One case per confirmed regression unit (rule, clause) and condition. The revealed failure is the unit's dev
+    probes on which the current agent was wrong; held-out probes are never shown."""
+    steps = steps or {"A": 8, "B": 8, "C": 4}
+    rules = {r["id"]: r for r in ep["rules"]}
+    final = traj["checkpoints"][-1]
+    finals = [run for run in traj["probe_runs"] if run["checkpoint"] == final["id"]]
+    probes = {t["id"]: t for t in ep["dev_probes"]}
+    out = []
+    for unit in units:
+        r = rules[unit[0]]
+        failing = []
+        for t in unit_probes(ep, unit):
+            for run in finals:  # first replicate in which the current agent got the target field wrong
+                d = decisions_by_id(run["output"]).get(t["id"])
+                if not field_ok(ep, t, d, target_field(r), N_STAGES):
+                    failing.append({"id": t["id"], "text": t["text"], "current_decision": d})
+                    break
+        if not failing:
+            continue
+        truth_by_cp = {cp["id"]: {f["id"]: truth(ep, probes[f["id"]], cp["stage"]) for f in failing}
+                       for cp in traj["checkpoints"]}
+        for cond in conds:
+            out.append({"id": f"{ep['id']}-{unit[0]}{unit[1][0]}", "episode": ep["id"], "rule": unit[0],
+                        "clause": unit[1], "cond": cond, "steps": steps[cond],
+                        "max_exec": max_exec if cond == "C" else 0, "stages": N_STAGES, "current": final,
+                        "failing": failing, "archive": archive_of(traj),
+                        "checkpoints": traj["checkpoints"] if cond != "A" else [], "truth": truth_by_cp})
+    return out
+
+
+def investigation_script(cases: list[dict[str, Any]], name: str) -> str:
+    data = {"ctx_max": CTX_MAX, "mem_max": MEM_MAX, "s0_memory": S0_MEMORY, "cases": cases}
+    body = INVESTIGATE.read_text() + "\nreturn await parallel(DATA.cases.map((c) => () => runCase(c)))"
+    return workflow_script(name, "Regression investigation + one-item repair: conditions A/B/C with matched budgets",
+                           ["Investigate", "Retrieval", "Execute history"], data, body)
+
+
+def candidate_entries(ep: dict[str, Any], traj: dict[str, Any], rule_id: str) -> list[dict[str, Any]]:
+    """Offline repair candidates for regret: the rule's own raw message plus every historical memory entry that
+    mentions the rule's entity (deduplicated)."""
+    r = next(x for x in ep["rules"] if x["id"] == rule_id)
+    key = RETENTION_KEYS[r["kind"]](r["params"])[0].lower()
+    arch = {a["id"]: a["text"] for a in archive_of(traj)}
+    out = []
+    for s in ep["stages"]:
+        if s["stage"] == r["stage"]:
+            for m in s["messages"]:
+                if all(k.lower() in m["text"].lower() for k in RETENTION_KEYS[r["kind"]](r["params"])):
+                    out.append({"source": "archive", "id": m["id"], "text": arch.get(m["id"], m["text"])})
+    seen = set()
+    for cp in traj["checkpoints"]:
+        for sec, entries in cp["memory"].items():
+            for i, e in enumerate(entries):
+                if key in e.lower() and e not in seen:
+                    seen.add(e)
+                    out.append({"source": "checkpoint", "checkpoint": cp["id"], "section": sec, "index": i, "text": e})
+    return out
+
+
+def resolve_repair(traj: dict[str, Any], repair: dict[str, Any] | None) -> str | None:
+    """Text of the item a condition chose to restore, or None if the choice is invalid."""
+    if not repair:
+        return None
+    if repair.get("source") == "archive":
+        return next((a["text"] for a in archive_of(traj) if a["id"] == str(repair.get("id", "")).strip()), None)
+    cp = next((c for c in traj["checkpoints"] if c["id"] == repair.get("checkpoint")), None)
+    try:
+        return cp["memory"][repair["section"]][int(repair["index"])] if cp else None
+    except (KeyError, IndexError, TypeError, ValueError):
+        return None
+
+
+def replace_key(final: dict[str, Any], repair: dict[str, Any]) -> str | None:
+    rep = str((repair or {}).get("replace") or "").strip()
+    try:
+        sec, idx = rep.split(":")
+        return f"mem:{sec}:{int(idx)}" if sec in ("rules", "notes") and int(idx) < len(final["memory"].get(sec, [])) else None
+    except ValueError:
+        return None
+
+
+def heldout_script(ep: dict[str, Any], states: list[dict[str, Any]], reps: int, name: str,
+                   rule_ids: set[str] | None = None) -> str:
+    tasks = [{"id": t["id"], "text": t["text"]} for t in ep["heldout"] if rule_ids is None or t["rule"] in rule_ids]
+    data = {"ctx_max": CTX_MAX, "mem_max": MEM_MAX, "s0_memory": S0_MEMORY, "tasks": tasks, "states": states, "reps": reps}
+    body = ("const jobs = []\nfor (const s of DATA.states) for (let r = 0; r < DATA.reps; r++) jobs.push({ s, r })\n"
+            "const out = await parallel(jobs.map(({ s, r }) => () => callAgent(decidePrompt(s, DATA.tasks), DECISIONS, "
+            "`heldout:${s.id}:r${r}`, 'Held-out').then((o) => ({ state: s.id, replicate: r, output: o }))))\n"
+            "return out.filter(Boolean)")
+    return workflow_script(name, "Held-out evaluation of current, repaired and candidate states", ["Held-out"], data, body)
+
+
+def heldout_accuracy(ep: dict[str, Any], runs: list[dict[str, Any]], state_id: str,
+                     unit: tuple[str, str] | None) -> float | None:
+    rules = {r["id"]: r for r in ep["rules"]}
+    hits = []
+    for run in (x for x in runs if x["state"] == state_id):
+        dm = decisions_by_id(run["output"])
+        for t in ep["heldout"]:
+            if unit is None or (t["rule"], t["clause"]) == unit:
+                hits.append(field_ok(ep, t, dm.get(t["id"]), target_field(rules[t["rule"]]), N_STAGES))
+    return sum(hits) / len(hits) if hits else None
+
+
 def units_of(ep: dict[str, Any]) -> list[tuple[str, str]]:
     """Unit of analysis: (probe rule, clause) with clause in {main, qual}."""
     return sorted({(t["rule"], t["clause"]) for t in ep["dev_probes"]}, key=lambda u: (int(u[0][1:]), u[1]))
@@ -776,10 +896,11 @@ def main(argv: list[str] | None = None) -> int:
     elif a.step == "case-scripts":  # one workflow script per episode (all its cases x conditions x repeats)
         eps = {e["id"]: e for e in json.loads(a.episodes.read_text())["episodes"]}
         trajs = {t["episode"]: t for t in (load_result(x) for x in a.trajectories)}
-        hrs = {h["episode"]: h for h in json.loads(a.headroom.read_text())}
+        g = json.loads(a.headroom.read_text())  # gate output: confirmed units per episode
         a.out.mkdir(parents=True, exist_ok=True)
         for eid, traj in trajs.items():
-            cases = make_cases(eps[eid], traj, hrs[eid], tuple(a.conds), dict(zip(a.conds, a.steps)), a.max_exec)
+            units = [tuple(u["unit"].split(":")[1:]) for u in g["units"].get(eid, []) if u["confirmed"]]
+            cases = make_cases(eps[eid], traj, units, tuple(a.conds), dict(zip(a.conds, a.steps)), a.max_exec)
             cases = [dict(c, id=f"{c['id']}#{k}") for c in cases for k in range(a.repeats)]
             if cases:
                 (a.out / f"investigate_{a.tag}_{eid}.js").write_text(
@@ -793,11 +914,11 @@ def main(argv: list[str] | None = None) -> int:
         for eid, traj in trajs.items():
             final = traj["checkpoints"][-1]
             states, plan = [dict(final, id=f"{eid}:current")], {}
-            rule_ids = sorted({tr["case"].split("#")[0].split("-")[1] for tr in chosen if tr["case"].startswith(eid + "-")})
+            rule_ids = sorted({tr["case"].split("#")[0].split("-")[1][:-1] for tr in chosen if tr["case"].startswith(eid + "-")})
             for rid in rule_ids:
                 cands = candidate_entries(eps[eid], traj, rid)
                 cands += [dict((tr["final"] or {}).get("repair") or {}, case=tr["case"]) for tr in chosen
-                          if tr["case"].startswith(f"{eid}-{rid}#") and tr.get("final")]
+                          if tr["case"].split("#")[0][:-1] == f"{eid}-{rid}" and tr.get("final")]
                 for cand in cands:
                     text = resolve_repair(traj, cand) if "text" not in cand else cand["text"]
                     if text is None:

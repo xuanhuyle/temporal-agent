@@ -36,3 +36,21 @@ def test_qual_probes_are_sensitive_to_their_clause():
     ep = lh.make_episode("T", 103)
     quals = [t for t in ep["dev_probes"] + ep["heldout"] if t["clause"] == "qual"]
     assert quals and all(lh.truth(ep, t, lh.N_STAGES) != lh.truth(ep, t, lh.N_STAGES, drop_qual=True) for t in quals)
+
+
+def test_analysis_path_runs_on_a_fake_trajectory():
+    ep = lh.make_episode("T", 101)
+    unit = lh.units_of(ep)[0]
+    good = {"decisions": [dict(lh.truth(ep, t, lh.N_STAGES), request_id=t["id"]) for t in ep["dev_probes"]]}
+    bad = {"decisions": [dict(lh.truth(ep, t, 0), request_id=t["id"]) for t in ep["dev_probes"]]}
+    mem = {"rules": ["x"], "commitments": [], "open_items": [], "notes": []}
+    cps = [{"id": f"c{s}", "stage": s, "kind": "stage_end", "memory": mem, "context": [{"id": f"M-{s}", "text": "m"}]}
+           for s in (10, 20)]
+    traj = {"episode": "T", "checkpoints": cps, "log": [], "probe_runs": [
+        {"checkpoint": "c10", "replicate": 0, "output": good}, {"checkpoint": "c20", "replicate": 0, "output": bad}]}
+    hr = lh.headroom(ep, traj)
+    assert any(r["headroom"] == 1.0 for r in hr["rules"]) and lh.candidates(hr)
+    assert lh.confirm_script(ep, traj, hr)
+    cases = lh.make_cases(ep, traj, [unit])
+    assert {c["cond"] for c in cases} == {"A", "B", "C"} and lh.investigation_script(cases, "t")
+    assert all(not c["checkpoints"] for c in cases if c["cond"] == "A")
