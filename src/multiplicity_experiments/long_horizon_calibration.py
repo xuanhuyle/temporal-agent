@@ -10,6 +10,10 @@ scored subset is drawn by a separate holdout seed fixed before any model call an
 are 12 message-only stages sized so that exactly 3 compactions happen at every pressure level (stages 4, 8, 12); probes
 run only at the 3 pre-compaction checkpoints and the final compacted state (7 calls per trajectory plus shorten
 retries). No Temporal Multiplicity treatment is run here.
+
+Knob 2 (used once, after knob 1 left every Stage A level at ceiling): ``q`` = fraction of rules that carry their own
+amount threshold ("..., if the PO is EUR 7,800 or more"), stated in the rule's own sentence. Each scored thresholded
+rule gets one probe clearly above and one clearly below its threshold; the primary unit score is 1 iff both are right.
 """
 
 from __future__ import annotations
@@ -85,7 +89,13 @@ def _counts(n_rules: int) -> dict[str, int]:
 
 
 def _rule_text(r: dict[str, Any]) -> str:
-    """One sentence per rule; the same sentence templates are used for scored and unscored rules."""
+    """One sentence per rule; the same sentence templates are used for scored and unscored rules. A qualified rule
+    (knob 2) carries its own amount threshold in the same sentence: it is born with the rule and never amended."""
+    thr = f", if the PO is EUR {r['thr']:,} or more" if r.get("thr") else ""
+    return _base_text(r) + thr
+
+
+def _base_text(r: dict[str, Any]) -> str:
     p = r["params"]
     return {"CUR": lambda: f"purchases from {p['vendor']} are paid in {p['currency']}",
             "CARRIER": lambda: f"every delivery for {p['client']} goes via Brightway Freight (contract clause)",
@@ -128,7 +138,7 @@ def _noise(rng: random.Random, date: str, plain_vendors: list[str]) -> str:
 
 
 def canonical_line(r: dict[str, Any]) -> str:
-    return lh.canonical_rule_line({**r, "qual": None})
+    return lh.canonical_rule_line({**r, "qual": None}) + (f" (PO >= EUR {r['thr']:,})" if r.get("thr") else "")
 
 
 def pressure(ep: dict[str, Any]) -> float:
@@ -137,7 +147,7 @@ def pressure(ep: dict[str, Any]) -> float:
     return sum(len(x) for x in lines) / lh.MEM_MAX
 
 
-def make_episode(ep_id: str, seed: int, n_rules: int, holdout_seed: int = 7919) -> dict[str, Any]:
+def make_episode(ep_id: str, seed: int, n_rules: int, holdout_seed: int = 7919, q: float = 0.0) -> dict[str, Any]:
     rng = random.Random(seed)
     cnt = _counts(n_rules)
     n_vendor_plain, n_client_plain = 8, 6
@@ -168,9 +178,15 @@ def make_episode(ep_id: str, seed: int, n_rules: int, holdout_seed: int = 7919) 
     stages = sorted((i % N_STAGES) + 1 for i in range(len(rules)))  # balanced: ~n/12 new rules every stage
     for i, (r, st) in enumerate(zip(rules, stages)):
         r.update(id=f"R{i + 1}", stage=st, probe=True, style="formal", reinforced=False, qual=None)
+    if q > 0:  # knob 2: individual amount thresholds (EUR 2,000-12,000, step 100) on a fraction q of the rules
+        qrng = random.Random(seed * 7907 + 1)
+        for r in qrng.sample(rules, round(q * len(rules))):
+            r["thr"] = qrng.randrange(20, 121) * 100
 
     ep: dict[str, Any] = {"id": ep_id, "seed": seed, "n_rules": n_rules, "holdout_seed": holdout_seed,
                           "rules": rules, "stages": []}
+    if q > 0:
+        ep["q"] = q
     msg_no = 0
     for s in range(1, N_STAGES + 1):
         date = lh.DATES[s - 1]
@@ -217,12 +233,37 @@ def make_episode(ep_id: str, seed: int, n_rules: int, holdout_seed: int = 7919) 
             t["item"] = f"{t['category']} (assorted)"
             if t["substitution"]:
                 t["substitution"] = f"{t['item']} replaced by an equivalent from another line (vendor shortage)"
+            if r.get("thr"):  # pair: one PO clearly above the threshold (rule applies), one clearly below (default)
+                arng = random.Random(seed * 1000003 + holdout_seed + req_no)
+                lo, hi = (r["thr"] * 1.3, 19000) if j == 0 else (max(300, r["thr"] * 0.25), r["thr"] * 0.75)
+                t["amount"] = int(round(arng.uniform(lo, hi) / 10.0)) * 10
             t.update(rule=rid, clause="main", eff_stage=r["stage"], text=lh.request_text(t))
             probes.append(t)
     ep["dev_probes"], ep["heldout"] = probes, []
     ep["R"] = round(pressure(ep), 3)
     validate(ep)
     return ep
+
+
+# ------------------------------------------------------------------ ground truth / scoring with thresholds
+def truth(ep: dict[str, Any], task: dict[str, Any], t: int) -> dict[str, Any]:
+    """PR #6 truth, where a thresholded rule applies only to POs of at least its threshold. Identical to lh.truth for
+    episodes without thresholds (knob 1)."""
+    rules = [r for r in ep["rules"] if not r.get("thr") or task["amount"] >= r["thr"]]
+    return lh.truth({**ep, "rules": rules}, task, t)
+
+
+def field_ok(ep: dict[str, Any], task: dict[str, Any], d: dict[str, Any] | None, field: str) -> bool:
+    return bool(d) and lh.norm(field, d.get(field)) == lh.norm(field, truth(ep, task, N_STAGES)[field])
+
+
+def unit_scores(ep: dict[str, Any], output: Any, rid: str) -> tuple[float, int]:
+    """(mean target-field accuracy over the unit's 2 probes, 1 iff both are right). The all-or-nothing score is the
+    primary unit metric: for a thresholded rule a total loss still gets the below-threshold probe right by default."""
+    rule = next(r for r in ep["rules"] if r["id"] == rid)
+    dm = lh.decisions_by_id(output)
+    hits = [field_ok(ep, t, dm.get(t["id"]), lh.target_field(rule)) for t in ep["dev_probes"] if t["rule"] == rid]
+    return sum(hits) / len(hits), int(all(hits))
 
 
 def simulate_compactions(ep: dict[str, Any]) -> list[int]:
@@ -252,9 +293,17 @@ def validate(ep: dict[str, Any]) -> None:
     for t in ep["dev_probes"]:
         r = next(x for x in ep["rules"] if x["id"] == t["rule"])
         f = lh.target_field(r)
-        vals = {json.dumps(lh.truth(ep, t, s)[f]) for s in range(r["stage"], N_STAGES + 1)}
-        assert len(vals) == 1 and lh.truth(ep, t, N_STAGES)[f] != lh.truth(ep, t, 0)[f], t["id"]
-        others = [x for x in ep["rules"] if x["id"] != r["id"]]
+        vals = {json.dumps(truth(ep, t, s)[f]) for s in range(r["stage"], N_STAGES + 1)}
+        assert len(vals) == 1, ("probe not time-invariant", t["id"])
+        unq = {**ep, "rules": [{**x, "thr": None} for x in ep["rules"]]}
+        assert lh.truth(unq, t, N_STAGES)[f] != lh.truth(unq, t, 0)[f], ("probe does not trigger its rule", t["id"])
+        if r.get("thr"):  # above-threshold probe applies the rule; below-threshold probe is sensitive to the clause
+            above = t["amount"] >= r["thr"]
+            assert (truth(ep, t, N_STAGES)[f] != truth(ep, t, 0)[f]) == above, t["id"]
+            assert 300 <= t["amount"] < 20000 and (t["amount"] >= 1.3 * r["thr"] or t["amount"] <= 0.75 * r["thr"])
+        else:
+            assert truth(ep, t, N_STAGES)[f] != truth(ep, t, 0)[f], t["id"]
+        others = [{**x, "thr": None} for x in ep["rules"] if x["id"] != r["id"]]
         assert lh.truth({"rules": others}, t, N_STAGES) == lh.truth({"rules": []}, t, N_STAGES), "probe hits 2 rules"
     view = json.dumps(lh.subject_view(ep))
     assert '"rule"' not in view and '"scored"' not in view
@@ -284,28 +333,43 @@ def trajectory_script(ep: dict[str, Any]) -> str:
 
 # ------------------------------------------------------------------ analysis
 def analyse(ep: dict[str, Any], traj: dict[str, Any]) -> dict[str, Any]:
-    """Per scored unit: accuracy at its earlier (pre-compaction) checkpoint and at the final compacted state."""
+    """Per scored unit: score at its earlier (pre-compaction) checkpoints and at the final compacted state.
+    Primary unit score = 1 iff both of its probes are right (see unit_scores); the brief's probe-mean criterion
+    (earlier - final >= 0.5 and final <= 0.5) is reported alongside."""
     cps = {c["id"]: c for c in traj["checkpoints"]}
     final = traj["checkpoints"][-1]["id"]
-    probed = sorted({r["checkpoint"] for r in traj["probe_runs"]}, key=lambda c: list(cps).index(c))
+    runs: dict[str, list[Any]] = {}
+    for x in traj["probe_runs"]:
+        runs.setdefault(x["checkpoint"], []).append(x["output"])
+    probed = sorted(runs, key=lambda c: list(cps).index(c))
     units = []
     for rid in ep["scored"]:
         r = next(x for x in ep["rules"] if x["id"] == rid)
-        unit = (rid, "main")
-        curve = {c: lh.unit_accuracy(ep, traj["probe_runs"], unit, state_id=c) for c in probed
-                 if cps[c]["stage"] >= r["stage"]}
-        earlier = {c: a for c, a in curve.items() if c != final and a is not None}
-        best = max(earlier.values()) if earlier else None
-        fin = curve.get(final) or 0.0
-        units.append({"rule": rid, "kind": r["kind"], "stage": r["stage"], "params": r["params"],
-                      "canonical": canonical_line(r), "earlier": earlier, "final": fin,
-                      "regression": best is not None and best - fin >= 0.5 and fin <= 0.5,
+        curve = {}
+        for c in probed:
+            if cps[c]["stage"] >= r["stage"]:
+                sc = [unit_scores(ep, o, rid) for o in runs[c]]
+                curve[c] = (sum(m for m, _ in sc) / len(sc), sum(a for _, a in sc) / len(sc))
+        earlier = {c: v for c, v in curve.items() if c != final}
+        fin_mean, fin_all = curve.get(final, (0.0, 0.0))
+        best_all = max((a for _, a in earlier.values()), default=None)
+        best_mean = max((m for m, _ in earlier.values()), default=None)
+        units.append({"rule": rid, "kind": r["kind"], "stage": r["stage"], "params": r["params"], "thr": r.get("thr"),
+                      "canonical": canonical_line(r), "earlier": {c: a for c, (_, a) in earlier.items()},
+                      "earlier_probe_mean": {c: m for c, (m, _) in earlier.items()},
+                      "final": fin_all, "final_probe_mean": fin_mean,
+                      "regression": best_all is not None and best_all - fin_all >= 0.5 and fin_all <= 0.5,
+                      "regression_probe_mean": best_mean is not None and best_mean - fin_mean >= 0.5
+                      and fin_mean <= 0.5,
                       "in_final_memory": lh.retained(r, cps[final]["memory"])})
     comps = [e for e in traj["log"] if e["kind"] == "compact"]
-    return {"episode": ep["id"], "R": ep["R"], "n_rules": ep["n_rules"], "compactions": len(comps),
-            "mem_chars": [e["mem_chars"] for e in comps], "shorten_retries": sum(e["retried"] for e in comps),
+    return {"episode": ep["id"], "R": ep["R"], "n_rules": ep["n_rules"], "q": ep.get("q", 0.0),
+            "compactions": len(comps), "mem_chars": [e["mem_chars"] for e in comps],
+            "shorten_retries": sum(e["retried"] for e in comps),
             "final_accuracy": sum(u["final"] for u in units) / len(units),
-            "regressions": sum(u["regression"] for u in units), "units": units,
+            "final_accuracy_probe_mean": sum(u["final_probe_mean"] for u in units) / len(units),
+            "regressions": sum(u["regression"] for u in units),
+            "regressions_probe_mean": sum(u["regression_probe_mean"] for u in units), "units": units,
             "null_probe_outputs": sum(1 for x in traj["probe_runs"] if not x["output"])}
 
 
@@ -331,8 +395,8 @@ def retrieval_script(items: list[tuple[dict[str, Any], dict[str, Any], str]], na
         finals = [run for run in traj["probe_runs"] if run["checkpoint"] == final["id"]]
         rule = next(r for r in ep["rules"] if r["id"] == rid)
         probes = lh.unit_probes(ep, (rid, "main"))
-        failing = next((t for t in probes for run in finals if not lh.field_ok(
-            ep, t, lh.decisions_by_id(run["output"]).get(t["id"]), lh.target_field(rule), lh.N_STAGES)), probes[0])
+        failing = next((t for t in probes for run in finals if not field_ok(
+            ep, t, lh.decisions_by_id(run["output"]).get(t["id"]), lh.target_field(rule))), probes[0])
         units.append({"unit": f"{ep['id']}:{rid}", "final": final, "query": failing["text"],
                       "probes": [{"id": t["id"], "text": t["text"]} for t in probes], "archive": lh.archive_of(traj)})
     data = {"ctx_max": lh.CTX_MAX, "mem_max": lh.MEM_MAX, "s0_memory": lh.S0_MEMORY, "units": units}
@@ -356,12 +420,13 @@ def retrieval_analyse(eps: dict[str, dict[str, Any]], results: list[dict[str, An
         epid, rid = res["unit"].split(":")
         ep = eps[epid]
         rule = next(r for r in ep["rules"] if r["id"] == rid)
-        acc = lh.unit_accuracy(ep, [{"output": res["output"]}], (rid, "main")) or 0.0
+        mean, acc = unit_scores(ep, res["output"], rid)
         top = (res["retrieved"] or [None])[0]
         rule_msg = next((m["id"] for s in ep["stages"] for m in s["messages"] if canonical_entity(rule) in m["text"]),
                         None)
         out.append({"unit": res["unit"], "retrieved": res["retrieved"], "top1_is_rule_message": top == rule_msg,
-                    "rule_message": rule_msg, "accuracy_after_retrieval": acc, "repaired": acc > 0.5})
+                    "rule_message": rule_msg, "accuracy_after_retrieval": acc,
+                    "probe_mean_after_retrieval": mean, "repaired": acc > 0.5})
     return out
 
 
@@ -378,6 +443,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--id")
     p.add_argument("--seed", type=int)
     p.add_argument("--n-rules", type=int)
+    p.add_argument("--q", type=float, default=0.0, help="fraction of rules with an individual amount threshold")
     p.add_argument("--episodes", nargs="+", type=Path)
     p.add_argument("--trajectories", nargs="+", type=Path)
     p.add_argument("--out", type=Path)
@@ -392,10 +458,10 @@ def main(argv: list[str] | None = None) -> int:
             rs, fails = [], 0
             for s in a.seeds:
                 try:
-                    rs.append(make_episode("v", s, n)["R"])
+                    rs.append(make_episode("v", s, n, q=a.q)["R"])
                 except AssertionError:
                     fails += 1
-            row = {"target_R": target, "n_rules": n, "seeds": len(a.seeds), "failures": fails,
+            row = {"target_R": target, "n_rules": n, "q": a.q, "seeds": len(a.seeds), "failures": fails,
                    "R_min": min(rs) if rs else None, "R_max": max(rs) if rs else None,
                    "R_mean": round(sum(rs) / len(rs), 3) if rs else None}
             report.append(row)
@@ -403,7 +469,7 @@ def main(argv: list[str] | None = None) -> int:
         if a.out:
             a.out.write_text(json.dumps(report, indent=1) + "\n")
     elif a.step == "episode":
-        ep = make_episode(a.id, a.seed, a.n_rules)
+        ep = make_episode(a.id, a.seed, a.n_rules, q=a.q)
         a.out.mkdir(parents=True, exist_ok=True)
         (a.out / f"episode_{a.id}.json").write_text(json.dumps(ep) + "\n")
         (a.out / f"trajectory_{a.id}.js").write_text(trajectory_script(ep))

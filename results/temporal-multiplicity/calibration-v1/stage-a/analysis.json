@@ -1,0 +1,772 @@
+[
+ {
+  "episode": "A1",
+  "R": 0.76,
+  "n_rules": 27,
+  "q": 0.0,
+  "compactions": 3,
+  "mem_chars": [
+   1411,
+   1445,
+   1470
+  ],
+  "shorten_retries": 0,
+  "final_accuracy": 1.0,
+  "final_accuracy_probe_mean": 1.0,
+  "regressions": 0,
+  "regressions_probe_mean": 0,
+  "units": [
+   {
+    "rule": "R1",
+    "kind": "CUR",
+    "stage": 1,
+    "params": {
+     "vendor": "Underhill Valves",
+     "currency": "GBP"
+    },
+    "thr": null,
+    "canonical": "Underhill Valves: pay in GBP",
+    "earlier": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R10",
+    "kind": "HARBOUR",
+    "stage": 4,
+    "params": {
+     "site": "Rudder Quay"
+    },
+    "thr": null,
+    "canonical": "Rudder Quay deliveries: notify harbour master",
+    "earlier": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R11",
+    "kind": "COLD",
+    "stage": 4,
+    "params": {
+     "cat": "carbon-fibre dampers"
+    },
+    "thr": null,
+    "canonical": "carbon-fibre dampers: ColdLink",
+    "earlier": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R12",
+    "kind": "CARRIER",
+    "stage": 5,
+    "params": {
+     "client": "Albatross retrofit"
+    },
+    "thr": null,
+    "canonical": "Albatross retrofit: Brightway Freight",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R15",
+    "kind": "SUB",
+    "stage": 6,
+    "params": {
+     "client": "Dipper programme"
+    },
+    "thr": null,
+    "canonical": "Dipper programme substitutions: notify site lead 48h ahead",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R18",
+    "kind": "SUB",
+    "stage": 8,
+    "params": {
+     "client": "Petrel depot"
+    },
+    "thr": null,
+    "canonical": "Petrel depot substitutions: notify site lead 48h ahead",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R19",
+    "kind": "CUR",
+    "stage": 8,
+    "params": {
+     "vendor": "Ellery Metals",
+     "currency": "CZK"
+    },
+    "thr": null,
+    "canonical": "Ellery Metals: pay in CZK",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R24",
+    "kind": "CARRIER",
+    "stage": 11,
+    "params": {
+     "client": "Teal retrofit"
+    },
+    "thr": null,
+    "canonical": "Teal retrofit: Brightway Freight",
+    "earlier": {
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R26",
+    "kind": "CARRIER",
+    "stage": 12,
+    "params": {
+     "client": "Eider campus"
+    },
+    "thr": null,
+    "canonical": "Eider campus: Brightway Freight",
+    "earlier": {
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R27",
+    "kind": "SAFETY",
+    "stage": 12,
+    "params": {
+     "cats": [
+      "nitrile gaskets",
+      "acoustic panels"
+     ]
+    },
+    "thr": null,
+    "canonical": "Safety co-sign: nitrile gaskets, acoustic panels",
+    "earlier": {
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   }
+  ],
+  "null_probe_outputs": 0
+ },
+ {
+  "episode": "A2",
+  "R": 2.538,
+  "n_rules": 95,
+  "q": 0.0,
+  "compactions": 3,
+  "mem_chars": [
+   1406,
+   1402,
+   1491
+  ],
+  "shorten_retries": 0,
+  "final_accuracy": 1.0,
+  "final_accuracy_probe_mean": 1.0,
+  "regressions": 0,
+  "regressions_probe_mean": 0,
+  "units": [
+   {
+    "rule": "R3",
+    "kind": "SAFETY",
+    "stage": 1,
+    "params": {
+     "cats": [
+      "tungsten manifolds",
+      "electrical couplings"
+     ]
+    },
+    "thr": null,
+    "canonical": "Safety co-sign: tungsten manifolds, electrical couplings",
+    "earlier": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R5",
+    "kind": "CARRIER",
+    "stage": 1,
+    "params": {
+     "client": "Nightjar plant"
+    },
+    "thr": null,
+    "canonical": "Nightjar plant: Brightway Freight",
+    "earlier": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R13",
+    "kind": "CUR",
+    "stage": 2,
+    "params": {
+     "vendor": "Mallory Bearings",
+     "currency": "SEK"
+    },
+    "thr": null,
+    "canonical": "Mallory Bearings: pay in SEK",
+    "earlier": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R25",
+    "kind": "CUR",
+    "stage": 4,
+    "params": {
+     "vendor": "Abernethy Drives",
+     "currency": "PLN"
+    },
+    "thr": null,
+    "canonical": "Abernethy Drives: pay in PLN",
+    "earlier": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R36",
+    "kind": "SAFETY",
+    "stage": 5,
+    "params": {
+     "cats": [
+      "borosilicate sleeves",
+      "nitrile fillers"
+     ]
+    },
+    "thr": null,
+    "canonical": "Safety co-sign: borosilicate sleeves, nitrile fillers",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R37",
+    "kind": "HARBOUR",
+    "stage": 5,
+    "params": {
+     "site": "Lighthouse Berth"
+    },
+    "thr": null,
+    "canonical": "Lighthouse Berth deliveries: notify harbour master",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R44",
+    "kind": "SAFETY",
+    "stage": 6,
+    "params": {
+     "cats": [
+      "titanium clamps",
+      "lubricated coatings"
+     ]
+    },
+    "thr": null,
+    "canonical": "Safety co-sign: titanium clamps, lubricated coatings",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R62",
+    "kind": "CUR",
+    "stage": 8,
+    "params": {
+     "vendor": "Yardley Castings",
+     "currency": "CAD"
+    },
+    "thr": null,
+    "canonical": "Yardley Castings: pay in CAD",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   },
+   {
+    "rule": "R85",
+    "kind": "SUB",
+    "stage": 11,
+    "params": {
+     "client": "Vireo line"
+    },
+    "thr": null,
+    "canonical": "Vireo line substitutions: notify site lead 48h ahead",
+    "earlier": {
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R86",
+    "kind": "COLD",
+    "stage": 11,
+    "params": {
+     "cat": "industrial fittings"
+    },
+    "thr": null,
+    "canonical": "industrial fittings: ColdLink",
+    "earlier": {
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": true
+   }
+  ],
+  "null_probe_outputs": 0
+ },
+ {
+  "episode": "A3",
+  "R": 4.019,
+  "n_rules": 153,
+  "q": 0.0,
+  "compactions": 3,
+  "mem_chars": [
+   1468,
+   1482,
+   1485
+  ],
+  "shorten_retries": 0,
+  "final_accuracy": 1.0,
+  "final_accuracy_probe_mean": 1.0,
+  "regressions": 0,
+  "regressions_probe_mean": 0,
+  "units": [
+   {
+    "rule": "R11",
+    "kind": "HARBOUR",
+    "stage": 1,
+    "params": {
+     "site": "Windlass Jetty"
+    },
+    "thr": null,
+    "canonical": "Windlass Jetty deliveries: notify harbour master",
+    "earlier": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R45",
+    "kind": "HARBOUR",
+    "stage": 4,
+    "params": {
+     "site": "Gangway Quay"
+    },
+    "thr": null,
+    "canonical": "Gangway Quay deliveries: notify harbour master",
+    "earlier": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R54",
+    "kind": "SUB",
+    "stage": 5,
+    "params": {
+     "client": "Jackdaw campus"
+    },
+    "thr": null,
+    "canonical": "Jackdaw campus substitutions: notify site lead 48h ahead",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R73",
+    "kind": "CARRIER",
+    "stage": 6,
+    "params": {
+     "client": "Moorhen terminal"
+    },
+    "thr": null,
+    "canonical": "Moorhen terminal: Brightway Freight",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R83",
+    "kind": "SUB",
+    "stage": 7,
+    "params": {
+     "client": "Usher campus"
+    },
+    "thr": null,
+    "canonical": "Usher campus substitutions: notify site lead 48h ahead",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R89",
+    "kind": "CUR",
+    "stage": 7,
+    "params": {
+     "vendor": "Jessop Seals",
+     "currency": "HUF"
+    },
+    "thr": null,
+    "canonical": "Jessop Seals: pay in HUF",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R107",
+    "kind": "CARRIER",
+    "stage": 9,
+    "params": {
+     "client": "Hawfinch works"
+    },
+    "thr": null,
+    "canonical": "Hawfinch works: Brightway Freight",
+    "earlier": {
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R130",
+    "kind": "SUB",
+    "stage": 11,
+    "params": {
+     "client": "Quail line"
+    },
+    "thr": null,
+    "canonical": "Quail line substitutions: notify site lead 48h ahead",
+    "earlier": {
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R141",
+    "kind": "CUR",
+    "stage": 11,
+    "params": {
+     "vendor": "Stainforth Valves",
+     "currency": "DKK"
+    },
+    "thr": null,
+    "canonical": "Stainforth Valves: pay in DKK",
+    "earlier": {
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R148",
+    "kind": "CUR",
+    "stage": 12,
+    "params": {
+     "vendor": "Kenward Metals",
+     "currency": "HUF"
+    },
+    "thr": null,
+    "canonical": "Kenward Metals: pay in HUF",
+    "earlier": {
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   }
+  ],
+  "null_probe_outputs": 0
+ }
+]

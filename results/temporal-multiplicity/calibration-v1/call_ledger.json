@@ -1,1 +1,41 @@
-{"ledger": [], "note": "subject-model calls, cumulative; hard max 50"}
+{
+ "note": "subject-model calls (compactions + shorten retries + probe calls + retrieval searches + retrieval reruns); hard max 50",
+ "ledger": [
+  {
+   "batch": "A1",
+   "what": "Stage A low point R=0.76 seed 1001 n=27",
+   "expected_incremental": 7,
+   "expected_max": 10,
+   "expected_cumulative": 7,
+   "actual": 7,
+   "cumulative": 7
+  },
+  {
+   "batch": "A2",
+   "what": "Stage A high point R=2.54 seed 1002 n=95",
+   "expected_incremental": 7,
+   "expected_max": 10,
+   "expected_cumulative": 14,
+   "actual": 7,
+   "cumulative": 14
+  },
+  {
+   "batch": "A3",
+   "what": "Stage A boundary moved once (both A1,A2 >0.9): R~4.0 seed 1003 n=153",
+   "expected_incremental": 7,
+   "expected_max": 10,
+   "expected_cumulative": 21,
+   "actual": 7,
+   "cumulative": 21
+  },
+  {
+   "batch": "Q1",
+   "what": "Stage A, all three knob-1 levels >0.9 -> pressure increased once with knob 2 (per-rule thresholds, q=1.0) at the A3 load: n=153, seed 1004 (first schedule-feasible seed >= 1004), R=5.865",
+   "expected_incremental": 7,
+   "expected_max": 10,
+   "expected_cumulative": 28,
+   "actual": null,
+   "cumulative": null
+  }
+ ]
+}

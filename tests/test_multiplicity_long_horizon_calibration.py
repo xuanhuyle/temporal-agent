@@ -39,3 +39,29 @@ def test_retrieval_selection_is_round_robin_and_scored_without_leakage():
     assert out[0]["repaired"] and out[0]["top1_is_rule_message"] and out[0]["accuracy_after_retrieval"] == 1.0
     bad = cal.retrieval_analyse({"Z": ep}, [{"unit": f"Z:{rid}", "retrieved": [], "output": None}])
     assert not bad[0]["repaired"] and not bad[0]["top1_is_rule_message"]
+
+
+def test_threshold_knob_semantics_and_isolation():
+    ep = cal.make_episode("Q", 1004, 140, q=1.0)  # validate() runs the above/below and sensitivity checks
+    assert all(r.get("thr") for r in ep["rules"]) and ep["R"] > 5.0
+    view = cal.lh.subject_view(ep)
+    assert '"thr"' not in str(view).replace("'", '"')
+    rules = {r["id"]: r for r in ep["rules"]}
+    for t in ep["dev_probes"]:
+        r = rules[t["rule"]]
+        f = cal.lh.target_field(r)
+        applied = cal.truth(ep, t, cal.N_STAGES)[f] != cal.truth(ep, t, 0)[f]
+        assert applied == (t["amount"] >= r["thr"])
+        assert f"EUR {r['thr']:,} or more" in " ".join(m["text"] for s in view["stages"] for m in s["messages"])
+    # all-or-nothing unit score: dropping the whole rule still gets the below-threshold probe right
+    rid = ep["scored"][0]
+    pair = [t for t in ep["dev_probes"] if t["rule"] == rid]
+    default = {"decisions": [{"request_id": t["id"], **cal.truth({"rules": []}, t, 12)} for t in pair]}
+    assert cal.unit_scores(ep, default, rid) == (0.5, 0)
+    right = {"decisions": [{"request_id": t["id"], **cal.truth(ep, t, 12)} for t in pair]}
+    assert cal.unit_scores(ep, right, rid) == (1.0, 1)
+
+
+def test_knob1_episodes_unchanged_by_threshold_code():
+    a, b = cal.make_episode("A", 1003, 153), cal.make_episode("A", 1003, 153, q=0.0)
+    assert a == b and not any(r.get("thr") for r in a["rules"]) and "q" not in a

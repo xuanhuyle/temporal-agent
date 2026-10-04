@@ -1,0 +1,3216 @@
+[
+{
+"episode": "A1",
+"checkpoint_ids": [
+"c0",
+"c1",
+"c2",
+"c3",
+"c4",
+"c4c",
+"c5",
+"c6",
+"c7",
+"c8",
+"c8c",
+"c9",
+"c10",
+"c11",
+"c12",
+"c12c"
+],
+"compactions": [
+{
+"stage": 4,
+"kind": "compact",
+"memory": {
+"rules": [
+"Pay in EUR by default; Underhill Valves: GBP; Whitcombe Hydraulics: JPY.",
+"Ops approves every PO; Finance co-approves POs >= EUR 20,000.",
+"Carrier: standard by default; carbon-fibre dampers via ColdLink; all Rook works deliveries via Brightway Freight.",
+"Hold only if active hold instruction for that vendor (none active; invoice queries are not holds).",
+"Deliveries to Coxswain Jetty, Gull Jetty or Rudder Quay: harbour master must be notified on the PO.",
+"Part substitution on orders for Smew line, Chiffchaff programme or Sanderling depot: notify their site lead 48h ahead.",
+"POs for industrial fixtures or ceramic sleeves need safety officer co-sign."
+],
+"commitments": [
+"If a Rowan Cable Co truck is coming anyway, ask them to take back our 40 empty pallets (Aisha, 10 Mar)."
+],
+"open_items": [
+"Finance invoice queries (no hold): Iveson 19818, Ulverston 83673, Abernethy 26940, Jardine 76838.",
+"Ulverston Hydraulics +5% from Apr (existing POs honoured): check if Iveson Bearings can match.",
+"Jardine Electrical +9% from Apr (existing POs honoured): check if Thackeray Drives or Treharne Seals can match."
+],
+"notes": [
+"Role: procurement desk agent for Larkspur Robotics; decide each purchase request.",
+"Q2 priority: avg PO turnaround under 2 days. Easter cover: Marco 18th, Freya 21st; targets unchanged.",
+"Pipeline: Marrow Rail depot ph2, Ashgrove retrofit; if won, materials demand jumps in June.",
+"Contacts: Priya (Finance), Marco (Ops lead), Aisha (Logistics), Helen (Acct mgmt), Rui (Quality)."
+]
+},
+"mem_chars": 1411,
+"retried": false,
+"ctx_chars_before": 7514
+},
+{
+"stage": 8,
+"kind": "compact",
+"memory": {
+"rules": [
+"Pay: EUR default; GBP Underhill Valves; JPY Whitcombe Hydraulics; USD Oyelaran Metals; HUF Etheridge Castings; SEK Eskildsen Polymers; CZK Ellery Metals",
+"Ops approves all POs; Finance co-approves >= EUR 20,000",
+"Carrier: standard default; ColdLink: carbon-fibre dampers, silicone gaskets; Brightway Freight: all Rook works & Albatross retrofit deliveries",
+"Hold only on active vendor hold instruction (none; invoice queries aren't holds)",
+"Coxswain Jetty/Gull Jetty/Rudder Quay deliveries: notify harbour master on PO",
+"Part substitution on Smew line, Chiffchaff prog, Sanderling depot, Dipper prog, Petrel depot orders: notify site lead 48h ahead",
+"Industrial fixtures/ceramic sleeves POs: safety officer co-sign"
+],
+"commitments": [
+"Rowan Cable Co truck coming anyway: ask them to take back our 40 empty pallets (Aisha)"
+],
+"open_items": [
+"Invoice queries (no hold): Iveson 19818; Ulverston 83673; Abernethy 26940; Jardine 76838, 96547, 65899; Treharne 21149, 40802; Fairbairn 77669",
+"Price rises (old POs honoured), check alt can match: Ulverston +5% Apr (Iveson); Jardine +9% Apr, +2% May (Thackeray, Treharne, Fairbairn); Abernethy +2%/+7% Apr (Ulverston, Iveson); Pemberton +6% May (Treharne); Thackeray +9% May (Abernethy)"
+],
+"notes": [
+"Role: Larkspur Robotics procurement desk",
+"Q2: avg PO turnaround <2 days",
+"Pipeline: Marrow Rail ph2, Ashgrove retrofit; if won, demand jumps June",
+"Contacts: Priya Fin, Marco Ops lead, Freya Ops planner, Aisha Logistics, Helen Acct mgmt, Rui Quality",
+"Bulky inbound: tell Aisha to slot dock"
+]
+},
+"mem_chars": 1445,
+"retried": false,
+"ctx_chars_before": 7636
+},
+{
+"stage": 12,
+"kind": "compact",
+"memory": {
+"rules": [
+"Pay EUR except: GBP Underhill Valves; JPY Whitcombe Hydraulics; USD Oyelaran Metals; HUF Etheridge Castings; SEK Eskildsen Polymers; CZK Ellery Metals; AUD Hallworth Hydraulics; CAD Quintero Sensors",
+"Ops approves all POs; Finance co-approves >= EUR 20,000",
+"Carrier standard; ColdLink: carbon-fibre dampers, silicone gaskets, optical fillers; Brightway Freight: Rook works, Albatross retrofit, Bluethroat depot, Teal retrofit, Eider campus",
+"Hold only on active vendor hold instruction (none; invoice queries aren't holds)",
+"Deliveries to Coxswain Jetty, Gull Jetty, Rudder Quay, Spinnaker Jetty: notify harbour master on PO",
+"Part substitution on Smew line, Chiffchaff prog, Sanderling depot, Dipper prog, Petrel depot: notify site lead 48h ahead",
+"Safety officer co-sign POs: industrial fixtures, ceramic sleeves, nitrile gaskets, acoustic panels"
+],
+"commitments": [
+"Rowan Cable Co truck coming: ask them to take back 40 empty pallets (Aisha)"
+],
+"open_items": [
+"Invoice queries: Iveson, Ulverston, Abernethy, Jardine, Treharne, Fairbairn, Pemberton",
+"Price rises (old POs honoured), check alt: Ulverston +5%>Iveson; Jardine +9/+2/+4%>Thackeray,Treharne,Fairbairn,Pemberton; Abernethy +2/+7%>Ulverston,Iveson; Pemberton +6%>Treharne; Thackeray +9%>Abernethy; Treharne +2%>Thackeray; Iveson +9%>Abernethy",
+"Tomas M8 fastener top-up request due"
+],
+"notes": [
+"Contacts: Priya Fin, Marco Ops lead, Freya Ops planner, Aisha Logistics (bulky: slot dock), Helen Acct mgmt, Rui Quality",
+"Q2 avg PO turnaround <2d",
+"If Marrow Rail ph2/Ashgrove won: demand up June"
+]
+},
+"mem_chars": 1470,
+"retried": false,
+"ctx_chars_before": 7615
+}
+],
+"probe_runs": [
+{
+"checkpoint": "c4",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "GBP",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Underhill Valves purchases are paid in GBP."
+},
+{
+"request_id": "REQ-8002",
+"currency": "GBP",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Underhill Valves purchases are paid in GBP."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Rudder Quay delivery: harbour master notified on PO."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Rudder Quay delivery: harbour master notified on PO."
+},
+{
+"request_id": "REQ-8005",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Carbon-fibre dampers ship via ColdLink."
+},
+{
+"request_id": "REQ-8006",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Carbon-fibre dampers ship via ColdLink."
+},
+{
+"request_id": "REQ-8007",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8008",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Dipper programme has no notification commitment."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Dipper programme has no notification commitment."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Petrel depot has no notification commitment."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Petrel depot has no notification commitment."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8015",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8016",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+}
+]
+}
+},
+{
+"checkpoint": "c8",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "GBP",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Underhill Valves paid in GBP."
+},
+{
+"request_id": "REQ-8002",
+"currency": "GBP",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Underhill Valves paid in GBP."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Rudder Quay delivery: notify harbour master."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Rudder Quay delivery: notify harbour master; Iveson invoice query is not a hold."
+},
+{
+"request_id": "REQ-8005",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Carbon-fibre dampers ship via ColdLink."
+},
+{
+"request_id": "REQ-8006",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Carbon-fibre dampers ship via ColdLink."
+},
+{
+"request_id": "REQ-8007",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Albatross retrofit deliveries via Brightway Freight (contract clause)."
+},
+{
+"request_id": "REQ-8008",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Albatross retrofit deliveries via Brightway Freight (contract clause)."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Dipper programme substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Dipper programme substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Petrel depot substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Petrel depot substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8013",
+"currency": "CZK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Ellery Metals paid in CZK."
+},
+{
+"request_id": "REQ-8014",
+"currency": "CZK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Ellery Metals paid in CZK."
+},
+{
+"request_id": "REQ-8015",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Treharne invoice queries open; not a hold."
+},
+{
+"request_id": "REQ-8016",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Iveson invoice query open; not a hold."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy invoice query open; not a hold."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+}
+]
+}
+},
+{
+"checkpoint": "c12",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "GBP",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Underhill Valves paid in GBP."
+},
+{
+"request_id": "REQ-8002",
+"currency": "GBP",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Underhill Valves paid in GBP."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Rudder Quay delivery: notify harbour master; Ulverston invoice query is not a hold."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Rudder Quay delivery: notify harbour master; Iveson price rise noted."
+},
+{
+"request_id": "REQ-8005",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Carbon-fibre dampers ship via ColdLink."
+},
+{
+"request_id": "REQ-8006",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Carbon-fibre dampers ship via ColdLink."
+},
+{
+"request_id": "REQ-8007",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Albatross retrofit deliveries via Brightway Freight."
+},
+{
+"request_id": "REQ-8008",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Albatross retrofit deliveries via Brightway Freight."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Dipper programme substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Dipper programme substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Petrel depot substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Petrel depot substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8013",
+"currency": "CZK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Ellery Metals paid in CZK."
+},
+{
+"request_id": "REQ-8014",
+"currency": "CZK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Ellery Metals paid in CZK."
+},
+{
+"request_id": "REQ-8015",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Teal retrofit deliveries via Brightway Freight (contract clause)."
+},
+{
+"request_id": "REQ-8016",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Teal retrofit deliveries via Brightway Freight (contract clause)."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Eider campus deliveries via Brightway Freight (contract clause)."
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Eider campus deliveries via Brightway Freight (contract clause)."
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Nitrile gaskets need safety officer co-sign."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Acoustic panels need safety officer co-sign."
+}
+]
+}
+},
+{
+"checkpoint": "c12c",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "GBP",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Underhill Valves paid in GBP."
+},
+{
+"request_id": "REQ-8002",
+"currency": "GBP",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Underhill Valves paid in GBP."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Rudder Quay: notify harbour master. Ulverston +5%, check Iveson."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Rudder Quay: notify harbour master. Iveson +9%, check Abernethy."
+},
+{
+"request_id": "REQ-8005",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Carbon-fibre dampers via ColdLink. Pemberton +6%, check Treharne."
+},
+{
+"request_id": "REQ-8006",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Carbon-fibre dampers via ColdLink. Thackeray +9%, check Abernethy."
+},
+{
+"request_id": "REQ-8007",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Albatross retrofit via Brightway Freight. Fairbairn invoice query is not a hold."
+},
+{
+"request_id": "REQ-8008",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Albatross retrofit via Brightway Freight. Fairbairn invoice query is not a hold."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Dipper substitution: notify site lead 48h ahead. Abernethy price rise."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Dipper substitution: notify site lead 48h ahead. Ulverston +5%."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Petrel substitution: notify site lead 48h ahead. Pemberton +6%."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Petrel substitution: notify site lead 48h ahead. Ulverston +5%."
+},
+{
+"request_id": "REQ-8013",
+"currency": "CZK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Ellery Metals paid in CZK."
+},
+{
+"request_id": "REQ-8014",
+"currency": "CZK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Ellery Metals paid in CZK."
+},
+{
+"request_id": "REQ-8015",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Teal retrofit via Brightway Freight. Treharne +2%, check Thackeray."
+},
+{
+"request_id": "REQ-8016",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Teal retrofit via Brightway Freight. Iveson +9%, check Abernethy."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Eider campus via Brightway Freight. Thackeray +9%, check Abernethy."
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Eider campus via Brightway Freight. Thackeray +9%, check Abernethy."
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Nitrile gaskets need safety officer co-sign. Abernethy price rise."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Acoustic panels need safety officer co-sign. Thackeray +9%."
+}
+]
+}
+}
+]
+},
+{
+"episode": "A2",
+"checkpoint_ids": [
+"c0",
+"c1",
+"c2",
+"c3",
+"c4",
+"c4c",
+"c5",
+"c6",
+"c7",
+"c8",
+"c8c",
+"c9",
+"c10",
+"c11",
+"c12",
+"c12c"
+],
+"compactions": [
+{
+"stage": 4,
+"kind": "compact",
+"memory": {
+"rules": [
+"Pay EUR except: Fothergill Pneumatics NOK, Glenister Optics USD, Ashdown Fasteners JPY, Netherton Cables HUF, Mallory Bearings SEK, Whitcombe Drives USD, Sandoval Tooling NOK, Jardine Pneumatics AUD, Arkwright Polymers DKK, Garroway Bearings AUD, Zielinski Fasteners CHF, Abernethy Drives PLN, Ravenscroft Motion JPY.",
+"Ops approves every PO; Finance co-approves POs >= EUR 20,000.",
+"Carrier default standard; ColdLink for silicone/precision/tempered dampers, magnetic sealants, hardened brackets.",
+"Brightway Freight for every delivery to Nightjar plant, Yellowhammer campus, Bittern terminal.",
+"Safety officer co-sign on POs for tungsten manifolds, electrical couplings, knurled sleeves, glass-filled linings, fibreglass adhesives, machined fillers.",
+"Notify harbour master on PO for deliveries to Hawser Jetty, Coxswain Jetty, Bowsprit Wharf.",
+"Part substitution: notify site lead 48h ahead for Redshank plant, Egret campus, Chiffchaff depot, Mallard programme, Kestrel terminal.",
+"Hold only if active hold instruction for that vendor; none active (invoice queries are not holds)."
+],
+"commitments": [
+"If a Rowan Cable Co truck comes, ask it to take back our 40 empty pallets."
+],
+"open_items": [
+"Expect M8 fastener top-up request from Tomas Varga (Assembly Line 2).",
+"Apr price rises (existing POs honoured): Thackeray Cables +9%, check Ellery Optics; Gatehouse Bearings +6%, check Kirkland Valves."
+],
+"notes": [
+"Role: Larkspur Robotics procurement desk; decide each purchase request."
+]
+},
+"mem_chars": 1406,
+"retried": false,
+"ctx_chars_before": 7606
+},
+{
+"stage": 8,
+"kind": "compact",
+"memory": {
+"rules": [
+"Pay EUR except NOK Fothergill/Sandoval;USD Glenister/Whitcombe;JPY Ashdown/Ravenscroft/Stainforth;HUF Netherton/Mortensen;SEK Mallory/Vasquez/Lomax;AUD Jardine/Garroway;DKK Arkwright;CHF Zielinski;PLN Abernethy;GBP Treharne/Underhill;CAD Hallworth/Yardley",
+"Ops approves all POs; Finance also if >= EUR 20,000",
+"Std carrier; ColdLink: silicone/precision/tempered dampers,magnetic sealants,hardened brackets,flexible fillers,composite fittings,braided manifolds",
+"Brightway Freight: Nightjar/Goldcrest plant,Yellowhammer/Turnstone campus,Bittern terminal,Knot/Wryneck retrofit,Linnet works,Lapwing depot",
+"Safety co-sign: tungsten manifolds,electrical/marine couplings,knurled/borosilicate sleeves,glass-filled linings,fibreglass adhesives,machined/nitrile fillers,carbon-fibre housings,welded/titanium clamps,anodised fittings,lubricated coatings,ceramic gaskets,cryogenic brackets",
+"Harbour master on PO: Hawser/Coxswain/Oar Jetty,Bowsprit/Driftwood/Breakwater Wharf,Lighthouse/Spinnaker Berth",
+"Substitution: 48h site-lead notice: Redshank plant,Egret/Albatross campus,Chiffchaff depot,Mallard programme,Kestrel/Firecrest/Brambling terminal,Crossbill/Bluethroat retrofit",
+"No holds active; invoice queries aren't holds"
+],
+"commitments": [
+"Rowan Cable Co truck: ask it to take back 40 empty pallets"
+],
+"open_items": [
+"M8 fastener top-up due: Tomas Varga, Line 2",
+"Apr rises (old POs honoured): Thackeray +9%, check Ellery Optics; Gatehouse +6%, check Kirkland Valves"
+],
+"notes": []
+},
+"mem_chars": 1402,
+"retried": false,
+"ctx_chars_before": 7752
+},
+{
+"stage": 12,
+"kind": "compact",
+"memory": {
+"rules": [
+"EUR unless: NOK Fothergill/Sandoval;USD Glenister/Whitcombe/Quintero/Coldridge;JPY Ashdown/Ravenscroft/Stainforth;HUF Netherton/Mortensen;SEK Mallory/Vasquez/Lomax/Wetherall/Illingworth;AUD Jardine/Garroway;DKK Arkwright/Eskildsen;CHF Zielinski/Blaxland/Ulverston;PLN Abernethy;GBP Treharne/Underhill/Nakamura;CAD Hallworth/Yardley",
+"Ops OKs all POs; +Finance if >=EUR20,000",
+"ColdLink:silicone/precision/tempered dampers,magnetic sealants,hardened brackets,flexible fillers,composite/industrial fittings,braided manifolds,polymer coatings,heat-treated membranes",
+"Brightway:Nightjar/Goldcrest/Dunlin plant,Yellowhammer/Turnstone campus,Bittern/Moorhen term,Knot/Wryneck/Smew retro,Linnet/Usher works,Lapwing/Osprey depot,Eider/Nuthatch/Hobby line",
+"Safety co-sign:tungsten manifolds,electrical/marine couplings,knurled/borosilicate sleeves,glass-filled linings,fibreglass adhesives,machined/nitrile fillers,carbon-fibre housings,welded/titanium clamps,anodised fittings,lubricated coatings,ceramic gaskets,cryogenic brackets",
+"Harbourmaster on PO:Hawser/Coxswain/Oar Jetty,Bowsprit/Driftwood/Breakwater/Windlass Wharf,Lighthouse/Spinnaker/Starboard Berth,Gangway/Beacon/Portside Quay",
+"Subst 48h site-lead notice:Redshank plant,Egret/Albatross/Pintail campus,Chiffchaff/Twite/Petrel depot,Mallard/Bunting prog,Kestrel/Firecrest/Brambling/Jackdaw term,Crossbill/Bluethroat retro,Vireo line,Siskin works",
+"No holds; invoice queries\u2260holds"
+],
+"commitments": [
+"Rowan Cable truck: return 40 empty pallets"
+],
+"open_items": [
+"M8 top-up due: Tomas Varga, Line 2"
+],
+"notes": []
+},
+"mem_chars": 1491,
+"retried": false,
+"ctx_chars_before": 7737
+}
+],
+"probe_runs": [
+{
+"checkpoint": "c4",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Tungsten manifolds need the safety officer's co-sign."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Electrical couplings need the safety officer's co-sign."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant contract clause: ships via Brightway Freight."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant contract clause: ships via Brightway Freight."
+},
+{
+"request_id": "REQ-8005",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory Bearings paid in SEK."
+},
+{
+"request_id": "REQ-8006",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory Bearings paid in SEK."
+},
+{
+"request_id": "REQ-8007",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy Drives paid in PLN."
+},
+{
+"request_id": "REQ-8008",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy Drives paid in PLN."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply; nitrile fillers are not machined fillers."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8015",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Below EUR 20,000; no Finance co-approval needed."
+},
+{
+"request_id": "REQ-8016",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Vireo line has no notification commitment."
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Vireo line has no notification commitment."
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply; invoice query open, no hold instructed."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Defaults apply; invoice query open, no hold instructed."
+}
+]
+}
+},
+{
+"checkpoint": "c8",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Tungsten manifolds need a safety co-sign. Check for an Ellery April price rise."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Electrical couplings need a safety co-sign. Delacroix invoice query is not a hold."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant goes by Brightway. Thackeray April price +9% stays under 20k."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant delivery goes by Brightway Freight."
+},
+{
+"request_id": "REQ-8005",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory Bearings is paid in SEK."
+},
+{
+"request_id": "REQ-8006",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory Bearings is paid in SEK."
+},
+{
+"request_id": "REQ-8007",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy Drives is paid in PLN."
+},
+{
+"request_id": "REQ-8008",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy Drives is paid in PLN."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Borosilicate sleeves need a safety co-sign. Kerridge invoice query is not a hold."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Nitrile fillers need a safety co-sign. Check for a Kirkland April price rise."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lighthouse Berth delivery: notify the harbour master."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lighthouse Berth delivery: notify the harbour master."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Titanium clamps need a safety co-sign. Kerridge invoice query is not a hold."
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Lubricated coatings need a safety co-sign."
+},
+{
+"request_id": "REQ-8015",
+"currency": "CAD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Yardley Castings is paid in CAD since 22 Apr."
+},
+{
+"request_id": "REQ-8016",
+"currency": "CAD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Yardley Castings is paid in CAD since 22 Apr."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Vireo line has no substitution-notice clause, so no notice is needed."
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Vireo line has no substitution-notice clause, so no notice is needed."
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Gatehouse April price +6% applies and stays under 20k."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Thackeray April price +9% applies and stays under 20k."
+}
+]
+}
+},
+{
+"checkpoint": "c12",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Tungsten manifolds need safety co-sign."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Electrical couplings need safety co-sign."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant contract clause: ship via Brightway Freight."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant contract clause: ship via Brightway Freight."
+},
+{
+"request_id": "REQ-8005",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory Bearings paid in SEK."
+},
+{
+"request_id": "REQ-8006",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory Bearings paid in SEK."
+},
+{
+"request_id": "REQ-8007",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy Drives paid in PLN."
+},
+{
+"request_id": "REQ-8008",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy Drives paid in PLN."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Borosilicate sleeves need safety co-sign."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Nitrile fillers need safety co-sign."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lighthouse Berth delivery: harbour master notified on PO."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lighthouse Berth delivery: harbour master notified on PO."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Titanium clamps need safety co-sign."
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Lubricated coatings need safety co-sign."
+},
+{
+"request_id": "REQ-8015",
+"currency": "CAD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Yardley Castings paid in CAD."
+},
+{
+"request_id": "REQ-8016",
+"currency": "CAD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Yardley Castings paid in CAD."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Vireo line substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Vireo line substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Industrial fittings ship via ColdLink."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Industrial fittings ship via ColdLink."
+}
+]
+}
+},
+{
+"checkpoint": "c12c",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Tungsten manifolds require safety co-sign."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Electrical couplings require safety co-sign."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant ships via Brightway Freight."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Nightjar plant ships via Brightway Freight."
+},
+{
+"request_id": "REQ-8005",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory vendor paid in SEK."
+},
+{
+"request_id": "REQ-8006",
+"currency": "SEK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Mallory vendor paid in SEK."
+},
+{
+"request_id": "REQ-8007",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy vendor paid in PLN."
+},
+{
+"request_id": "REQ-8008",
+"currency": "PLN",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Abernethy vendor paid in PLN."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Borosilicate sleeves require safety co-sign."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Nitrile fillers require safety co-sign."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lighthouse Berth delivery: harbourmaster on PO."
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Lighthouse Berth delivery: harbourmaster on PO."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Titanium clamps require safety co-sign."
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops",
+"safety"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Lubricated coatings require safety co-sign."
+},
+{
+"request_id": "REQ-8015",
+"currency": "CAD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Yardley vendor paid in CAD."
+},
+{
+"request_id": "REQ-8016",
+"currency": "CAD",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Yardley vendor paid in CAD."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Vireo line substitution: 48h site-lead notice required."
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Vireo line substitution: 48h site-lead notice required."
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Industrial fittings ship via ColdLink."
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "ColdLink",
+"notify": [],
+"hold": false,
+"note": "Industrial fittings ship via ColdLink."
+}
+]
+}
+}
+]
+},
+{
+"episode": "A3",
+"checkpoint_ids": [
+"c0",
+"c1",
+"c2",
+"c3",
+"c4",
+"c4c",
+"c5",
+"c6",
+"c7",
+"c8",
+"c8c",
+"c9",
+"c10",
+"c11",
+"c12",
+"c12c"
+],
+"compactions": [
+{
+"stage": 4,
+"kind": "compact",
+"memory": {
+"rules": [
+"Ops approves all POs; Finance also if >=EUR 20,000.",
+"Hold only if active vendor hold instruction; none now.",
+"Pay EUR except: SEK Ravenscroft Motion; CZK Lockhart Motion, Pemberton Sensors, Iveson Castings; DKK Illingworth Cables, Nakamura Valves; USD Pargeter Bearings, Gatehouse Cables; NOK Lindley Cables, Quintero Hydraulics, Garroway Pneumatics; JPY Carrow Cables, Ormerod Motion; AUD Ulverston Fasteners; GBP Fairbairn Hydraulics.",
+"Carrier standard; ColdLink for glass-filled coatings, perforated linings, vulcanised gaskets, silicone adhesives, optical coatings, borosilicate adhesives, ultrasonic panels.",
+"Brightway Freight for clients: Siskin line, Petrel retrofit, Merlin line, Wheatear line, Whimbrel depot, Nuthatch campus, Smew plant, Wigeon campus, Heron line, Pipit campus, Dipper terminal, Knot works.",
+"Safety officer co-sign: acoustic panels, tungsten sealants, die-cast fillers, graphite coatings, dielectric membranes, cryogenic manifolds, heat-treated housings, titanium linings, laminated spacers, hardened panels.",
+"Harbour master notice on PO for: Portside Jetty, Driftwood Berth, Marlin Jetty, Windlass Jetty, Saltmarsh Berth, Gangway Quay, Lantern Quay.",
+"Substitution: site lead notice 48h ahead: Chiffchaff works, Linnet plant, Brambling terminal, Sanderling campus, Fulmar terminal, Avocet works.",
+"Quote PO no. in vendor mail."
+],
+"commitments": [],
+"open_items": [
+"Delacroix Motion +6% from Apr, old POs honoured; check if Vasquez Fasteners can match."
+],
+"notes": [
+"Role: Larkspur Robotics procurement desk agent."
+]
+},
+"mem_chars": 1468,
+"retried": false,
+"ctx_chars_before": 7765
+},
+{
+"stage": 8,
+"kind": "compact",
+"memory": {
+"rules": [
+"Ops approves POs; +Finance >=EUR20k; no holds active.",
+"Quote PO no. to vendors.",
+"EUR except SEK:Ravenscroft,Whitcombe,Lomax,Arkwright;CZK:Lockhart,Pemberton,Iveson;DKK:Illingworth,Nakamura,Merriman;USD:Pargeter,Gatehouse,Hallworth;NOK:Lindley,Quintero,Garroway,Mallory,Castellan,Sandoval;JPY:Carrow,Ormerod,Radcliffe;AUD:Ulverston,Kirkland;GBP:Fairbairn,Dunmore;PLN:Fothergill;CHF:Venables;HUF:Jessop,Zielinski;CAD:Thackeray",
+"ColdLink:glass-filled/optical coatings,perforated/carbon-fibre linings,silicone/borosilicate adhesives,marine/zinc-plated dampers,vulcanised gaskets,ultrasonic panels,braided clamps,lubricated housings,quenched sleeves",
+"Brightway:Siskin/Petrel/Merlin/Wheatear/Whimbrel/Nuthatch/Smew/Wigeon/Heron/Pipit/Dipper/Knot/Redstart/Hobby/Plover/Twite/Waxwing/Moorhen/Mallard/Firecrest/Albatross",
+"Safety co-sign:dielectric/thermal/reinforced/elastomer/fibreglass membranes,acoustic/hardened/epoxy-coated panels,polymer/inductive dampers,titanium/magnetic linings,tungsten sealants,die-cast fillers,graphite coatings,cryogenic manifolds,heat-treated housings,laminated spacers,tempered adhesives,machined sleeves,overmoulded clamps,ceramic couplings",
+"Harbour master on PO:Portside/Driftwood/Marlin/Windlass/Saltmarsh/Gangway/Lantern/Anchor/Bowsprit/Foghorn/Lighthouse",
+"Subst: site lead 48h notice:Chiffchaff/Linnet/Brambling/Sanderling/Fulmar/Avocet/Jackdaw/Osprey/Bunting/Stonechat/Pintail/Eider/Wryneck/Usher/Crossbill/Bittern/Shrike"
+],
+"commitments": [],
+"open_items": [
+"Delacroix +6% new POs from Apr; Vasquez match?"
+],
+"notes": []
+},
+"mem_chars": 1482,
+"retried": false,
+"ctx_chars_before": 7592
+},
+{
+"stage": 12,
+"kind": "compact",
+"memory": {
+"rules": [
+"Ops approves POs;+Finance>=EUR20k;no holds;quote PO no. to vendor",
+"EUR exc SEK:RavenWhitcLomaxArkwrNorth;CZK:LockhPembeIvesoDimmo;DKK:IllinNakamMerriColdrStain;USD:PargeGatehHallwTreha;NOK:LindlQuintGarroMalloCasteSandoHartiEther;JPY:CarroOrmerRadclBrightwellFalkn;AUD:UlverKirkl;GBP:FairbDunmoBlaxl;PLN:FotheMorte;CHF:VenabInger;HUF:JessoZieliKenwa;CAD:ThackNetheAbern",
+"ColdLink:glassfill/optic coat,perfor/c-fibre lining,silicone/borosil adhes,marine/zinc damper,vulcan/forged gasket,ultrason/flex panel,braided clamp,lubric housing,quenched sleeve,nitrile spacer,alu filler,electric coupling",
+"Safety cosign:dielec/thermal/reinf/elastomer/fibreglass membrane,acoustic/hardened/epoxy panel,polymer/inductive damper,titanium/magnetic lining,tungsten sealant,die-cast filler,graphite coat,cryo manifold,heat-treat housing,laminated spacer,tempered adhes,machined sleeve,overmoulded clamp,ceramic coupling,modular fixture,knurled fitting",
+"Brightway:SiskiPetreMerliWheatWhimbNuthaSmewWigeoHeronPipitDippeKnotRedstHobbyPloveTwiteWaxwiMoorhMallaFirecAlbatHawfiDotteEgretYelloBluetScaupKestr",
+"Harbour master on PO:PortsDriftMarliWindlSaltmGangwLanteAnchoBowspFoghoLightMooriTidegHalyaBeacoUnderQuartTilleBreakCobblBolla",
+"Subst:site lead 48h notice:ChiffLinneBrambSandeFulmaAvoceJackdOspreBuntiStonePintaEiderWryneUsherCrossBitteShrikLapwiRookNightDunliQuailCurleRuffGargaTurnsOriolGreen"
+],
+"commitments": [],
+"open_items": [
+"Delacroix+6% Apr:Vasquez match?",
+"Ashdown+4% Jun:Holloway match?",
+"Holloway+6% Jun:Bjornsen match?"
+],
+"notes": [
+"Names = 5-letter prefixes"
+]
+},
+"mem_chars": 1485,
+"retried": false,
+"ctx_chars_before": 7948
+}
+],
+"probe_runs": [
+{
+"checkpoint": "c4",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Delivery to Windlass Jetty: notify harbour master."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Delivery to Windlass Jetty: notify harbour master."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Delivery to Gangway Quay: notify harbour master."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Delivery to Gangway Quay: notify harbour master."
+},
+{
+"request_id": "REQ-8005",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Jackdaw campus has no notification commitment."
+},
+{
+"request_id": "REQ-8006",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Jackdaw campus has no notification commitment."
+},
+{
+"request_id": "REQ-8007",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8008",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Usher campus has no notification commitment. Jardine invoice query, no hold."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Usher campus has no notification commitment."
+},
+{
+"request_id": "REQ-8011",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8012",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8015",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Quail line has no notification commitment."
+},
+{
+"request_id": "REQ-8016",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Quail line has no notification commitment."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+}
+]
+}
+},
+{
+"checkpoint": "c8",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Windlass Jetty delivery: harbour master notice on PO."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Windlass Jetty harbour notice. Delacroix +6% from Apr; check if Vasquez can match."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Gangway Quay delivery: harbour master notice on PO."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Gangway Quay delivery: harbour master notice on PO."
+},
+{
+"request_id": "REQ-8005",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Jackdaw campus substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8006",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Jackdaw campus substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8007",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Moorhen terminal contract clause: Brightway Freight."
+},
+{
+"request_id": "REQ-8008",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Moorhen terminal contract clause: Brightway Freight."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Usher campus substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Usher campus substitution: notify site lead 48h ahead."
+},
+{
+"request_id": "REQ-8011",
+"currency": "HUF",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Jessop Seals paid in HUF."
+},
+{
+"request_id": "REQ-8012",
+"currency": "HUF",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Jessop Seals paid in HUF."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8015",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Quail line has no site-lead notice requirement."
+},
+{
+"request_id": "REQ-8016",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Substitution noted; Quail line has no site-lead notice requirement."
+},
+{
+"request_id": "REQ-8017",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8018",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8019",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+},
+{
+"request_id": "REQ-8020",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": ""
+}
+]
+}
+},
+{
+"checkpoint": "c12",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Windlass Jetty delivery: harbour master on PO."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Windlass Jetty: harbour master. Delacroix +6% since Apr; Vasquez match still open."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Gangway Quay: harbour master on PO. Ashdown +4% next month."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Gangway Quay delivery: harbour master on PO."
+},
+{
+"request_id": "REQ-8005",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Jackdaw substitution: site lead 48h notice."
+},
+{
+"request_id": "REQ-8006",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Jackdaw substitution: site lead 48h notice."
+},
+{
+"request_id": "REQ-8007",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Moorhen contract clause: Brightway Freight."
+},
+{
+"request_id": "REQ-8008",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Moorhen contract clause: Brightway Freight."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Usher substitution: site lead 48h notice."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Usher substitution: site lead 48h notice."
+},
+{
+"request_id": "REQ-8011",
+"currency": "HUF",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Jessop Seals paid in HUF."
+},
+{
+"request_id": "REQ-8012",
+"currency": "HUF",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Jessop Seals paid in HUF."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Hawfinch contract clause: Brightway Freight."
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Hawfinch contract clause: Brightway Freight."
+},
+{
+"request_id": "REQ-8015",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Quail line substitution: site lead 48h notice."
+},
+{
+"request_id": "REQ-8016",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Quail line substitution: site lead 48h notice."
+},
+{
+"request_id": "REQ-8017",
+"currency": "DKK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Stainforth Valves paid in DKK."
+},
+{
+"request_id": "REQ-8018",
+"currency": "DKK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Stainforth Valves paid in DKK."
+},
+{
+"request_id": "REQ-8019",
+"currency": "HUF",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Kenward Metals paid in HUF."
+},
+{
+"request_id": "REQ-8020",
+"currency": "HUF",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Kenward Metals paid in HUF."
+}
+]
+}
+},
+{
+"checkpoint": "c12c",
+"replicate": 0,
+"output": {
+"decisions": [
+{
+"request_id": "REQ-8001",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Windlass Jetty delivery: harbour master on PO."
+},
+{
+"request_id": "REQ-8002",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Harbour master on PO; Delacroix +6% Apr increase still open item."
+},
+{
+"request_id": "REQ-8003",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Gangway Quay: harbour master on PO; Ashdown +4% Jun open item."
+},
+{
+"request_id": "REQ-8004",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"harbour_master"
+],
+"hold": false,
+"note": "Gangway Quay delivery: harbour master on PO."
+},
+{
+"request_id": "REQ-8005",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Substitution at Jackdaw: give site lead 48h notice."
+},
+{
+"request_id": "REQ-8006",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Substitution at Jackdaw: site lead 48h notice; Ashdown +4% open."
+},
+{
+"request_id": "REQ-8007",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Moorhen site ships Brightway; Holloway +6% Jun open item."
+},
+{
+"request_id": "REQ-8008",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Moorhen site ships via Brightway Freight."
+},
+{
+"request_id": "REQ-8009",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Substitution at Usher: give site lead 48h notice."
+},
+{
+"request_id": "REQ-8010",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Substitution at Usher: site lead 48h notice; Bjornsen price-match open."
+},
+{
+"request_id": "REQ-8011",
+"currency": "HUF",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Jessop Seals paid in HUF."
+},
+{
+"request_id": "REQ-8012",
+"currency": "HUF",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Jessop Seals paid in HUF."
+},
+{
+"request_id": "REQ-8013",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Hawfinch site ships Brightway; Holloway +6% Jun open item."
+},
+{
+"request_id": "REQ-8014",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "Brightway Freight",
+"notify": [],
+"hold": false,
+"note": "Hawfinch site ships Brightway; Vasquez match of Delacroix rise open."
+},
+{
+"request_id": "REQ-8015",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Substitution at Quail: site lead 48h notice; Bjornsen price-match open."
+},
+{
+"request_id": "REQ-8016",
+"currency": "EUR",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [
+"client_site_lead"
+],
+"hold": false,
+"note": "Substitution at Quail: give site lead 48h notice."
+},
+{
+"request_id": "REQ-8017",
+"currency": "DKK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Stainforth Valves paid in DKK."
+},
+{
+"request_id": "REQ-8018",
+"currency": "DKK",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Stainforth Valves paid in DKK."
+},
+{
+"request_id": "REQ-8019",
+"currency": "HUF",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Kenward Metals paid in HUF."
+},
+{
+"request_id": "REQ-8020",
+"currency": "HUF",
+"approvers": [
+"ops"
+],
+"carrier": "standard",
+"notify": [],
+"hold": false,
+"note": "Kenward Metals paid in HUF."
+}
+]
+}
+}
+]
+}
+]

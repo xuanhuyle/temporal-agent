@@ -1,0 +1,32 @@
+[
+ {
+  "knob": "thresholds",
+  "q": 1.0,
+  "n_rules": 100,
+  "seeds": 200,
+  "failures": 0,
+  "R_min": 3.82,
+  "R_max": 3.892,
+  "R_mean": 3.859
+ },
+ {
+  "knob": "thresholds",
+  "q": 1.0,
+  "n_rules": 140,
+  "seeds": 200,
+  "failures": 0,
+  "R_min": 5.347,
+  "R_max": 5.41,
+  "R_mean": 5.374
+ },
+ {
+  "knob": "thresholds",
+  "q": 1.0,
+  "n_rules": 153,
+  "seeds": 200,
+  "failures": 15,
+  "R_min": 5.835,
+  "R_max": 5.915,
+  "R_mean": 5.872
+ }
+]
