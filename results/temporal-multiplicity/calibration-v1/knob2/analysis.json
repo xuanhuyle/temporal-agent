@@ -1,0 +1,260 @@
+[
+ {
+  "episode": "Q1",
+  "R": 5.865,
+  "n_rules": 153,
+  "q": 1.0,
+  "compactions": 3,
+  "mem_chars": [
+   1445,
+   1402,
+   1465
+  ],
+  "shorten_retries": 0,
+  "final_accuracy": 1.0,
+  "final_accuracy_probe_mean": 1.0,
+  "regressions": 0,
+  "regressions_probe_mean": 0,
+  "units": [
+   {
+    "rule": "R10",
+    "kind": "CUR",
+    "stage": 1,
+    "params": {
+     "vendor": "Venables Pneumatics",
+     "currency": "GBP"
+    },
+    "thr": 6100,
+    "canonical": "Venables Pneumatics: pay in GBP (PO >= EUR 6,100)",
+    "earlier": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R19",
+    "kind": "COLD",
+    "stage": 2,
+    "params": {
+     "cat": "machined adhesives"
+    },
+    "thr": 10500,
+    "canonical": "machined adhesives: ColdLink (PO >= EUR 10,500)",
+    "earlier": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R44",
+    "kind": "CUR",
+    "stage": 4,
+    "params": {
+     "vendor": "Delacroix Drives",
+     "currency": "CZK"
+    },
+    "thr": 8700,
+    "canonical": "Delacroix Drives: pay in CZK (PO >= EUR 8,700)",
+    "earlier": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R52",
+    "kind": "SUB",
+    "stage": 4,
+    "params": {
+     "client": "Vireo programme"
+    },
+    "thr": 3100,
+    "canonical": "Vireo programme substitutions: notify site lead 48h ahead (PO >= EUR 3,100)",
+    "earlier": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c4": 1.0,
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R70",
+    "kind": "CUR",
+    "stage": 6,
+    "params": {
+     "vendor": "Hallworth Pneumatics",
+     "currency": "USD"
+    },
+    "thr": 5400,
+    "canonical": "Hallworth Pneumatics: pay in USD (PO >= EUR 5,400)",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R86",
+    "kind": "HARBOUR",
+    "stage": 7,
+    "params": {
+     "site": "Lantern Quay"
+    },
+    "thr": 4600,
+    "canonical": "Lantern Quay deliveries: notify harbour master (PO >= EUR 4,600)",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R92",
+    "kind": "COLD",
+    "stage": 8,
+    "params": {
+     "cat": "nitrile fillers"
+    },
+    "thr": 4300,
+    "canonical": "nitrile fillers: ColdLink (PO >= EUR 4,300)",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R94",
+    "kind": "CUR",
+    "stage": 8,
+    "params": {
+     "vendor": "Dimmock Drives",
+     "currency": "DKK"
+    },
+    "thr": 5900,
+    "canonical": "Dimmock Drives: pay in DKK (PO >= EUR 5,900)",
+    "earlier": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c8": 1.0,
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R110",
+    "kind": "CARRIER",
+    "stage": 9,
+    "params": {
+     "client": "Osprey retrofit"
+    },
+    "thr": 6800,
+    "canonical": "Osprey retrofit: Brightway Freight (PO >= EUR 6,800)",
+    "earlier": {
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   },
+   {
+    "rule": "R125",
+    "kind": "CARRIER",
+    "stage": 10,
+    "params": {
+     "client": "Pintail terminal"
+    },
+    "thr": 8500,
+    "canonical": "Pintail terminal: Brightway Freight (PO >= EUR 8,500)",
+    "earlier": {
+     "c12": 1.0
+    },
+    "earlier_probe_mean": {
+     "c12": 1.0
+    },
+    "final": 1.0,
+    "final_probe_mean": 1.0,
+    "regression": false,
+    "regression_probe_mean": false,
+    "in_final_memory": false
+   }
+  ],
+  "null_probe_outputs": 0
+ }
+]

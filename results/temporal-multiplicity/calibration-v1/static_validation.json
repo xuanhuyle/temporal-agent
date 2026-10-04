@@ -1,0 +1,65 @@
+[
+ {
+  "target_R": 0.5,
+  "n_rules": 17,
+  "seeds": 200,
+  "failures": 0,
+  "R_min": 0.473,
+  "R_max": 0.502,
+  "R_mean": 0.489
+ },
+ {
+  "target_R": 0.75,
+  "n_rules": 27,
+  "seeds": 200,
+  "failures": 0,
+  "R_min": 0.745,
+  "R_max": 0.782,
+  "R_mean": 0.763
+ },
+ {
+  "target_R": 1.0,
+  "n_rules": 37,
+  "seeds": 200,
+  "failures": 0,
+  "R_min": 1.003,
+  "R_max": 1.05,
+  "R_mean": 1.025
+ },
+ {
+  "target_R": 1.5,
+  "n_rules": 57,
+  "seeds": 200,
+  "failures": 0,
+  "R_min": 1.513,
+  "R_max": 1.561,
+  "R_mean": 1.537
+ },
+ {
+  "target_R": 2.0,
+  "n_rules": 76,
+  "seeds": 200,
+  "failures": 0,
+  "R_min": 2.005,
+  "R_max": 2.066,
+  "R_mean": 2.035
+ },
+ {
+  "target_R": 2.5,
+  "n_rules": 95,
+  "seeds": 200,
+  "failures": 0,
+  "R_min": 2.478,
+  "R_max": 2.552,
+  "R_mean": 2.516
+ },
+ {
+  "target_R": 4.0,
+  "n_rules": 153,
+  "seeds": 200,
+  "failures": 0,
+  "R_min": 3.977,
+  "R_max": 4.054,
+  "R_mean": 4.015
+ }
+]
