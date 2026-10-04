@@ -25,7 +25,7 @@ from multiplicity import AgentState, Mutation, TemporalMultiplicity
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 EXP_DIR = REPO_ROOT / "experiments" / "multiplicity_long_horizon"
-N_STAGES = 16
+N_STAGES = 20
 CTX_MAX = 7000  # working-context budget (chars) before compaction
 MEM_MAX = 1500  # persistent-memory budget (chars) the compactor must respect
 FIELDS = ("currency", "approvers", "carrier", "notify", "hold")
@@ -68,7 +68,8 @@ PEOPLE = {"finance": "Priya Natarajan (Finance)", "ops": "Marco Bellini (Ops lea
 REQUESTERS = ["Dana Whitlock (Assembly)", "Ibrahim Saleh (Maintenance)", "Grace Lin (R&D)", "Owen Pryce (Field service)",
               "Mei Okonkwo (Projects)", "Lars Ek (Test lab)"]
 DATES = ["Mon 3 Mar", "Mon 10 Mar", "Mon 17 Mar", "Mon 24 Mar", "Mon 31 Mar", "Mon 7 Apr", "Mon 14 Apr", "Tue 22 Apr",
-         "Mon 28 Apr", "Tue 6 May", "Mon 12 May", "Mon 19 May", "Tue 27 May", "Mon 2 Jun", "Mon 9 Jun", "Mon 16 Jun"]
+         "Mon 28 Apr", "Tue 6 May", "Mon 12 May", "Mon 19 May", "Tue 27 May", "Mon 2 Jun", "Mon 9 Jun", "Mon 16 Jun",
+         "Mon 23 Jun", "Mon 30 Jun", "Mon 7 Jul", "Mon 14 Jul"]
 
 FILLER = [
     "The new label printer on the dock is finally working, so no more handwritten pallet tags.",
@@ -114,7 +115,31 @@ DISTRACTOR_RULES = [
     ("finance", "Spend report", "The monthly spend-by-category report is due on the 5th working day. Please export it from the ERP dashboard and drop it in the finance folder."),
     ("qa", "Certificates", "For castings, keep asking vendors for material certificates (3.1) with the delivery. File them under the PO number."),
     ("logistics", "Delivery windows", "Inbound deliveries should be booked between 07:00 and 15:00. Late trucks are turned away by the gatehouse."),
+    ("qa", "First-article inspection", "For any new part number, ask the vendor for a first-article inspection report with the first delivery and file it with the PO."),
+    ("finance", "Vendor onboarding", "New vendors need a completed onboarding form (bank details, VAT number, contact) before their first PO is released in the ERP."),
 ]
+# Redesign (pilot-v2): amount-scoped qualifiers. Fixed sentences, identical across trajectories.
+QUAL_SENDER = {"SUB": "account", "HARBOUR": "logistics", "SAFETY": "ops"}
+
+
+def qualifier_sentence(rule: dict[str, Any]) -> str:
+    p = rule["params"]
+    return {"CUR": f"{p.get('vendor')} orders under EUR 5,000 are the exception: those go on the company card in EUR.",
+            "SAFETY": f"For {(p.get('cats') or ['', ''])[1]} the co-sign is only needed from EUR 10,000.",
+            "SUB": "For substituted orders of EUR 15,000 or more, our account manager must be notified as well.",
+            "HARBOUR": "This only applies to deliveries of EUR 10,000 or more; smaller drops go through the normal gate.",
+            }[rule["kind"]]
+
+
+def qual_entity(rule: dict[str, Any]) -> str:
+    p = rule["params"]
+    return {"CUR": p.get("vendor"), "SAFETY": "Safety co-sign", "SUB": p.get("client"), "HARBOUR": p.get("site")}[rule["kind"]]
+
+
+def rule_sender(rule: dict[str, Any]) -> str:
+    if rule["kind"] == "CUR":
+        return "logistics" if rule["style"] == "aside" else "finance"
+    return QUAL_SENDER[rule["kind"]]
 
 
 def _param_noise(rng: random.Random, date: str, past: list[str]) -> str:
@@ -171,6 +196,17 @@ def _msg(sender_key: str, subject: str, body: str, date: str) -> str:
 
 # ------------------------------------------------------------------ rules (ground truth)
 def _rule_messages(rule: dict[str, Any], rng: random.Random, date: str) -> str:
+    """A born qualifier is placed immediately after the rule sentence it qualifies."""
+    born = (rule.get("qual") or {}).get("mode") == "born"
+    return _rule_message_base(rule, rng, date, (" " + qualifier_sentence(rule)) if born else "")
+
+
+def _amendment_message(rule: dict[str, Any], date: str, orig_date: str) -> str:
+    return _msg(rule_sender(rule), f"{qual_entity(rule)} - clarification",
+                f"Small clarification on what I said on {orig_date}: {qualifier_sentence(rule)}", date)
+
+
+def _rule_message_base(rule: dict[str, Any], rng: random.Random, date: str, q: str = "") -> str:
     k, p = rule["kind"], rule["params"]
     f1, f2 = rng.sample(FILLER, 2)
     aside = rule["style"] == "aside"
@@ -178,16 +214,16 @@ def _rule_messages(rule: dict[str, Any], rng: random.Random, date: str) -> str:
         if aside:
             return _msg("logistics", "re: pallet labels",
                         f"{f1} Also, small thing from {p['vendor']}'s accounts team: their bank keeps bouncing our "
-                        f"EUR transfers, so from now on we pay {p['vendor']} in {p['currency']}. {f2}", date)
+                        f"EUR transfers, so from now on we pay {p['vendor']} in {p['currency']}.{q} {f2}", date)
         return _msg("finance", f"{p['vendor']} payment currency",
                     f"Please note: purchases from {p['vendor']} are to be paid in {p['currency']} going forward "
-                    f"(their banking arrangement changed). All other vendors stay on EUR.", date)
+                    f"(their banking arrangement changed). All other vendors stay on EUR.{q}", date)
     if k == "SAFETY":
         items = rng.sample(NOISE, 3)
         return _msg("ops", "Ops weekly sync - notes",
                     f"1. {items[0][2]}\n2. {items[1][2]}\n3. Jun reminded everyone: any PO for {p['cats'][0]} or "
-                    f"{p['cats'][1]} needs the safety officer's co-sign, whatever the amount.\n4. {items[2][2]}\n"
-                    f"5. AOB: {f1}", date)
+                    f"{p['cats'][1]} needs the safety officer's co-sign{'.' if q else ', whatever the amount.'}{q}"
+                    f"\n4. {items[2][2]}\n5. AOB: {f1}", date)
     if k == "CARRIER":
         if aside:
             return _msg("account", f"{p['client']} kickoff",
@@ -209,12 +245,12 @@ def _rule_messages(rule: dict[str, Any], rng: random.Random, date: str) -> str:
     if k == "SUB":
         return _msg("account", f"Call summary - {p['client']}",
                     f"- They're happy with lead times.\n- {f1}\n- They asked that if we ever substitute a part on one of "
-                    f"their orders, their site lead is notified at least 48 h in advance. We agreed.\n- Next review in Q3.",
+                    f"their orders, their site lead is notified at least 48 h in advance. We agreed.{q}\n- Next review in Q3.",
                     date)
     if k == "HARBOUR":
         return _msg("logistics", f"{p['site']} access",
                     f"{f1} Heads-up: the crane at {p['site']} is now booked through the port authority, so for any "
-                    f"delivery to {p['site']} the harbour master has to be notified on the PO. {f2}", date)
+                    f"delivery to {p['site']} the harbour master has to be notified on the PO.{q} {f2}", date)
     if k == "FIN_T":
         return _msg("finance", "Approval thresholds",
                     "To reduce bottlenecks, Finance co-approval now applies only to POs of EUR 50,000 or more "
@@ -235,8 +271,9 @@ def _rule_messages(rule: dict[str, Any], rng: random.Random, date: str) -> str:
     raise ValueError(k)
 
 
-def truth(ep: dict[str, Any], task: dict[str, Any], t: int) -> dict[str, Any]:
-    """Correct decision for ``task`` given every instruction received up to and including stage ``t``."""
+def truth(ep: dict[str, Any], task: dict[str, Any], t: int, drop_qual: bool = False) -> dict[str, Any]:
+    """Correct decision for ``task`` given every instruction received up to and including stage ``t``.
+    ``drop_qual`` ignores the amount-scoped qualifiers (used only to check that qualifier probes are sensitive)."""
     active = [r for r in ep["rules"] if r["stage"] <= t]
     fin_t = 50000 if any(r["kind"] == "FIN_T" for r in active) else 20000
     out = {"currency": "EUR", "approvers": ["ops"], "carrier": "standard", "notify": [], "hold": False}
@@ -256,6 +293,18 @@ def truth(ep: dict[str, Any], task: dict[str, Any], t: int) -> dict[str, Any]:
     for r in active:  # cold-chain wins over client carrier (never both in generated tasks)
         if r["kind"] == "COLD" and task["category"] == r["params"]["cat"]:
             out["carrier"] = "ColdLink"
+    for r in active:
+        q, p = r.get("qual"), r["params"]
+        if not q or q["stage"] > t or drop_qual:
+            continue
+        if r["kind"] == "CUR" and task["vendor"] == p["vendor"] and task["amount"] < 5000:
+            out["currency"] = "EUR"
+        if r["kind"] == "SAFETY" and task["category"] == p["cats"][1] and task["amount"] < 10000:
+            out["approvers"] = [a for a in out["approvers"] if a != "safety"]
+        if r["kind"] == "SUB" and task["client"] == p["client"] and task["substitution"] and task["amount"] >= 15000:
+            out["notify"].append("account_manager")
+        if r["kind"] == "HARBOUR" and task["site"] == p["site"] and task["amount"] < 10000:
+            out["notify"] = [n for n in out["notify"] if n != "harbour_master"]
     if task["amount"] >= fin_t:
         out["approvers"].append("finance")
     hold = [r for r in active if r["kind"] == "HOLD" and r["params"]["vendor"] == task["vendor"]]
@@ -282,29 +331,36 @@ def make_episode(ep_id: str, seed: int) -> dict[str, Any]:
     others = [v for v in VENDORS if v not in cur_vendors]
     hold_vendor = rng.choice(others)
     plain_vendors = [v for v in others if v != hold_vendor]
-    clients = rng.sample([c for c in CLIENTS if c != "internal R&D"], 2)
-    carrier_client, sub_client = clients
+    clients = rng.sample([c for c in CLIENTS if c != "internal R&D"], 4)
+    carrier_clients, sub_clients = clients[:2], clients[2:]
     plain_clients = [c for c in CLIENTS if c not in clients]
     safety_cats = rng.sample(SAFETY_POOL, 2)
     cold_cat = rng.choice(COLD_POOL)
-    harbour_site = rng.choice(HARBOUR_SITES)
-    plain_sites = [DEFAULT_SITE] + [s for s in SITES if s != harbour_site and s not in HARBOUR_SITES]
+    harbour_sites = rng.sample(HARBOUR_SITES, 2)
+    plain_sites = [DEFAULT_SITE] + [s for s in SITES if s not in HARBOUR_SITES]
 
     probe_rules = [
         {"kind": "CUR", "params": {"vendor": cur_vendors[0], "currency": CURRENCY_FOR[cur_vendors[0]]}},
         {"kind": "CUR", "params": {"vendor": cur_vendors[1], "currency": CURRENCY_FOR[cur_vendors[1]]}},
         {"kind": "SAFETY", "params": {"cats": safety_cats}},
-        {"kind": "CARRIER", "params": {"client": carrier_client}},
+        {"kind": "CARRIER", "params": {"client": carrier_clients[0]}},
+        {"kind": "CARRIER", "params": {"client": carrier_clients[1]}},
         {"kind": "COLD", "params": {"cat": cold_cat}},
-        {"kind": "SUB", "params": {"client": sub_client}},
-        {"kind": "HARBOUR", "params": {"site": harbour_site}},
+        {"kind": "SUB", "params": {"client": sub_clients[0]}},
+        {"kind": "SUB", "params": {"client": sub_clients[1]}},
+        {"kind": "HARBOUR", "params": {"site": harbour_sites[0]}},
+        {"kind": "HARBOUR", "params": {"site": harbour_sites[1]}},
     ]
     rng.shuffle(probe_rules)
-    intro_stages = sorted(rng.sample(range(1, 9), len(probe_rules)))  # all probe rules arrive in stages 1-8
+    intro_stages = sorted(rng.sample(list(range(1, 11)) * 2, len(probe_rules)))  # stages 1-10, at most 2 per stage
     for i, (r, st) in enumerate(zip(probe_rules, intro_stages)):
         r.update(id=f"R{i + 1}", stage=st, probe=True, style=rng.choice(["aside", "formal"]),
-                 reinforced=rng.random() < 0.4)
-    fin_stage, hold_stage, strike_stage = rng.randint(9, 11), rng.randint(4, 7), rng.randint(9, 12)
+                 reinforced=rng.random() < 0.4, qual=None)
+    qualifiable = [r for r in probe_rules if r["kind"] in ("CUR", "SAFETY", "SUB", "HARBOUR")]
+    for j, r in enumerate(rng.sample(qualifiable, 4)):  # 2 born with the rule, 2 amended later
+        r["qual"] = ({"mode": "born", "stage": r["stage"]} if j < 2 else
+                     {"mode": "amended", "stage": min(r["stage"] + rng.randint(2, 4), 13)})
+    fin_stage, hold_stage, strike_stage = rng.randint(10, 13), rng.randint(4, 8), rng.randint(11, 15)
     extra = [
         {"id": "X1", "kind": "FIN_T", "params": {}, "stage": fin_stage},
         {"id": "X2", "kind": "HOLD", "params": {"vendor": hold_vendor}, "stage": hold_stage},
@@ -346,7 +402,9 @@ def make_episode(ep_id: str, seed: int) -> dict[str, Any]:
     for s in range(1, N_STAGES + 1):
         date = DATES[s - 1]
         msgs: list[str] = [_rule_messages(r, rng, date) for r in rules if r["stage"] == s]
-        if s in (2, 5, 8, 11, 14) and distractors:
+        msgs += [_amendment_message(r, date, DATES[r["stage"] - 1]) for r in probe_rules
+                 if (r.get("qual") or {}).get("mode") == "amended" and r["qual"]["stage"] == s]
+        if s in (2, 5, 8, 11, 14, 17, 20) and distractors:
             d = distractors.pop()
             msgs.append(_msg(d[0], d[1], d[2], date))
         while len(msgs) < 5:
@@ -376,33 +434,76 @@ def make_episode(ep_id: str, seed: int) -> dict[str, Any]:
                              "requests": [dict(r, text=request_text(r)) for r in reqs]})
 
     # probes (dev, shown at failure reveal / executed at checkpoints) and held-out tasks (final evaluation only)
-    def probes_for(rule: dict[str, Any], n: int, base: int) -> list[dict[str, Any]]:
+    main_amt = {"CUR": (6000, 19000), "SUB": (2000, 14000), "HARBOUR": (11000, 19000)}
+    qual_amt = {"CUR": (2000, 4500), "SUB": (15500, 19000), "HARBOUR": (2000, 9000), "SAFETY": (2000, 9000)}
+
+    def probes_for(rule: dict[str, Any], n: int, base: int, clause: str) -> list[dict[str, Any]]:
         out = []
         for j in range(n):
             force = trigger(rule)
             if rule["kind"] == "SAFETY":
-                force = {"category": rule["params"]["cats"][j % 2]}
+                force = {"category": rule["params"]["cats"][1 if clause == "qual" else j % 2]}
+            lo_hi = (qual_amt if clause == "qual" else main_amt).get(rule["kind"])
+            if rule["kind"] == "SAFETY" and clause == "main" and force["category"] == rule["params"]["cats"][1]:
+                lo_hi = (11000, 19000)
+            if lo_hi:
+                force["amount"] = _amount(rng, *lo_hi)
             t = plain_task(force)
-            t["id"] = f"REQ-{base + 10 * int(rule['id'][1:]) + j + 1}"
-            t["rule"], t["text"] = rule["id"], request_text(t)
+            t["id"] = f"REQ-{base + 10 * int(rule['id'][1:]) + j + (6 if clause == 'qual' else 1)}"
+            t["rule"], t["clause"], t["text"] = rule["id"], clause, request_text(t)
+            t["eff_stage"] = rule["qual"]["stage"] if clause == "qual" else rule["stage"]
             out.append(t)
         return out
 
-    ep["dev_probes"] = [t for r in probe_rules for t in probes_for(r, 2, 8000)]
-    ep["heldout"] = [t for r in probe_rules for t in probes_for(r, 3, 9000)]
+    clauses = [(r, c) for r in probe_rules for c in (("main", "qual") if r.get("qual") else ("main",))]
+    ep["dev_probes"] = [t for r, c in clauses for t in probes_for(r, 2, 8000, c)]
+    ep["heldout"] = [t for r, c in clauses for t in probes_for(r, 3, 9000, c)]
     _check_invariance(ep)
+    _check_capacity(ep)
     return ep
 
 
+def canonical_rule_line(rule: dict[str, Any]) -> str:
+    p, k = rule["params"], rule["kind"]
+    line = {"CUR": lambda: f"{p['vendor']}: pay in {p['currency']}",
+            "SAFETY": lambda: f"Safety co-sign: {p['cats'][0]}, {p['cats'][1]}",
+            "CARRIER": lambda: f"{p['client']}: Brightway Freight",
+            "COLD": lambda: f"{p['cat']}: ColdLink",
+            "SUB": lambda: f"{p['client']} substitutions: notify site lead 48h ahead",
+            "HARBOUR": lambda: f"{p['site']} deliveries: notify harbour master"}[k]()
+    if rule.get("qual"):
+        line += (f" ({p['cats'][1]} only from EUR 10,000)" if k == "SAFETY" else
+                 {"CUR": " (under EUR 5,000: EUR on company card)", "SUB": " (+ account manager if EUR 15,000+)",
+                  "HARBOUR": " (only EUR 10,000+)"}[k])
+    return line
+
+
+def _check_capacity(ep: dict[str, Any]) -> None:
+    """A perfect compactor must be able to keep every scored rule losslessly in at most half the memory budget."""
+    lines = ["Defaults: EUR; ops approves, finance >= EUR 20,000; standard carrier; hold only if instructed."]
+    lines += [canonical_rule_line(r) for r in ep["rules"] if r.get("probe")]
+    n = sum(len(x) for x in lines)
+    ep["lossless_rule_chars"], ep["lossless_ratio"] = n, round(n / MEM_MAX, 3)
+    assert n <= 0.5 * MEM_MAX, (ep["id"], n)
+
+
 def _check_invariance(ep: dict[str, Any]) -> None:
-    """Probe target fields must not depend on when (after the rule's introduction) the probe is asked."""
+    """Probe target fields must not depend on when (after the clause's effective stage) the probe is asked, and must
+    be sensitive to their clause (main: differs from the default; qual: differs when the qualifier is ignored)."""
     rules = {r["id"]: r for r in ep["rules"]}
     for t in ep["dev_probes"] + ep["heldout"]:
         r = rules[t["rule"]]
         f = target_field(r)
-        vals = {json.dumps(truth(ep, t, s)[f]) for s in range(r["stage"], N_STAGES + 1)}
+        vals = {json.dumps(truth(ep, t, s)[f]) for s in range(t["eff_stage"], N_STAGES + 1)}
         assert len(vals) == 1, (t["id"], f, vals)
-        assert truth(ep, t, N_STAGES)[f] != truth(ep, t, 0)[f], (t["id"], "probe must differ from default")
+        if t["clause"] == "main":
+            assert truth(ep, t, N_STAGES)[f] != truth(ep, t, 0)[f], (t["id"], "probe must differ from default")
+        else:
+            assert truth(ep, t, N_STAGES)[f] != truth(ep, t, N_STAGES, drop_qual=True)[f], (t["id"], "qual-insensitive")
+    for s in ep["stages"]:  # never both a carrier client and the cold category on one request
+        for q in s["requests"]:
+            assert not (any(r["kind"] == "CARRIER" and q["client"] == r["params"]["client"] for r in ep["rules"])
+                        and any(r["kind"] == "COLD" and q["category"] == r["params"]["cat"] for r in ep["rules"]))
 
 
 def target_field(rule: dict[str, Any]) -> str:
@@ -513,40 +614,51 @@ def retained(rule: dict[str, Any], memory: dict[str, Any]) -> bool:
     return all(k.lower() in text for k in RETENTION_KEYS[rule["kind"]](rule["params"]))
 
 
-def probe_accuracy(ep: dict[str, Any], runs: list[dict[str, Any]], cp_id: str) -> dict[str, float]:
-    """Target-field accuracy per probe rule at one checkpoint, pooled over its dev probes and replicates."""
+def units_of(ep: dict[str, Any]) -> list[tuple[str, str]]:
+    """Unit of analysis: (probe rule, clause) with clause in {main, qual}."""
+    return sorted({(t["rule"], t["clause"]) for t in ep["dev_probes"]}, key=lambda u: (int(u[0][1:]), u[1]))
+
+
+def unit_probes(ep: dict[str, Any], unit: tuple[str, str], split: str = "dev_probes") -> list[dict[str, Any]]:
+    return [t for t in ep[split] if (t["rule"], t["clause"]) == unit]
+
+
+def unit_accuracy(ep: dict[str, Any], runs: list[dict[str, Any]], unit: tuple[str, str], split: str = "dev_probes",
+                  key: str = "checkpoint", state_id: str | None = None) -> float | None:
     rules = {r["id"]: r for r in ep["rules"]}
-    hits: dict[str, list[bool]] = {}
+    hits = []
     for run in runs:
-        if run["checkpoint"] != cp_id:
+        if state_id is not None and run.get(key) != state_id:
             continue
         dm = decisions_by_id(run["output"])
-        for t in ep["dev_probes"]:
-            r = rules[t["rule"]]
-            hits.setdefault(r["id"], []).append(field_ok(ep, t, dm.get(t["id"]), target_field(r), N_STAGES))
-    return {k: sum(v) / len(v) for k, v in hits.items()}
+        for t in unit_probes(ep, unit, split):
+            hits.append(field_ok(ep, t, dm.get(t["id"]), target_field(rules[t["rule"]]), N_STAGES))
+    return sum(hits) / len(hits) if hits else None
 
 
 def headroom(ep: dict[str, Any], traj: dict[str, Any]) -> dict[str, Any]:
     cps = traj["checkpoints"]
     final = cps[-1]
+    rules = {r["id"]: r for r in ep["rules"]}
+    comps = [e for e in traj["log"] if e["kind"] == "compact"]
     rows = []
-    for r in (x for x in ep["rules"] if x.get("probe")):
-        curve = [(cp["id"], cp["stage"], probe_accuracy(ep, traj["probe_runs"], cp["id"]).get(r["id"], 0.0),
-                  retained(r, cp["memory"]) or any(k.lower() in " ".join(c["text"] for c in cp["context"]).lower()
-                                                   for k in RETENTION_KEYS[r["kind"]](r["params"])[:1]))
+    for unit in units_of(ep):
+        r, eff = rules[unit[0]], unit_probes(ep, unit)[0]["eff_stage"]
+        curve = [(cp["id"], cp["stage"], cp["kind"], unit_accuracy(ep, traj["probe_runs"], unit, state_id=cp["id"]))
                  for cp in cps]
-        known = [c for c in curve if c[1] >= r["stage"]]
+        known = [c for c in curve if c[1] >= eff and c[3] is not None]
         earlier = [c for c in known if c[0] != final["id"]]
-        best = max(earlier, key=lambda c: c[2]) if earlier else None
-        cur = curve[-1][2]
-        rows.append({"rule": r["id"], "kind": r["kind"], "stage": r["stage"], "style": r["style"],
-                     "reinforced": r["reinforced"], "params": r["params"],
-                     "pre_intro_acc": max([c[2] for c in curve if c[1] < r["stage"]] or [0.0]),
-                     "best_earlier": best and {"checkpoint": best[0], "acc": best[2]}, "final_acc": cur,
-                     "headroom": (best[2] - cur) if best else 0.0,
+        best = max(earlier, key=lambda c: c[3]) if earlier else None
+        cur = curve[-1][3] or 0.0
+        drop = next((c for c in known if best and known.index(c) > known.index(best) and c[3] <= 0.5), None)
+        rows.append({"rule": unit[0], "clause": unit[1], "kind": r["kind"], "stage": r["stage"], "eff_stage": eff,
+                     "qual_mode": (r.get("qual") or {}).get("mode"), "style": r["style"], "reinforced": r["reinforced"],
+                     "params": r["params"], "best_earlier": best and {"checkpoint": best[0], "acc": best[3]},
+                     "final_acc": cur, "headroom": (best[3] - cur) if best else 0.0,
+                     "first_drop": drop and {"checkpoint": drop[0], "kind": drop[2]},
+                     "compactions_after_eff": sum(1 for e in comps if e["stage"] >= eff),
                      "retained_in_final_memory": retained(r, final["memory"]),
-                     "curve": [(c[0], round(c[2], 2)) for c in curve]})
+                     "curve": [(c[0], None if c[3] is None else round(c[3], 2)) for c in curve]})
     lifetime = []
     stage_tasks = {s["stage"]: s["requests"] for s in ep["stages"]}
     for entry in traj["log"]:
@@ -555,127 +667,77 @@ def headroom(ep: dict[str, Any], traj: dict[str, Any]) -> dict[str, Any]:
         dm = decisions_by_id(entry["output"])
         for t in stage_tasks[entry["stage"]]:
             lifetime.append(all(field_ok(ep, t, dm.get(t["id"]), f, entry["stage"]) for f in FIELDS))
-    comp = [e for e in traj["log"] if e["kind"] == "compact"]
-    return {"episode": ep["id"], "rules": rows, "compactions": len(comp),
-            "compaction_stages": [e["stage"] for e in comp], "mem_chars": [e["mem_chars"] for e in comp],
-            "lifetime_full_accuracy": sum(lifetime) / max(1, len(lifetime)), "final_checkpoint": final["id"]}
+    nulls = sum(1 for x in traj["probe_runs"] if not x["output"])
+    return {"episode": ep["id"], "rules": rows, "compactions": len(comps),
+            "compaction_stages": [e["stage"] for e in comps], "mem_chars": [e["mem_chars"] for e in comps],
+            "lossless_ratio": ep.get("lossless_ratio"), "null_probe_outputs": nulls,
+            "probe_runs": len(traj["probe_runs"]),
+            "lifetime_full_accuracy": sum(lifetime) / max(1, len(lifetime)), "final_checkpoint": final["id"],
+            "compaction_failed": any(e["kind"] == "compaction_failed" for e in traj["log"])}
 
 
-# ------------------------------------------------------------------ investigation cases (conditions A / B / C)
-INVESTIGATE = EXP_DIR / "investigate.js"
+# ------------------------------------------------------------------ headroom gate confirmation (dev probes only)
+def candidates(hr: dict[str, Any]) -> list[dict[str, Any]]:
+    """Pre-committed thresholds (pilot-v1 regressed_rules): best earlier - final >= 0.5 and final <= 0.5."""
+    return [r for r in hr["rules"] if r["headroom"] >= 0.5 and r["final_acc"] <= 0.5]
 
 
-def archive_of(traj: dict[str, Any]) -> list[dict[str, str]]:
-    """Immutable raw record: every message, request and decision the agent ever had in its working context."""
-    seen: dict[str, str] = {}
-    for cp in traj["checkpoints"]:
-        for r in cp["context"]:
-            seen.setdefault(r["id"], r["text"])
-    return [{"id": k, "text": v} for k, v in seen.items()]
-
-
-def regressed_rules(hr: dict[str, Any], min_headroom: float = 0.5) -> list[dict[str, Any]]:
-    return [r for r in hr["rules"] if r["headroom"] >= min_headroom and r["final_acc"] <= 0.5]
-
-
-def make_cases(ep: dict[str, Any], traj: dict[str, Any], hr: dict[str, Any], conds: tuple[str, ...] = ("A", "B", "C"),
-               steps: dict[str, int] | None = None, max_exec: int = 4) -> list[dict[str, Any]]:
-    steps = steps or {"A": 8, "B": 8, "C": 4}
-    rules = {r["id"]: r for r in ep["rules"]}
+def confirm_script(ep: dict[str, Any], traj: dict[str, Any], hr: dict[str, Any], reps: int = 4) -> str | None:
     final = traj["checkpoints"][-1]
+    cps = {c["id"]: c for c in traj["checkpoints"]}
     finals = [run for run in traj["probe_runs"] if run["checkpoint"] == final["id"]]
-    out = []
-    for reg in regressed_rules(hr):
-        r = rules[reg["rule"]]
-        failing = []
-        for t in (x for x in ep["dev_probes"] if x["rule"] == r["id"]):
-            for run in finals:  # first replicate in which the current agent got the target field wrong
-                d = decisions_by_id(run["output"]).get(t["id"])
-                if not field_ok(ep, t, d, target_field(r), N_STAGES):
-                    failing.append({"id": t["id"], "text": t["text"], "current_decision": d})
-                    break
-        if not failing:
-            continue
-        truth_by_cp = {cp["id"]: {f["id"]: truth(ep, next(t for t in ep["dev_probes"] if t["id"] == f["id"]), cp["stage"])
-                                  for f in failing} for cp in traj["checkpoints"]}
-        for cond in conds:
-            out.append({"id": f"{ep['id']}-{r['id']}", "episode": ep["id"], "rule": r["id"], "cond": cond,
-                        "steps": steps[cond], "max_exec": max_exec if cond == "C" else 0, "stages": N_STAGES,
-                        "current": final, "failing": failing, "archive": archive_of(traj),
-                        "checkpoints": traj["checkpoints"] if cond != "A" else [], "truth": truth_by_cp})
-    return out
-
-
-def investigation_script(cases: list[dict[str, Any]], name: str) -> str:
-    data = {"ctx_max": CTX_MAX, "mem_max": MEM_MAX, "s0_memory": S0_MEMORY, "cases": cases}
-    body = INVESTIGATE.read_text() + "\nreturn await parallel(DATA.cases.map((c) => () => runCase(c)))"
-    return workflow_script(name, "Regression investigation + one-item repair: conditions A/B/C with matched budgets",
-                           ["Investigate", "Retrieval", "Execute history"], data, body)
-
-
-def candidate_entries(ep: dict[str, Any], traj: dict[str, Any], rule_id: str) -> list[dict[str, Any]]:
-    """Offline repair candidates for regret: the rule's own raw message plus every historical memory entry that
-    mentions the rule's entity (deduplicated)."""
-    r = next(x for x in ep["rules"] if x["id"] == rule_id)
-    key = RETENTION_KEYS[r["kind"]](r["params"])[0].lower()
-    arch = {a["id"]: a["text"] for a in archive_of(traj)}
-    out = []
-    for s in ep["stages"]:
-        if s["stage"] == r["stage"]:
-            for m in s["messages"]:
-                if all(k.lower() in m["text"].lower() for k in RETENTION_KEYS[r["kind"]](r["params"])):
-                    out.append({"source": "archive", "id": m["id"], "text": arch.get(m["id"], m["text"])})
-    seen = set()
-    for cp in traj["checkpoints"]:
-        for sec, entries in cp["memory"].items():
-            for i, e in enumerate(entries):
-                if key in e.lower() and e not in seen:
-                    seen.add(e)
-                    out.append({"source": "checkpoint", "checkpoint": cp["id"], "section": sec, "index": i, "text": e})
-    return out
-
-
-def resolve_repair(traj: dict[str, Any], repair: dict[str, Any] | None) -> str | None:
-    """Text of the item a condition chose to restore, or None if the choice is invalid."""
-    if not repair:
-        return None
-    if repair.get("source") == "archive":
-        return next((a["text"] for a in archive_of(traj) if a["id"] == str(repair.get("id", "")).strip()), None)
-    cp = next((c for c in traj["checkpoints"] if c["id"] == repair.get("checkpoint")), None)
-    try:
-        return cp["memory"][repair["section"]][int(repair["index"])] if cp else None
-    except (KeyError, IndexError, TypeError, ValueError):
-        return None
-
-
-def replace_key(final: dict[str, Any], repair: dict[str, Any]) -> str | None:
-    rep = str((repair or {}).get("replace") or "").strip()
-    try:
-        sec, idx = rep.split(":")
-        return f"mem:{sec}:{int(idx)}" if sec in ("rules", "notes") and int(idx) < len(final["memory"].get(sec, [])) else None
-    except ValueError:
-        return None
-
-
-def heldout_script(ep: dict[str, Any], states: list[dict[str, Any]], reps: int, name: str) -> str:
-    tasks = [{"id": t["id"], "text": t["text"]} for t in ep["heldout"]]
-    data = {"ctx_max": CTX_MAX, "mem_max": MEM_MAX, "s0_memory": S0_MEMORY, "tasks": tasks, "states": states, "reps": reps}
-    body = ("const jobs = []\nfor (const s of DATA.states) for (let r = 0; r < DATA.reps; r++) jobs.push({ s, r })\n"
-            "const out = await parallel(jobs.map(({ s, r }) => () => callAgent(decidePrompt(s, DATA.tasks), DECISIONS, "
-            "`heldout:${s.id}:r${r}`, 'Held-out').then((o) => ({ state: s.id, replicate: r, output: o }))))\n"
-            "return out.filter(Boolean)")
-    return workflow_script(name, "Held-out evaluation of current, repaired and candidate states", ["Held-out"], data, body)
-
-
-def heldout_accuracy(ep: dict[str, Any], runs: list[dict[str, Any]], state_id: str, rule_id: str | None) -> float:
     rules = {r["id"]: r for r in ep["rules"]}
-    hits = []
-    for run in (x for x in runs if x["state"] == state_id):
-        dm = decisions_by_id(run["output"])
-        for t in ep["heldout"]:
-            if rule_id is None or t["rule"] == rule_id:
-                hits.append(field_ok(ep, t, dm.get(t["id"]), target_field(rules[t["rule"]]), N_STAGES))
-    return sum(hits) / len(hits) if hits else 0.0
+    units = []
+    for c in candidates(hr):
+        unit = (c["rule"], c["clause"])
+        probes = unit_probes(ep, unit)
+        failing = next((t for t in probes for run in finals if not field_ok(
+            ep, t, decisions_by_id(run["output"]).get(t["id"]), target_field(rules[t["rule"]]), N_STAGES)), probes[0])
+        units.append({"unit": f"{ep['id']}:{c['rule']}:{c['clause']}", "best": cps[c["best_earlier"]["checkpoint"]],
+                      "final": final, "probes": [{"id": t["id"], "text": t["text"]} for t in probes],
+                      "query": failing["text"]})
+    if not units:
+        return None
+    data = {"ctx_max": CTX_MAX, "mem_max": MEM_MAX, "s0_memory": S0_MEMORY, "reps": reps, "units": units,
+            "archive": archive_of(traj)}
+    body = INVESTIGATE.read_text() + """
+const C0 = { archive: DATA.archive }
+const out = await parallel(DATA.units.map((u) => async () => {
+  const runs = []
+  for (const [tag, st] of [['best', u.best], ['final', u.final]])
+    for (let r = 0; r < DATA.reps; r++) runs.push(callAgent(decidePrompt(st, u.probes), DECISIONS, `confirm:${u.unit}:${tag}:r${r}`, 'Confirm')
+      .then((o) => ({ tag, replicate: r, output: o })))
+  const ids = await search(C0, u.query, `confirm:${u.unit}:search`)
+  const rec = DATA.archive.find((x) => x.id === ids[0])
+  const repaired = { ...u.final, memory: { ...u.final.memory, rules: [...(u.final.memory.rules || []), rec ? rec.text : ''] } }
+  for (let r = 0; r < DATA.reps; r++) runs.push(callAgent(decidePrompt(repaired, u.probes), DECISIONS, `confirm:${u.unit}:retrieval:r${r}`, 'Confirm')
+    .then((o) => ({ tag: 'retrieval', replicate: r, output: o })))
+  return { unit: u.unit, retrieved: ids, runs: await Promise.all(runs) }
+}))
+return out.filter(Boolean)"""
+    return workflow_script(f"tmk-lh-confirm-{ep['id'].lower()}", "Headroom gate: fresh replicates + single-retrieval check",
+                           ["Confirm", "Retrieval"], data, body)
+
+
+def gate(ep: dict[str, Any], hr: dict[str, Any], confirm: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rules = {r["id"]: r for r in ep["rules"]}
+    out = []
+    for c in confirm:
+        _, rid, clause = c["unit"].split(":")
+        unit = (rid, clause)
+
+        def acc(tag: str) -> float:
+            runs = [r for r in c["runs"] if r["tag"] == tag]
+            return unit_accuracy(ep, runs, unit) or 0.0
+        e, f, rtv = acc("best"), acc("final"), acc("retrieval")
+        confirmed = e - f >= 0.5 and f <= 0.5
+        retrieved = (c["retrieved"] or [None])[0]
+        rule_msgs = {m["id"] for s in ep["stages"] for m in s["messages"] if rules[rid]["params"] and any(
+            k.lower() in m["text"].lower() for k in RETENTION_KEYS[rules[rid]["kind"]](rules[rid]["params"])[:1])}
+        out.append({"unit": c["unit"], "fresh_best": e, "fresh_final": f, "fresh_retrieval_repair": rtv,
+                    "confirmed": confirmed, "trivial": rtv >= 0.75, "retrieved": retrieved,
+                    "retrieved_mentions_entity": retrieved in rule_msgs})
+    return out
 
 
 def load_result(path: Path) -> Any:
@@ -687,8 +749,9 @@ def load_result(path: Path) -> Any:
 # ------------------------------------------------------------------ CLI
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    p.add_argument("step", choices=["episodes", "trajectory-scripts", "headroom", "case-scripts", "heldout-scripts",
-                                     "score"])
+    p.add_argument("step", choices=["episodes", "trajectory-scripts", "headroom", "confirm-scripts", "gate",
+                                     "case-scripts", "heldout-scripts", "score"])
+    p.add_argument("--confirm", nargs="+", type=Path)
     p.add_argument("--trajectories", nargs="+", type=Path)
     p.add_argument("--headroom", type=Path)
     p.add_argument("--conds", nargs="+", default=["A", "B", "C"])
@@ -748,17 +811,44 @@ def main(argv: list[str] | None = None) -> int:
                                                                               f"tmk-lh-heldout-{a.tag}-{eid.lower()}"))
             (a.out / f"heldout_{a.tag}_{eid}.plan.json").write_text(json.dumps(plan, indent=1))
             print(eid, len(states), "states x", a.reps, "reps")
+    elif a.step == "confirm-scripts":
+        eps = {e["id"]: e for e in json.loads(a.episodes.read_text())["episodes"]}
+        hrs = {h["episode"]: h for h in json.loads(a.headroom.read_text())}
+        a.out.mkdir(parents=True, exist_ok=True)
+        for t in (load_result(x) for x in a.trajectories):
+            script = confirm_script(eps[t["episode"]], t, hrs[t["episode"]])
+            print(t["episode"], "candidates:", len(candidates(hrs[t["episode"]])))
+            if script:
+                (a.out / f"confirm_{t['episode']}.js").write_text(script)
+    elif a.step == "gate":
+        eps = {e["id"]: e for e in json.loads(a.episodes.read_text())["episodes"]}
+        hrs = {h["episode"]: h for h in json.loads(a.headroom.read_text())}
+        res = {}
+        for x in a.confirm or []:
+            conf = load_result(x)
+            eid = conf[0]["unit"].split(":")[0] if conf else None
+            if eid:
+                res[eid] = gate(eps[eid], hrs[eid], conf)
+        passing = [eid for eid, rows in res.items() if any(r["confirmed"] and not r["trivial"] for r in rows)]
+        for eid in hrs:
+            print(eid, "candidates", len(candidates(hrs[eid])))
+            for r in res.get(eid, []):
+                print("  ", r)
+        verdict = "PASS" if len(passing) >= 2 else "NO_HEADROOM"
+        print("trajectories with confirmed non-trivial regressions:", passing, "->", verdict)
+        a.out.write_text(json.dumps({"units": res, "passing": passing, "gate": verdict}, indent=1) + "\n")
     elif a.step == "headroom":
         eps = {e["id"]: e for e in json.loads(a.episodes.read_text())["episodes"]}
         trajs = [load_result(t) for t in a.trajectories]
         out = [headroom(eps[t["episode"]], t) for t in trajs]
         for h in out:
             print(f"\n{h['episode']}: compactions {h['compactions']} at stages {h['compaction_stages']}, mem chars "
-                  f"{h['mem_chars']}, lifetime full-decision accuracy {h['lifetime_full_accuracy']:.2f}")
+                  f"{h['mem_chars']}, lossless ratio {h['lossless_ratio']}, null probe outputs {h['null_probe_outputs']}/"
+                  f"{h['probe_runs']}, lifetime full-decision accuracy {h['lifetime_full_accuracy']:.2f}")
             for r in h["rules"]:
-                print(f"  {r['rule']} {r['kind']:8s} st{r['stage']:>2} {r['style']:6s} reinf={r['reinforced']!s:5s} "
-                      f"pre={r['pre_intro_acc']:.2f} best={r['best_earlier']} final={r['final_acc']:.2f} "
-                      f"headroom={r['headroom']:+.2f} mem={r['retained_in_final_memory']}")
+                print(f"  {r['rule']:>3} {r['clause']:4s} {r['kind']:8s} eff{r['eff_stage']:>2} q={r['qual_mode']!s:7s} "
+                      f"{r['style']:6s} reinf={r['reinforced']!s:5s} best={r['best_earlier']} final={r['final_acc']:.2f} "
+                      f"headroom={r['headroom']:+.2f} drop={r['first_drop']} mem={r['retained_in_final_memory']}")
         a.out.write_text(json.dumps(out, indent=1) + "\n")
     else:
         a.out.mkdir(parents=True, exist_ok=True)
