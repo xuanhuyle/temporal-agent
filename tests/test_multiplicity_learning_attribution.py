@@ -76,3 +76,13 @@ def test_v2_regret_is_against_the_best_learn_forget_pair():
     assert rows["multiplicity"]["regret"] == pytest.approx(0) and rows["multiplicity"]["chose_best"]
     assert rows["baseline"]["regret"] == pytest.approx(0.4) and not rows["baseline"]["chose_best"]
     assert rows["baseline"]["attribution_truth"] == {m: "no_effect" for m in ep["learned"]}
+
+
+def test_resolve_key_maps_sentences_to_exactly_one_named_key():
+    keys = ["EXPR", "HEAVY", "MEMO"]
+    assert la.resolve_key("EXPR", keys) == "EXPR"
+    assert la.resolve_key("Learn EXPR and forget EXAMPLES.", keys) == "EXPR"
+    assert la.resolve_key("EXPR or HEAVY", keys) is None  # ambiguous: never guessed
+    assert la.resolve_key("nothing", keys) is None
+    assert la.resolve_key("MEMO_R", ["MEMO", "BASE"]) is None  # no partial-token matches
+    assert la.resolve_key("forget MEMO_R", ["MEMO_R", "BASE"]) == "MEMO_R"

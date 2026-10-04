@@ -26,6 +26,7 @@ import argparse
 import json
 import math
 import random
+import re
 from pathlib import Path
 from typing import Any
 
@@ -288,6 +289,20 @@ def effect_class(delta: float) -> str:
     return "no_effect"
 
 
+def resolve_key(answer: Any, keys: list[str]) -> str | None:
+    """Map a free-text answer ("Learn EXPR and forget EXAMPLES.") to the one module key it names, else None.
+
+    Benchmark scoring fix (applied identically to every condition): subjects sometimes answer with a sentence
+    instead of the bare key. An answer naming zero or several of the allowed keys stays unresolved (scored as
+    an invalid choice), so this never guesses.
+    """
+    text = str(answer or "").strip()
+    if text in keys:
+        return text
+    named = [k for k in keys if re.search(rf"(?<![A-Za-z0-9_]){re.escape(k)}(?![A-Za-z0-9_])", text)]
+    return named[0] if len(named) == 1 else None
+
+
 def score_decisions(data: dict[str, Any], evals: dict[str, Any], decisions: list[dict[str, Any]]) -> dict[str, Any]:
     eps = {e["id"]: e for e in data["episodes"]}
     rows = []
@@ -296,19 +311,20 @@ def score_decisions(data: dict[str, Any], evals: dict[str, Any], decisions: list
         held = evals[ep["id"]]["heldout"]
         s3 = held["S3"]["acc"]
         out = d.get("output") or {}
+        cand = resolve_key(out.get("choice"), ep["candidates"])
         if ep.get("design") == "v2":  # action = (learn candidate, forget learned module)
             gains = {f"{c}/-{x}": held[f"S3-{x}+{c}"]["acc"] - s3 for c in ep["candidates"] for x in ep["learned"]}
-            choice = f"{out.get('choice')}/-{out.get('forget')}"
+            choice = f"{cand}/-{resolve_key(out.get('forget'), ep['learned'])}"
         else:
             gains = {c: held[f"S3+{c}"]["acc"] - s3 for c in ep["candidates"]}
-            choice = out.get("choice")
+            choice = cand
         best = max(gains.values())
         truth = {m: effect_class(s3 - held[f"S3-{m}"]["acc"]) for m in ep["learned"]}
         attrib = out.get("attribution") or {}
         hits = sum(1 for m in ep["learned"] if str(attrib.get(m, "")).strip().lower() == truth[m])
         rows.append({
             "episode": ep["id"], "condition": d["condition"], "repeat": d.get("repeat", 0),
-            "choice": choice, "choice_gain": gains.get(choice), "best_gain": best,
+            "choice": choice, "raw_choice": [out.get("choice"), out.get("forget")], "choice_gain": gains.get(choice), "best_gain": best,
             "regret": (best - gains[choice]) if choice in gains else None,
             "chose_best": choice in gains and gains[choice] == best,
             "gains": gains, "attribution": attrib, "attribution_truth": truth,
